@@ -355,36 +355,6 @@
             color: #155724;
             word-break: break-all;
         }
-
-        .topup-section {
-            background: #e7f3ff;
-            border: 2px solid #4a90e2;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .topup-header {
-            color: #4a90e2;
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .topup-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .calculation-note {
-            background: #fff3cd;
-            border-left: 3px solid #ffc107;
-            padding: 8px;
-            margin-top: 8px;
-            font-size: 11px;
-            color: #856404;
-        }
     </style>
 </head>
 <body>
@@ -417,53 +387,6 @@
             <div id="mainForm" class="hidden">
                 <div class="alert" id="statusAlert">
                     ✓ Terhubung ke Google Sheets & Drive (Gratis)
-                </div>
-
-                <!-- OCR Section - 3 Gambar -->
-                <div class="form-section">
-                    <div class="section-title">📸 OCR Auto-Detect (Upload 3 Gambar)</div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>🟢 Gambar 1 - GoPay/JC (OCR → JC Usage)</label>
-                            <input type="file" id="ocrJc" accept="image/*" onchange="processOCR('jc', this)">
-                            <div id="ocrJcResult" style="margin-top:5px; font-size:12px; color:#00aa13;"></div>
-                        </div>
-                        <div class="form-group">
-                            <label>🟢 Gambar 2 - BILLFAZZ/GR (OCR → GR Usage - 2000)</label>
-                            <input type="file" id="ocrGr" accept="image/*" onchange="processOCR('gr', this)">
-                            <div id="ocrGrResult" style="margin-top:5px; font-size:12px; color:#00b14f;"></div>
-                        </div>
-                        <div class="form-group">
-                            <label>🟠 Gambar 3 - ShopeePay/HD (OCR → HD Usage)</label>
-                            <input type="file" id="ocrHd" accept="image/*" onchange="processOCR('hd', this)">
-                            <div id="ocrHdResult" style="margin-top:5px; font-size:12px; color:#ee4d2d;"></div>
-                        </div>
-                    </div>
-                    <div class="progress-box" id="ocrProgressBox">
-                        <div id="ocrProgressText">🔍 Membaca gambar...</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="ocrProgressFill"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Top Up Section (Frontend Only) -->
-                <div class="topup-section">
-                    <div class="topup-header">💰 Top Up (Tidak masuk Sheet - untuk perhitungan saja)</div>
-                    <div class="topup-row">
-                        <div class="form-group">
-                            <label>Top Up GoPay (JC)</label>
-                            <input type="number" id="topupJc" placeholder="0" onchange="calcAll()">
-                        </div>
-                        <div class="form-group">
-                            <label>Top Up BILLFAZZ (GR)</label>
-                            <input type="number" id="topupGr" placeholder="0" onchange="calcAll()">
-                        </div>
-                        <div class="form-group">
-                            <label>Top Up ShopeePay (HD)</label>
-                            <input type="number" id="topupHd" placeholder="0" onchange="calcAll()">
-                        </div>
-                    </div>
                 </div>
 
                 <div class="form-section">
@@ -507,8 +430,8 @@
                                     <input type="number" id="grabStart" placeholder="0" onchange="calcEnding('grab')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage (OCR - 2000)</label>
-                                    <input type="number" id="grabUsage" placeholder="OCR auto" readonly style="background: #e9ecef;">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="grabUsage" placeholder="OCR" readonly style="background: #e9ecef;">
                                 </div>
                             </div>
                             
@@ -517,8 +440,14 @@
                                 <input type="number" id="grabEnd" placeholder="0" readonly style="background: #d4edda; font-weight: bold;">
                             </div>
 
-                            <div class="calculation-note">
-                                💡 GR = OCR - 2000 (biaya admin BILLFAZZ)
+                            <div class="file-input-wrapper">
+                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
+                                <input type="file" id="grabInvoice" accept="image/*" onchange="doOCR('grab', this)">
+                            </div>
+
+                            <div id="grabDetected" class="detected-box">
+                                <div class="label">OCR Terdeteksi</div>
+                                <div class="amount" id="grabAmount">Rp 0</div>
                             </div>
 
                             <div class="file-input-wrapper" style="margin-top: 8px;">
@@ -537,14 +466,24 @@
                                     <input type="number" id="jcStart" placeholder="0" onchange="calcEnding('jc')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage (OCR)</label>
-                                    <input type="number" id="jcUsage" placeholder="OCR auto" readonly style="background: #e9ecef;">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="jcUsage" placeholder="OCR" readonly style="background: #e9ecef;">
                                 </div>
                             </div>
                             
                             <div class="form-group">
                                 <label>Ending Balance</label>
                                 <input type="number" id="jcEnd" placeholder="0" readonly style="background: #d4edda; font-weight: bold;">
+                            </div>
+
+                            <div class="file-input-wrapper">
+                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
+                                <input type="file" id="jcInvoice" accept="image/*" onchange="doOCR('jc', this)">
+                            </div>
+
+                            <div id="jcDetected" class="detected-box" style="background: linear-gradient(135deg, #00aa13 0%, #28a745 100%);">
+                                <div class="label">OCR Terdeteksi</div>
+                                <div class="amount" id="jcAmount">Rp 0</div>
                             </div>
 
                             <div class="file-input-wrapper" style="margin-top: 8px;">
@@ -563,14 +502,24 @@
                                     <input type="number" id="hdStart" placeholder="0" onchange="calcEnding('hd')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage (OCR)</label>
-                                    <input type="number" id="hdUsage" placeholder="OCR auto" readonly style="background: #e9ecef;">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="hdUsage" placeholder="OCR" readonly style="background: #e9ecef;">
                                 </div>
                             </div>
                             
                             <div class="form-group">
                                 <label>Ending Balance</label>
                                 <input type="number" id="hdEnd" placeholder="0" readonly style="background: #f8d7da; font-weight: bold;">
+                            </div>
+
+                            <div class="file-input-wrapper">
+                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
+                                <input type="file" id="hdInvoice" accept="image/*" onchange="doOCR('hd', this)">
+                            </div>
+
+                            <div id="hdDetected" class="detected-box" style="background: linear-gradient(135deg, #ee4d2d 0%, #ff6b35 100%);">
+                                <div class="label">OCR Terdeteksi</div>
+                                <div class="amount" id="hdAmount">Rp 0</div>
                             </div>
 
                             <div class="file-input-wrapper" style="margin-top: 8px;">
@@ -649,21 +598,23 @@
             location.reload();
         }
 
-        // ============================================
-        // OCR PROCESSING - 3 GAMBAR
-        // ============================================
-        
-        async function processOCR(platform, input) {
+        function calcEnding(platform) {
+            const start = parseInt(document.getElementById(platform + 'Start').value) || 0;
+            const usage = parseInt(document.getElementById(platform + 'Usage').value) || 0;
+            const end = Math.max(0, start - usage);
+            document.getElementById(platform + 'End').value = end;
+        }
+
+        async function doOCR(platform, input) {
             const file = input.files[0];
             if (!file) return;
 
-            const progressBox = document.getElementById('ocrProgressBox');
-            const progressFill = document.getElementById('ocrProgressFill');
-            const progressText = document.getElementById('ocrProgressText');
-            const resultDiv = document.getElementById('ocr' + platform.charAt(0).toUpperCase() + platform.slice(1) + 'Result');
+            const box = document.getElementById('progressBox');
+            const fill = document.getElementById('progressFill');
+            const text = document.getElementById('progressText');
             
-            progressBox.classList.add('active');
-            progressText.textContent = `🔍 OCR ${platform.toUpperCase()}...`;
+            box.classList.add('active');
+            text.textContent = `🔍 OCR ${platform.toUpperCase()}...`;
 
             try {
                 const result = await Tesseract.recognize(
@@ -672,111 +623,58 @@
                     {
                         logger: m => {
                             if (m.status === 'recognizing text') {
-                                progressFill.style.width = (m.progress * 100) + '%';
+                                fill.style.width = (m.progress * 100) + '%';
                             }
                         }
                     }
                 );
 
-                const text = result.data.text.toLowerCase();
-                let total = 0;
-
-                // Extract berdasarkan platform
-                if (platform === 'jc') {
-                    // GoPay: cari angka dengan -Rp atau pembelian
-                    total = extractFromGoPay(text);
-                } else if (platform === 'gr') {
-                    // BILLFAZZ: cari top up, kurangi 2000
-                    const rawTotal = extractFromBillFazz(text);
-                    total = Math.max(0, rawTotal - 2000); // Kurangi 2000
-                } else if (platform === 'hd') {
-                    // ShopeePay: cari pembayaran
-                    total = extractFromShopeePay(text);
-                }
-
-                // Update field
+                const total = extractTotal(result.data.text, platform);
+                
                 document.getElementById(platform + 'Usage').value = total;
+                document.getElementById(platform + 'Amount').textContent = 'Rp ' + formatNumber(total);
+                document.getElementById(platform + 'Detected').classList.add('active');
+                
                 calcEnding(platform);
                 
-                // Show result
-                const platformNames = { jc: 'JC (GoPay)', gr: 'GR (BILLFAZZ -2000)', hd: 'HD (ShopeePay)' };
-                resultDiv.innerHTML = `✅ ${platformNames[platform]}: <strong>Rp ${formatNumber(total)}</strong>`;
-                
-                progressBox.classList.remove('active');
+                box.classList.remove('active');
                 
             } catch (e) {
-                resultDiv.innerHTML = `❌ Error: ${e.message}`;
-                progressBox.classList.remove('active');
+                alert('OCR gagal: ' + e.message);
+                box.classList.remove('active');
             }
         }
 
-        function extractFromGoPay(text) {
-            // Cari pattern: -RpXX.XXX atau RpXX.XXX diikuti GoPay Saldo
+        function extractTotal(text, platform) {
             const lines = text.split('\n');
-            let maxAmount = 0;
+            let candidates = [];
             
-            for (const line of lines) {
-                // Cari angka negatif (pembelian)
-                const negMatch = line.match(/-[\s]*rp[\s]*([\d.,]+)/i);
-                if (negMatch) {
-                    const clean = negMatch[1].replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > maxAmount && val < 1000000) maxAmount = val;
+            const keywords = {
+                grab: ['total harga', 'total', 'dibayar'],
+                jc: ['total dibayar', 'total pembayaran', 'dibayar'],
+                hd: ['total', 'pembayaran', 'dibayar']
+            };
+            
+            const keys = keywords[platform] || ['total'];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].toLowerCase();
+                for (let k of keys) {
+                    if (line.includes(k) && !line.includes('subtotal')) {
+                        const context = lines.slice(i, i+3).join(' ');
+                        const matches = context.match(/[\d.,]+/g) || [];
+                        for (let m of matches) {
+                            const clean = m.replace(/[.,]/g, '');
+                            const val = parseInt(clean);
+                            if (val > 1000 && val < 10000000) candidates.push(val);
+                        }
+                    }
                 }
             }
             
-            return maxAmount;
+            candidates.sort((a, b) => b - a);
+            return candidates[0] || 0;
         }
-
-        function extractFromBillFazz(text) {
-            // Cari top up amount sebelum dikurangi 2000
-            const match = text.match(/\+[\s]*rp[\s]*([\d.,]+)/i) || 
-                           text.match(/top[\s]*up[\s]*.*?([\d.,]+)/i);
-            if (match) {
-                const clean = match[1].replace(/[.,]/g, '');
-                return parseInt(clean) || 0;
-            }
-            return 0;
-        }
-
-        function extractFromShopeePay(text) {
-            // Cari pembayaran ShopeeFood
-            const lines = text.split('\n');
-            let maxAmount = 0;
-            
-            for (const line of lines) {
-                // Cari angka negatif
-                const negMatch = line.match(/-[\s]*rp[\s]*([\d.,]+)/i);
-                if (negMatch) {
-                    const clean = negMatch[1].replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > maxAmount && val < 1000000) maxAmount = val;
-                }
-            }
-            
-            return maxAmount;
-        }
-
-        // ============================================
-        // CALCULATIONS
-        // ============================================
-
-        function calcEnding(platform) {
-            const start = parseInt(document.getElementById(platform + 'Start').value) || 0;
-            const usage = parseInt(document.getElementById(platform + 'Usage').value) || 0;
-            const end = Math.max(0, start - usage);
-            document.getElementById(platform + 'End').value = end;
-        }
-
-        function calcAll() {
-            calcEnding('jc');
-            calcEnding('gr');
-            calcEnding('hd');
-        }
-
-        // ============================================
-        // SUBMIT TO SHEETS
-        // ============================================
 
         async function submitAll() {
             const btn = document.getElementById('btnSubmit');
@@ -786,24 +684,25 @@
             btn.textContent = '⏳ Mengupload...';
             resultBox.classList.remove('active');
 
-            // Data untuk sheet (TANPA topup!)
+            // URUTAN DATA WAJIB SESUAI BACKEND!
             const data = {
+                // A-D: Info dasar
                 timestamp: new Date().toLocaleString('id-ID'),
                 admin: document.getElementById('adminName').value,
                 date: document.getElementById('transDate').value,
                 phoneCode: document.getElementById('phoneCode').value,
                 
-                // E-G: Grab (sudah dikurangi 2000)
+                // E-G: Grab (Saldo Awal, Usage, Ending)
                 grabStart: parseInt(document.getElementById('grabStart').value) || 0,
                 grabUsage: parseInt(document.getElementById('grabUsage').value) || 0,
                 grabEnd: parseInt(document.getElementById('grabEnd').value) || 0,
                 
-                // H-J: JC
+                // H-J: JC (Saldo Awal, Usage, Ending)
                 jcStart: parseInt(document.getElementById('jcStart').value) || 0,
                 jcUsage: parseInt(document.getElementById('jcUsage').value) || 0,
                 jcEnd: parseInt(document.getElementById('jcEnd').value) || 0,
                 
-                // K-M: HD
+                // K-M: HD (Saldo Awal, Usage, Ending)
                 hdStart: parseInt(document.getElementById('hdStart').value) || 0,
                 hdUsage: parseInt(document.getElementById('hdUsage').value) || 0,
                 hdEnd: parseInt(document.getElementById('hdEnd').value) || 0,
@@ -836,36 +735,34 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'no-cors', // Penting untuk CORS
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify(data)
                 });
                 
-                // Simpan juga topup ke local storage (untuk referensi)
-                const fullData = {
-                    ...data,
-                    topupJc: document.getElementById('topupJc').value || 0,
-                    topupGr: document.getElementById('topupGr').value || 0,
-                    topupHd: document.getElementById('topupHd').value || 0,
-                    driveLinks: { status: 'Uploaded' }
-                };
-                
-                localData.unshift(fullData);
+                // Karena no-cors, kita anggap sukses dan cek local
+                // Save locally sebagai backup
+                data.driveLinks = { status: 'Uploaded' };
+                localData.unshift(data);
                 localStorage.setItem('ojol_local_data', JSON.stringify(localData));
                 
                 renderTable();
                 clearForm();
                 
+                // Tampilkan sukses
                 resultBox.classList.add('active');
                 document.getElementById('resultLinks').innerHTML = `
                     ✅ Data tersimpan di Google Sheets<br>
                     ✅ Screenshots di Google Drive<br>
-                    <small>Top Up tidak masuk sheet (hanya perhitungan)</small>
+                    <small>Check spreadsheet Anda untuk memastikan</small>
                 `;
                 
             } catch (e) {
-                alert('❌ Error: ' + e.message);
+                alert('❌ Error: ' + e.message + '\n\nData disimpan local sebagai backup.');
                 
+                // Fallback: save locally
                 localData.unshift(data);
                 localStorage.setItem('ojol_local_data', JSON.stringify(localData));
                 renderTable();
@@ -893,17 +790,12 @@
                 document.getElementById(p + 'Start').value = '';
                 document.getElementById(p + 'Usage').value = '';
                 document.getElementById(p + 'End').value = '';
+                document.getElementById(p + 'Detected').classList.remove('active');
             });
-            document.getElementById('topupJc').value = '';
-            document.getElementById('topupGr').value = '';
-            document.getElementById('topupHd').value = '';
             document.getElementById('remarks').value = '';
             document.getElementById('ssGrab').value = '';
             document.getElementById('ssJc').value = '';
             document.getElementById('ssHd').value = '';
-            document.getElementById('ocrJcResult').innerHTML = '';
-            document.getElementById('ocrGrResult').innerHTML = '';
-            document.getElementById('ocrHdResult').innerHTML = '';
             document.getElementById('resultBox').classList.remove('active');
         }
 
