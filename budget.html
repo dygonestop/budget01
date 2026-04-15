@@ -196,23 +196,31 @@
         .platform-hd { border-left-color: #ee4d2d !important; }
 
         .total-highlight {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00b14f 0%, #00aa13 100%);
             color: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
             text-align: center;
             margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .total-highlight .label {
             font-size: 12px;
             opacity: 0.9;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .total-highlight .amount {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .total-highlight .note {
+            font-size: 11px;
+            opacity: 0.8;
             margin-top: 5px;
         }
 
@@ -337,7 +345,7 @@
             padding: 15px;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 11px;
             max-height: 200px;
             overflow-y: auto;
             margin-top: 15px;
@@ -355,13 +363,49 @@
         .confidence-high { background: #d4edda; color: #155724; }
         .confidence-medium { background: #fff3cd; color: #856404; }
         .confidence-low { background: #f8d7da; color: #721c24; }
+
+        .price-breakdown {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .price-breakdown-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .edit-total {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+
+        .edit-total input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 11px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🧾 OCR Invoice Ojek Online</h1>
-            <p>Upload invoice Grab, GoFood, atau ShopeeFood untuk ekstrak data otomatis</p>
+            <p>Auto-detect total AKHIR setelah diskon & biaya</p>
             <div class="platform-badges">
                 <span class="badge gr">GR - Grab</span>
                 <span class="badge jc">JC - GoFood</span>
@@ -374,18 +418,18 @@
             <div class="upload-section" id="dropZone">
                 <div class="upload-icon">📤</div>
                 <div class="upload-text">
-                    <strong>Drag & Drop</strong> invoice di sini atau <strong>klik untuk browse</strong><br>
-                    <small>Support: JPG, PNG, JPEG (Max 10MB)</small>
+                    <strong>Drag & Drop</strong> invoice di sini<br>
+                    <small>Total AKHIR akan terdeteksi otomatis (setelah diskon)</small>
                 </div>
                 <input type="file" id="fileInput" class="file-input" accept="image/*">
                 <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-                    Pilih Gambar
+                    Pilih Gambar Invoice
                 </button>
             </div>
 
             <!-- Progress Section -->
             <div class="progress-section" id="progressSection">
-                <div class="progress-text">🔍 Sedang membaca teks dari gambar...</div>
+                <div class="progress-text">🔍 Membaca total akhir (setelah diskon)...</div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
@@ -399,7 +443,7 @@
                         <img id="previewImage" src="" alt="Preview">
                     </div>
                     <div class="result-panel" id="resultPanel">
-                        <h3>📊 Hasil Analisis</h3>
+                        <h3>📊 Hasil Ekstraksi</h3>
                         <div class="detected-info" id="detectedInfo">
                             <div class="info-row">
                                 <span class="info-label">Platform:</span>
@@ -414,27 +458,35 @@
                                 <span class="info-value" id="dateResult">-</span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Total Harga:</span>
-                                <span class="info-value" id="totalResult">-</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Confidence:</span>
-                                <span class="info-value" id="confidenceResult">-</span>
+                                <span class="info-label">No. Order:</span>
+                                <span class="info-value" id="orderResult">-</span>
                             </div>
                         </div>
                         
+                        <div class="price-breakdown" id="priceBreakdown" style="display: none;">
+                            <div class="price-breakdown-title">📝 Detail Terdeteksi:</div>
+                            <div id="breakdownContent"></div>
+                        </div>
+
                         <div class="total-highlight">
-                            <div class="label">Total yang Terdeteksi</div>
+                            <div class="label">💰 Total Akhir Dibayar</div>
                             <div class="amount" id="finalTotal">Rp 0</div>
+                            <div class="note">Sudah termasuk diskon & biaya layanan</div>
+                        </div>
+
+                        <div class="edit-total">
+                            <small>Koreksi manual jika perlu:</small>
+                            <input type="text" id="manualTotal" placeholder="Contoh: 32800">
+                            <button class="btn-primary btn-small" onclick="updateManualTotal()">Update Total</button>
                         </div>
 
                         <button class="btn-primary" onclick="saveToTable()" style="width: 100%; margin-top: 15px;">
                             💾 Simpan ke Riwayat
                         </button>
 
-                        <div style="margin-top: 20px;">
+                        <div style="margin-top: 15px;">
                             <small style="color: #666; cursor: pointer;" onclick="toggleRawOCR()">
-                                🔍 Lihat teks OCR mentahan (debug)
+                                🔍 Debug: Lihat teks OCR mentahan
                             </small>
                             <div class="ocr-raw" id="ocrRaw" style="display: none;"></div>
                         </div>
@@ -444,7 +496,7 @@
 
             <!-- Data Table -->
             <div style="margin-top: 30px;">
-                <h3 style="margin-bottom: 15px;">📋 Riwayat Transaksi</h3>
+                <h3 style="margin-bottom: 15px;">📋 Riwayat Transaksi (Total Akhir)</h3>
                 <div id="tableContainer">
                     <div class="empty-state">
                         <p>Belum ada data. Upload invoice untuk memulai.</p>
@@ -454,8 +506,8 @@
 
             <!-- Export Section -->
             <div class="export-section" id="exportSection" style="display: none;">
-                <button class="btn-primary" onclick="exportToCSV()">📥 Export ke CSV</button>
-                <button class="btn-primary" onclick="exportToJSON()" style="margin-left: 10px;">📥 Export ke JSON</button>
+                <button class="btn-primary" onclick="exportToCSV()">📥 Export CSV</button>
+                <button class="btn-primary" onclick="exportToJSON()" style="margin-left: 10px;">📥 Export JSON</button>
                 <button class="btn-delete" onclick="clearAllData()" style="margin-left: 10px;">🗑️ Hapus Semua</button>
             </div>
         </div>
@@ -463,7 +515,7 @@
 
     <script>
         // Data storage
-        let transactions = JSON.parse(localStorage.getItem('ocr_transactions') || '[]');
+        let transactions = JSON.parse(localStorage.getItem('ocr_transactions_v2') || '[]');
         let currentData = null;
         let rawOCRText = '';
 
@@ -506,40 +558,35 @@
 
         // Process Image with OCR
         async function processImage(file) {
-            // Reset
             previewSection.classList.remove('active');
             progressSection.classList.add('active');
             
-            // Show preview
             const reader = new FileReader();
             reader.onload = (e) => {
                 previewImage.src = e.target.result;
             };
             reader.readAsDataURL(file);
 
-            // OCR Processing
             try {
                 const result = await Tesseract.recognize(
                     file,
-                    'ind+eng', // Indonesian + English
+                    'ind+eng',
                     {
                         logger: m => {
                             if (m.status === 'recognizing text') {
                                 const progress = Math.round(m.progress * 100);
                                 progressFill.style.width = progress + '%';
-                                progressDetail.textContent = `${progress}% - ${m.status}`;
+                                progressDetail.textContent = `${progress}%`;
                             }
                         }
                     }
                 );
 
                 rawOCRText = result.data.text;
-                console.log('OCR Result:', result);
+                console.log('OCR Raw:', rawOCRText);
                 
-                // Parse data
                 currentData = parseInvoiceData(rawOCRText, file.name);
                 
-                // Display results
                 displayResults(currentData);
                 
                 progressSection.classList.remove('active');
@@ -547,12 +594,12 @@
                 
             } catch (error) {
                 console.error('OCR Error:', error);
-                alert('Terjadi kesalahan saat membaca gambar. Coba gambar dengan kualitas lebih baik.');
+                alert('Gagal membaca gambar. Coba gambar lebih jelas.');
                 progressSection.classList.remove('active');
             }
         }
 
-        // Parse Invoice Data
+        // IMPROVED: Parse Invoice Data - Focus on FINAL total
         function parseInvoiceData(text, filename) {
             const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             const fullText = text.toLowerCase();
@@ -564,12 +611,29 @@
             if (fullText.includes('grab') || fullText.includes('grabfood')) {
                 platform = 'Grab';
                 code = 'GR';
-            } else if (fullText.includes('gofood') || fullText.includes('gojek')) {
+            } else if (fullText.includes('gofood') || fullText.includes('gojek') || fullText.includes('total dibayar')) {
                 platform = 'GoFood';
                 code = 'JC';
             } else if (fullText.includes('shopeefood') || fullText.includes('shopee')) {
                 platform = 'ShopeeFood';
                 code = 'HD';
+            }
+
+            // Extract Order Number
+            let orderNumber = '-';
+            const orderPatterns = [
+                /no\.?\s*order[:\s]*([A-Z0-9\-]+)/i,
+                /id\s*transaksi[:\s]*([A-Z0-9\-]+)/i,
+                /no\.?\s*pesanan[:\s]*([A-Z0-9\-]+)/i,
+                /order\s*id[:\s]*([A-Z0-9\-]+)/i
+            ];
+            
+            for (let pattern of orderPatterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    orderNumber = match[1];
+                    break;
+                }
             }
 
             // Extract Date
@@ -589,95 +653,206 @@
                 }
             }
 
-            // Extract Total Price - Multiple strategies
-            let total = 0;
+            // ============================================
+            // STRATEGI BARU: Cari TOTAL AKHIR/FINAL
+            // ============================================
+            
+            let finalTotal = 0;
             let totalStr = '-';
+            let breakdown = [];
+            let confidence = 'Low';
+
+            // Keywords untuk total AKHIR (prioritas tinggi)
+            const finalTotalKeywords = [
+                'total harga',      // Grab
+                'total dibayar',    // GoFood
+                'total pembayaran', // Umum
+                'total bayar',      // Umum
+                'pembayaran',       // ShopeeFood
+                'dibayar',          // Umum
+                'total'             // Fallback
+            ];
+
+            // Keywords untuk dihindari (subtotal, sebelum diskon)
+            const avoidKeywords = [
+                'subtotal',
+                'total harga barang',
+                'jumlah',
+                'qty',
+                'item'
+            ];
+
+            // Cari baris dengan keyword final total
+            let candidateLines = [];
             
-            // Strategy 1: Look for "Total Harga", "Total dibayar", "Total Pembayaran"
-            const totalKeywords = ['total harga', 'total dibayar', 'total pembayaran', 'total bayar', 'total', 'dibayar', 'pembayaran'];
-            
-            for (let line of lines) {
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
                 const lowerLine = line.toLowerCase();
-                for (let keyword of totalKeywords) {
+                
+                // Skip jika mengandung keyword yang harus dihindari
+                let shouldAvoid = false;
+                for (let avoid of avoidKeywords) {
+                    if (lowerLine.includes(avoid) && !lowerLine.includes('total harga')) {
+                        shouldAvoid = true;
+                        break;
+                    }
+                }
+                if (shouldAvoid) continue;
+
+                // Cek apakah mengandung keyword final total
+                for (let keyword of finalTotalKeywords) {
                     if (lowerLine.includes(keyword)) {
-                        // Extract numbers after keyword
-                        const afterKeyword = line.substring(lowerLine.indexOf(keyword) + keyword.length);
-                        const numbers = afterKeyword.match(/[\d.,]+/g);
-                        if (numbers) {
-                            // Try each number found
-                            for (let num of numbers) {
-                                const cleanNum = num.replace(/[.,]/g, '');
-                                if (cleanNum.length >= 4) { // Likely a price
-                                    const val = parseInt(cleanNum);
-                                    if (val > total && val < 10000000) { // Reasonable range
-                                        total = val;
-                                        totalStr = 'Rp ' + formatNumber(val);
-                                    }
-                                }
-                            }
-                        }
+                        // Extract angka dari baris ini dan beberapa baris setelahnya
+                        candidateLines.push({
+                            line: line,
+                            index: i,
+                            keyword: keyword,
+                            context: lines.slice(i, Math.min(i + 3, lines.length)).join(' ')
+                        });
+                        break;
                     }
                 }
             }
 
-            // Strategy 2: Look for Rp/IDR patterns with large numbers
-            if (total === 0) {
-                const rpPattern = /(?:rp|idr)?\s*[\d.,]{5,}/gi;
-                const matches = text.match(rpPattern) || [];
+            // Strategy 1: Ambil angka terbesar dari candidate lines (biasanya total akhir)
+            let allCandidates = [];
+            
+            for (let candidate of candidateLines) {
+                // Cari semua angka dalam format Rupiah
+                const rpMatches = candidate.context.match(/rp\.?\s*[\d.,]+/gi) || [];
+                const numberMatches = candidate.context.match(/\d[\d.,]{3,}/g) || [];
                 
-                for (let match of matches) {
+                for (let match of [...rpMatches, ...numberMatches]) {
                     const clean = match.replace(/[^0-9]/g, '');
                     const val = parseInt(clean);
-                    if (val > total && val > 1000 && val < 10000000) {
-                        total = val;
-                        totalStr = 'Rp ' + formatNumber(val);
+                    
+                    if (val > 1000 && val < 10000000) {
+                        allCandidates.push({
+                            value: val,
+                            line: candidate.line,
+                            keyword: candidate.keyword,
+                            context: candidate.context
+                        });
                     }
                 }
             }
 
-            // Strategy 3: Look for numbers near bottom (usually total)
-            if (total === 0) {
-                const bottomLines = lines.slice(-10); // Last 10 lines
-                for (let line of bottomLines) {
-                    const numbers = line.match(/\d[\d.,]{3,}/g);
-                    if (numbers) {
-                        for (let num of numbers) {
-                            const clean = num.replace(/[.,]/g, '');
-                            const val = parseInt(clean);
-                            if (val > total && val > 1000 && val < 10000000) {
-                                total = val;
-                                totalStr = 'Rp ' + formatNumber(val);
-                            }
-                        }
+            // Urutkan dari besar ke kecil, ambil yang paling besar (asumsi: total akhir > subtotal)
+            allCandidates.sort((a, b) => b.value - a.value);
+            
+            if (allCandidates.length > 0) {
+                // Ambil kandidat terbesar yang masuk akal
+                for (let candidate of allCandidates) {
+                    // Jika ada "total harga" atau "total dibayar" dengan angka besar, itu yang kita cari
+                    if (candidate.keyword === 'total harga' || candidate.keyword === 'total dibayar') {
+                        finalTotal = candidate.value;
+                        totalStr = 'Rp ' + formatNumber(finalTotal);
+                        breakdown.push(`✓ Terdeteksi: "${candidate.keyword}" = Rp ${formatNumber(candidate.value)}`);
+                        confidence = 'High';
+                        break;
+                    }
+                }
+                
+                // Jika belum ketemu, ambil yang terbesar
+                if (finalTotal === 0 && allCandidates.length > 0) {
+                    finalTotal = allCandidates[0].value;
+                    totalStr = 'Rp ' + formatNumber(finalTotal);
+                    breakdown.push(`⚠ Fallback: Angka terbesar = Rp ${formatNumber(finalTotal)}`);
+                    confidence = 'Medium';
+                }
+            }
+
+            // Strategy 2: Pattern khusus per platform
+            if (finalTotal === 0) {
+                // Grab pattern: "Total Harga" diikuti angka
+                const grabPattern = /total\s*harga[^\d]*([\d.,]+)/i;
+                const grabMatch = text.match(grabPattern);
+                if (grabMatch) {
+                    const clean = grabMatch[1].replace(/[.,]/g, '');
+                    const val = parseInt(clean);
+                    if (val > 1000) {
+                        finalTotal = val;
+                        totalStr = 'Rp ' + formatNumber(finalTotal);
+                        breakdown.push(`✓ Grab pattern: Total Harga = Rp ${formatNumber(val)}`);
+                        confidence = 'High';
+                    }
+                }
+
+                // GoFood pattern: "Total dibayar" atau angka setelahnya
+                const gofoodPattern = /total\s*dibayar[^\d]*([\d.,]+)/i;
+                const gofoodMatch = text.match(gofoodPattern);
+                if (gofoodMatch && finalTotal === 0) {
+                    const clean = gofoodMatch[1].replace(/[.,]/g, '');
+                    const val = parseInt(clean);
+                    if (val > 1000) {
+                        finalTotal = val;
+                        totalStr = 'Rp ' + formatNumber(finalTotal);
+                        breakdown.push(`✓ GoFood pattern: Total dibayar = Rp ${formatNumber(val)}`);
+                        confidence = 'High';
+                    }
+                }
+
+                // ShopeeFood pattern: angka di bagian bawah setelah "Total"
+                const shopeePattern = /total[^\d]*([\d.,]{5,})/i;
+                const shopeeMatch = text.match(shopeePattern);
+                if (shopeeMatch && finalTotal === 0) {
+                    const clean = shopeeMatch[1].replace(/[.,]/g, '');
+                    const val = parseInt(clean);
+                    if (val > 1000) {
+                        finalTotal = val;
+                        totalStr = 'Rp ' + formatNumber(finalTotal);
+                        breakdown.push(`✓ ShopeeFood pattern: Total = Rp ${formatNumber(val)}`);
+                        confidence = 'High';
                     }
                 }
             }
 
-            // Calculate confidence
-            let confidence = 'Low';
-            if (platform !== 'Unknown' && total > 0) confidence = 'High';
-            else if (platform !== 'Unknown' || total > 0) confidence = 'Medium';
+            // Strategy 3: Ambil angka Rp terbesar dari seluruh teks (last resort)
+            if (finalTotal === 0) {
+                const allRpMatches = text.match(/rp\.?\s*[\d.,]+/gi) || [];
+                let maxVal = 0;
+                
+                for (let match of allRpMatches) {
+                    const clean = match.replace(/[^0-9]/g, '');
+                    const val = parseInt(clean);
+                    if (val > maxVal && val > 1000 && val < 10000000) {
+                        maxVal = val;
+                    }
+                }
+                
+                if (maxVal > 0) {
+                    finalTotal = maxVal;
+                    totalStr = 'Rp ' + formatNumber(finalTotal);
+                    breakdown.push(`⚠ Last resort: Rp terbesar = Rp ${formatNumber(maxVal)}`);
+                    confidence = 'Low';
+                }
+            }
+
+            // Update confidence jika platform terdeteksi
+            if (platform !== 'Unknown' && finalTotal > 0) {
+                confidence = confidence === 'Low' ? 'Medium' : 'High';
+            }
 
             return {
                 id: Date.now(),
                 platform,
                 code,
                 date: date !== '-' ? date : new Date().toLocaleDateString('id-ID'),
-                total,
+                orderNumber,
+                total: finalTotal,
                 totalStr,
-                rawText: text.substring(0, 500),
+                breakdown,
+                rawText: text.substring(0, 800),
                 filename,
                 confidence,
                 timestamp: new Date().toISOString()
             };
         }
 
-        // Format number with thousand separator
         function formatNumber(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        // Display Results
         function displayResults(data) {
             const panel = document.getElementById('detectedInfo');
             panel.className = 'detected-info platform-' + data.code.toLowerCase();
@@ -686,37 +861,61 @@
                 `${data.platform} <span class="tag tag-${data.code.toLowerCase()}">${data.code}</span>`;
             document.getElementById('codeResult').textContent = data.code;
             document.getElementById('dateResult').textContent = data.date;
-            document.getElementById('totalResult').textContent = data.totalStr;
-            document.getElementById('confidenceResult').innerHTML = 
-                `<span class="confidence-badge confidence-${data.confidence.toLowerCase()}">${data.confidence}</span>`;
+            document.getElementById('orderResult').textContent = data.orderNumber;
             
-            document.getElementById('finalTotal').textContent = data.totalStr !== '-' ? data.totalStr : 'Tidak terdeteksi';
+            document.getElementById('finalTotal').textContent = data.totalStr;
+            
+            // Show breakdown
+            if (data.breakdown.length > 0) {
+                document.getElementById('priceBreakdown').style.display = 'block';
+                document.getElementById('breakdownContent').innerHTML = 
+                    data.breakdown.join('<br>');
+            } else {
+                document.getElementById('priceBreakdown').style.display = 'none';
+            }
+
+            // Set manual input
+            document.getElementById('manualTotal').value = data.total > 0 ? data.total : '';
             
             ocrRaw.textContent = rawOCRText;
         }
 
-        // Toggle Raw OCR
+        function updateManualTotal() {
+            const manual = document.getElementById('manualTotal').value.replace(/[^0-9]/g, '');
+            const val = parseInt(manual);
+            
+            if (val > 0 && currentData) {
+                currentData.total = val;
+                currentData.totalStr = 'Rp ' + formatNumber(val);
+                currentData.confidence = 'Manual';
+                document.getElementById('finalTotal').textContent = currentData.totalStr;
+                alert('Total diupdate menjadi: ' + currentData.totalStr);
+            }
+        }
+
         function toggleRawOCR() {
             ocrRaw.style.display = ocrRaw.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Save to Table
         function saveToTable() {
             if (!currentData) return;
             
+            if (currentData.total === 0) {
+                alert('Total belum terdeteksi! Silakan isi manual terlebih dahulu.');
+                return;
+            }
+            
             transactions.unshift(currentData);
-            localStorage.setItem('ocr_transactions', JSON.stringify(transactions));
+            localStorage.setItem('ocr_transactions_v2', JSON.stringify(transactions));
             
             renderTable();
             
-            // Reset
             previewSection.classList.remove('active');
             currentData = null;
             
-            alert('Data berhasil disimpan!');
+            alert('✅ Data tersimpan! Total: ' + currentData?.totalStr);
         }
 
-        // Render Table
         function renderTable() {
             const container = document.getElementById('tableContainer');
             const exportSection = document.getElementById('exportSection');
@@ -739,9 +938,8 @@
                         <tr>
                             <th>No</th>
                             <th>Platform</th>
-                            <th>Kode</th>
                             <th>Tanggal</th>
-                            <th>Total</th>
+                            <th>Total Akhir</th>
                             <th>Confidence</th>
                             <th>Aksi</th>
                         </tr>
@@ -756,9 +954,8 @@
                         <td>
                             <span class="tag tag-${t.code.toLowerCase()}">${t.platform}</span>
                         </td>
-                        <td>${t.code}</td>
                         <td>${t.date}</td>
-                        <td><strong>${t.totalStr}</strong></td>
+                        <td><strong style="color: #00b14f;">${t.totalStr}</strong></td>
                         <td>
                             <span class="confidence-badge confidence-${t.confidence.toLowerCase()}">${t.confidence}</span>
                         </td>
@@ -775,59 +972,55 @@
             container.innerHTML = html;
         }
 
-        // Delete Transaction
         function deleteTransaction(id) {
             if (confirm('Yakin ingin menghapus data ini?')) {
                 transactions = transactions.filter(t => t.id !== id);
-                localStorage.setItem('ocr_transactions', JSON.stringify(transactions));
+                localStorage.setItem('ocr_transactions_v2', JSON.stringify(transactions));
                 renderTable();
             }
         }
 
-        // Clear All Data
         function clearAllData() {
             if (confirm('Yakin ingin menghapus SEMUA data?')) {
                 transactions = [];
-                localStorage.removeItem('ocr_transactions');
+                localStorage.removeItem('ocr_transactions_v2');
                 renderTable();
             }
         }
 
-        // Export to CSV
         function exportToCSV() {
-            const headers = ['No', 'Platform', 'Kode', 'Tanggal', 'Total (Rp)', 'Confidence', 'Filename', 'Timestamp'];
+            const headers = ['No', 'Platform', 'Kode', 'Tanggal', 'No Order', 'Total Akhir (Rp)', 'Confidence', 'Filename'];
             const rows = transactions.map((t, i) => [
                 i + 1,
                 t.platform,
                 t.code,
                 t.date,
+                t.orderNumber,
                 t.total,
                 t.confidence,
-                t.filename,
-                t.timestamp
+                t.filename
             ]);
 
-            let csv = headers.join(',') + '\n';
+            let csv = '\uFEFF' + headers.join(',') + '\n'; // BOM for Excel
             rows.forEach(row => {
                 csv += row.join(',') + '\n';
             });
 
-            const blob = new Blob([csv], { type: 'text/csv' });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `invoice_data_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `invoice_total_akhir_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
         }
 
-        // Export to JSON
         function exportToJSON() {
             const dataStr = JSON.stringify(transactions, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `invoice_data_${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `invoice_total_akhir_${new Date().toISOString().split('T')[0]}.json`;
             a.click();
         }
 
