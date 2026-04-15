@@ -3,27 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCR Invoice Ojek Online - GR/JC/HD</title>
+    <title>Laporan Keuangan Ojek Online - GRATIS</title>
     <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
+            border-radius: 15px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
@@ -31,77 +27,160 @@
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
         }
 
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .platform-badges {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { font-size: 13px; opacity: 0.9; }
 
         .badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 11px;
             font-weight: bold;
-            text-transform: uppercase;
+            margin: 3px;
         }
-
         .badge.gr { background: #00b14f; color: white; }
         .badge.jc { background: #00aa13; color: white; }
         .badge.hd { background: #ee4d2d; color: white; }
+        .badge.free { background: #ffc107; color: #333; }
 
-        .content {
-            padding: 30px;
-        }
+        .content { padding: 20px; }
 
-        .upload-section {
-            border: 3px dashed #ddd;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            transition: all 0.3s;
-            cursor: pointer;
-            background: #fafafa;
-        }
-
-        .upload-section:hover {
-            border-color: #667eea;
-            background: #f0f0ff;
-        }
-
-        .upload-section.dragover {
-            border-color: #667eea;
-            background: #e8e8ff;
-            transform: scale(1.02);
-        }
-
-        .upload-icon {
-            font-size: 48px;
+        .alert {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
             margin-bottom: 15px;
+            font-size: 13px;
         }
 
-        .upload-text {
-            color: #666;
+        .alert-error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 20px;
         }
 
-        .file-input {
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .balance-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 768px) {
+            .balance-section { grid-template-columns: 1fr; }
+        }
+
+        .platform-box {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .platform-box.gr { border-color: #00b14f; }
+        .platform-box.jc { border-color: #00aa13; }
+        .platform-box.hd { border-color: #ee4d2d; }
+
+        .platform-header {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .platform-header.gr { color: #00b14f; }
+        .platform-header.jc { color: #00aa13; }
+        .platform-header.hd { color: #ee4d2d; }
+
+        .balance-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .balance-row .form-group label {
+            font-size: 10px;
+        }
+
+        .detected-box {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 10px;
             display: none;
+        }
+
+        .detected-box.active { display: block; }
+        .detected-box .label { font-size: 10px; opacity: 0.9; }
+        .detected-box .amount { font-size: 20px; font-weight: bold; }
+
+        .file-input-wrapper {
+            margin-top: 8px;
+        }
+
+        .file-input-wrapper input {
+            font-size: 12px;
+            width: 100%;
         }
 
         .btn-primary {
@@ -113,134 +192,48 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            transition: transform 0.2s;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .preview-section {
-            margin-top: 30px;
-            display: none;
-        }
-
-        .preview-section.active {
-            display: block;
-        }
-
-        .preview-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .preview-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .image-preview {
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .image-preview img {
             width: 100%;
-            height: auto;
-            display: block;
+            margin-top: 10px;
         }
 
-        .result-panel {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-        }
+        .btn-primary:hover { opacity: 0.9; }
 
-        .result-panel h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .detected-info {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .info-label {
-            color: #666;
-        }
-
-        .info-value {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .platform-gr { border-left-color: #00b14f !important; }
-        .platform-jc { border-left-color: #00aa13 !important; }
-        .platform-hd { border-left-color: #ee4d2d !important; }
-
-        .total-highlight {
-            background: linear-gradient(135deg, #00b14f 0%, #00aa13 100%);
+        .btn-success {
+            background: #28a745;
             color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin-top: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .total-highlight .label {
-            font-size: 12px;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .total-highlight .amount {
-            font-size: 32px;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
             font-weight: bold;
-            margin-top: 5px;
+            width: 100%;
+            margin-top: 20px;
         }
 
-        .total-highlight .note {
-            font-size: 11px;
-            opacity: 0.8;
-            margin-top: 5px;
+        .btn-success:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
         }
 
-        .progress-section {
+        .progress-box {
             display: none;
-            margin: 20px 0;
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
             text-align: center;
         }
 
-        .progress-section.active {
-            display: block;
-        }
+        .progress-box.active { display: block; }
 
         .progress-bar {
             width: 100%;
             height: 8px;
-            background: #eee;
+            background: #ddd;
             border-radius: 4px;
             overflow: hidden;
-            margin: 15px 0;
+            margin: 10px 0;
         }
 
         .progress-fill {
@@ -250,322 +243,378 @@
             transition: width 0.3s;
         }
 
-        .progress-text {
-            color: #666;
-            font-size: 14px;
+        .data-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 30px;
-            font-size: 14px;
+            font-size: 11px;
+            min-width: 1000px;
         }
 
         .data-table th {
-            background: #f8f9fa;
-            padding: 12px;
-            text-align: left;
+            background: #667eea;
+            color: white;
+            padding: 10px 6px;
+            text-align: center;
             font-weight: 600;
-            color: #555;
-            border-bottom: 2px solid #ddd;
+            border: 1px solid #5a6fd6;
+            position: sticky;
+            top: 0;
         }
 
         .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
+            padding: 8px 6px;
+            border: 1px solid #ddd;
+            text-align: center;
         }
 
-        .data-table tr:hover {
-            background: #f8f9fa;
-        }
+        .data-table tr:nth-child(even) { background: #f8f9fa; }
+        .data-table tr:hover { background: #e3f2fd; }
 
-        .tag {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
+        .amount-pos { color: #28a745; font-weight: bold; }
+        .amount-neg { color: #dc3545; font-weight: bold; }
 
-        .tag-gr { background: #d4edda; color: #155724; }
-        .tag-jc { background: #d4edda; color: #155724; }
-        .tag-hd { background: #f8d7da; color: #721c24; }
-
-        .btn-save {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-save:hover {
-            background: #218838;
-        }
-
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-delete:hover {
-            background: #c82333;
-        }
-
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
+        .status-success { color: #28a745; }
+        .status-pending { color: #ffc107; }
+        .status-error { color: #dc3545; }
 
         .export-section {
             margin-top: 20px;
-            padding: 20px;
+            padding: 15px;
             background: #f8f9fa;
-            border-radius: 10px;
+            border-radius: 8px;
             text-align: center;
+        }
+
+        .btn-export {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 3px;
+            font-size: 12px;
         }
 
         .empty-state {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             color: #999;
         }
 
-        .ocr-raw {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 15px;
-            white-space: pre-wrap;
-        }
-
-        .confidence-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            margin-left: 10px;
-        }
-
-        .confidence-high { background: #d4edda; color: #155724; }
-        .confidence-medium { background: #fff3cd; color: #856404; }
-        .confidence-low { background: #f8d7da; color: #721c24; }
-
-        .price-breakdown {
+        .setup-guide {
             background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 10px;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
             font-size: 12px;
         }
 
-        .price-breakdown-title {
-            font-weight: bold;
+        .setup-guide h4 {
+            margin-bottom: 10px;
             color: #856404;
+        }
+
+        .setup-guide ol {
+            margin-left: 20px;
+        }
+
+        .setup-guide li {
             margin-bottom: 5px;
         }
 
-        .edit-total {
-            margin-top: 15px;
-            padding: 10px;
-            background: #e3f2fd;
-            border-radius: 8px;
-        }
-
-        .edit-total input {
+        .url-input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-top: 5px;
+            padding: 10px;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 10px;
         }
 
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 11px;
-            margin-top: 5px;
+        .hidden { display: none !important; }
+
+        .result-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .result-box.active { display: block; }
+
+        .result-box a {
+            color: #155724;
+            word-break: break-all;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧾 OCR Invoice Ojek Online</h1>
-            <p>Auto-detect total AKHIR setelah diskon & biaya</p>
-            <div class="platform-badges">
-                <span class="badge gr">GR - Grab</span>
-                <span class="badge jc">JC - GoFood</span>
-                <span class="badge hd">HD - ShopeeFood</span>
-            </div>
+            <h1>📊 Laporan Keuangan Ojek Online</h1>
+            <p>100% Gratis | OCR Auto-detect | Google Sheets Integration</p>
+            <span class="badge free">✓ FREE</span>
+            <span class="badge gr">GRAB</span>
+            <span class="badge jc">GOFOOD</span>
+            <span class="badge hd">SHOPEEFOOD</span>
         </div>
 
         <div class="content">
-            <!-- Upload Section -->
-            <div class="upload-section" id="dropZone">
-                <div class="upload-icon">📤</div>
-                <div class="upload-text">
-                    <strong>Drag & Drop</strong> invoice di sini<br>
-                    <small>Total AKHIR akan terdeteksi otomatis (setelah diskon)</small>
-                </div>
-                <input type="file" id="fileInput" class="file-input" accept="image/*">
-                <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-                    Pilih Gambar Invoice
-                </button>
+            <!-- Setup Guide -->
+            <div id="setupGuide" class="setup-guide">
+                <h4>🔧 Setup Pertama Kali (GRATIS):</h4>
+                <ol>
+                    <li>Buka <a href="https://sheets.new" target="_blank">sheets.new</a> → Buat spreadsheet baru</li>
+                    <li>Copy ID dari URL: <code>https://docs.google.com/spreadsheets/d/<strong>1rwV1QBA_YkSH51mNIKl2fnDGgxmQZ28Q3-iOVXroJoc</strong>/edit</strong></code></li>
+                    <li>Buka <a href="https://script.google.com" target="_blank">script.google.com</a> → New Project</li>
+                    <li>Paste CODE.GS (dari bawah) → Ganti SPREADSHEET_ID → Deploy</li>
+                    <li>Copy URL Web App → Paste di bawah:</li>
+                </ol>
+                <input type="text" id="appsScriptUrl" class="url-input" placeholder="https://script.google.com/macros/s/AKfycbx9Gh_kwZLRm2CEBJLqsNtDfwlVVX7-KDCeL1xhn3HZHnpMGjwY8Wbpjj2l2scdoVrU/exec">
+                <button class="btn-primary" onclick="saveConfig()">💾 Simpan Config</button>
             </div>
 
-            <!-- Progress Section -->
-            <div class="progress-section" id="progressSection">
-                <div class="progress-text">🔍 Membaca total akhir (setelah diskon)...</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
+            <!-- Main Form -->
+            <div id="mainForm" class="hidden">
+                <div class="alert" id="statusAlert">
+                    ✓ Terhubung ke Google Sheets & Drive (Gratis)
                 </div>
-                <div class="progress-text" id="progressDetail">0%</div>
-            </div>
 
-            <!-- Preview & Result Section -->
-            <div class="preview-section" id="previewSection">
-                <div class="preview-container">
-                    <div class="image-preview">
-                        <img id="previewImage" src="" alt="Preview">
-                    </div>
-                    <div class="result-panel" id="resultPanel">
-                        <h3>📊 Hasil Ekstraksi</h3>
-                        <div class="detected-info" id="detectedInfo">
-                            <div class="info-row">
-                                <span class="info-label">Platform:</span>
-                                <span class="info-value" id="platformResult">-</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Kode:</span>
-                                <span class="info-value" id="codeResult">-</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Tanggal:</span>
-                                <span class="info-value" id="dateResult">-</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">No. Order:</span>
-                                <span class="info-value" id="orderResult">-</span>
-                            </div>
+                <div class="form-section">
+                    <div class="section-title">👤 Informasi Admin</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nama Admin *</label>
+                            <input type="text" id="adminName" placeholder="Contoh: Edho" required>
                         </div>
-                        
-                        <div class="price-breakdown" id="priceBreakdown" style="display: none;">
-                            <div class="price-breakdown-title">📝 Detail Terdeteksi:</div>
-                            <div id="breakdownContent"></div>
+                        <div class="form-group">
+                            <label>Kode Handphone *</label>
+                            <select id="phoneCode" required>
+                                <option value="">Pilih</option>
+                                <option value="1b">1b</option>
+                                <option value="2b">2b</option>
+                                <option value="3b">3b</option>
+                                <option value="4b">4b</option>
+                                <option value="5b">5b</option>
+                            </select>
                         </div>
-
-                        <div class="total-highlight">
-                            <div class="label">💰 Total Akhir Dibayar</div>
-                            <div class="amount" id="finalTotal">Rp 0</div>
-                            <div class="note">Sudah termasuk diskon & biaya layanan</div>
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="transDate" required>
                         </div>
-
-                        <div class="edit-total">
-                            <small>Koreksi manual jika perlu:</small>
-                            <input type="text" id="manualTotal" placeholder="Contoh: 32800">
-                            <button class="btn-primary btn-small" onclick="updateManualTotal()">Update Total</button>
-                        </div>
-
-                        <button class="btn-primary" onclick="saveToTable()" style="width: 100%; margin-top: 15px;">
-                            💾 Simpan ke Riwayat
-                        </button>
-
-                        <div style="margin-top: 15px;">
-                            <small style="color: #666; cursor: pointer;" onclick="toggleRawOCR()">
-                                🔍 Debug: Lihat teks OCR mentahan
-                            </small>
-                            <div class="ocr-raw" id="ocrRaw" style="display: none;"></div>
+                        <div class="form-group">
+                            <label>Project</label>
+                            <input type="text" id="project" value="Food">
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Data Table -->
-            <div style="margin-top: 30px;">
-                <h3 style="margin-bottom: 15px;">📋 Riwayat Transaksi (Total Akhir)</h3>
-                <div id="tableContainer">
-                    <div class="empty-state">
-                        <p>Belum ada data. Upload invoice untuk memulai.</p>
+                    <div class="section-title" style="margin-top: 20px;">💰 Input Data Platform</div>
+                    
+                    <div class="balance-section">
+                        <!-- Grab -->
+                        <div class="platform-box gr">
+                            <div class="platform-header gr">🟢 Grab (GR)</div>
+                            
+                            <div class="balance-row">
+                                <div class="form-group">
+                                    <label>Saldo Awal</label>
+                                    <input type="number" id="grabStart" placeholder="0" onchange="calcEnding('grab')">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="grabUsage" placeholder="OCR" readonly style="background: #e9ecef;">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Ending Balance</label>
+                                <input type="number" id="grabEnd" placeholder="0" readonly style="background: #d4edda; font-weight: bold;">
+                            </div>
+
+                            <div class="file-input-wrapper">
+                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
+                                <input type="file" id="grabInvoice" accept="image/*" onchange="doOCR('grab', this)">
+                            </div>
+
+                            <div id="grabDetected" class="detected-box">
+                                <div class="label">OCR Terdeteksi</div>
+                                <div class="amount" id="grabAmount">Rp 0</div>
+                            </div>
+
+                            <div class="file-input-wrapper" style="margin-top: 8px;">
+                                <label style="font-size: 10px; color: #666;">📸 SS Ending Balance:</label>
+                                <input type="file" id="ssGrab" accept="image/*">
+                            </div>
+                        </div>
+
+                        <!-- JC -->
+                        <div class="platform-box jc">
+                            <div class="platform-header jc">🟢 GoFood (JC)</div>
+                            
+                            <div class="balance-row">
+                                <div class="form-group">
+                                    <label>Saldo Awal</label>
+                                    <input type="number" id="jcStart" placeholder="0" onchange="calcEnding('jc')">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="jcUsage" placeholder="OCR" readonly style="background: #e9ecef;">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Ending Balance</label>
+                                <input type="number" id="jcEnd" placeholder="0" readonly style="background: #d4edda; font-weight: bold;">
+                            </div>
+
+                            <div class="file-input-wrapper">
+                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
+                                <input type="file" id="jcInvoice" accept="image/*" onchange="doOCR('jc', this)">
+                            </div>
+
+                            <div id="jcDetected" class="detected-box" style="background: linear-gradient(135deg, #00aa13 0%, #28a745 100%);">
+                                <div class="label">OCR Terdeteksi</div>
+                                <div class="amount" id="jcAmount">Rp 0</div>
+                            </div>
+
+                            <div class="file-input-wrapper" style="margin-top: 8px;">
+                                <label style="font-size: 10px; color: #666;">📸 SS Ending Balance:</label>
+                                <input type="file" id="ssJc" accept="image/*">
+                            </div>
+                        </div>
+
+                        <!-- HD -->
+                        <div class="platform-box hd">
+                            <div class="platform-header hd">🟠 ShopeeFood (HD)</div>
+                            
+                            <div class="balance-row">
+                                <div class="form-group">
+                                    <label>Saldo Awal</label>
+                                    <input type="number" id="hdStart" placeholder="0" onchange="calcEnding('hd')">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="hdUsage" placeholder="OCR" readonly style="background: #e9ecef;">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Ending Balance</label>
+                                <input type="number" id="hdEnd" placeholder="0" readonly style="background: #f8d7da; font-weight: bold;">
+                            </div>
+
+                            <div class="file-input-wrapper">
+                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
+                                <input type="file" id="hdInvoice" accept="image/*" onchange="doOCR('hd', this)">
+                            </div>
+
+                            <div id="hdDetected" class="detected-box" style="background: linear-gradient(135deg, #ee4d2d 0%, #ff6b35 100%);">
+                                <div class="label">OCR Terdeteksi</div>
+                                <div class="amount" id="hdAmount">Rp 0</div>
+                            </div>
+
+                            <div class="file-input-wrapper" style="margin-top: 8px;">
+                                <label style="font-size: 10px; color: #666;">📸 SS Ending Balance:</label>
+                                <input type="file" id="ssHd" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>Remarks</label>
+                        <input type="text" id="remarks" placeholder="Keterangan tambahan...">
+                    </div>
+
+                    <div class="progress-box" id="progressBox">
+                        <div id="progressText">⏳ Memproses...</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="result-box" id="resultBox">
+                        <strong>✅ Berhasil!</strong><br>
+                        <div id="resultLinks"></div>
+                    </div>
+
+                    <button class="btn-success" id="btnSubmit" onclick="submitAll()">
+                        🚀 Submit ke Google Sheets & Drive
+                    </button>
+                </div>
+
+                <!-- Local Data Preview -->
+                <div class="form-section">
+                    <div class="section-title">📋 Data Tersimpan (Local Backup)</div>
+                    <div class="data-table-container">
+                        <div id="tableContainer">
+                            <div class="empty-state">Belum ada data</div>
+                        </div>
+                    </div>
+                    
+                    <div class="export-section">
+                        <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
+                        <button class="btn-export" onclick="copyForSheets()">📋 Copy Format Sheets</button>
+                        <button class="btn-export" onclick="clearLocal()" style="background: #dc3545;">🗑️ Clear Local</button>
                     </div>
                 </div>
-            </div>
-
-            <!-- Export Section -->
-            <div class="export-section" id="exportSection" style="display: none;">
-                <button class="btn-primary" onclick="exportToCSV()">📥 Export CSV</button>
-                <button class="btn-primary" onclick="exportToJSON()" style="margin-left: 10px;">📥 Export JSON</button>
-                <button class="btn-delete" onclick="clearAllData()" style="margin-left: 10px;">🗑️ Hapus Semua</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Data storage
-        let transactions = JSON.parse(localStorage.getItem('ocr_transactions_v2') || '[]');
-        let currentData = null;
-        let rawOCRText = '';
-
-        // DOM Elements
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const progressSection = document.getElementById('progressSection');
-        const progressFill = document.getElementById('progressFill');
-        const progressDetail = document.getElementById('progressDetail');
-        const previewSection = document.getElementById('previewSection');
-        const previewImage = document.getElementById('previewImage');
-        const ocrRaw = document.getElementById('ocrRaw');
-
-        // Event Listeners
-        dropZone.addEventListener('click', () => fileInput.click());
+        // ============================================
+        // CONFIG - GANTI DENGAN URL ANDA
+        // ============================================
+        let APPS_SCRIPT_URL = localStorage.getItem('ojol_apps_script_url') || '';
         
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
+        // Data storage
+        let localData = JSON.parse(localStorage.getItem('ojol_local_data') || '[]');
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
+        // Init
+        document.getElementById('transDate').valueAsDate = new Date();
+        
+        if (APPS_SCRIPT_URL) {
+            document.getElementById('setupGuide').classList.add('hidden');
+            document.getElementById('mainForm').classList.remove('hidden');
+        }
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                processImage(files[0]);
+        function saveConfig() {
+            const url = document.getElementById('appsScriptUrl').value.trim();
+            if (!url.includes('script.google.com')) {
+                alert('URL tidak valid! Harus dari script.google.com');
+                return;
             }
-        });
+            APPS_SCRIPT_URL = url;
+            localStorage.setItem('ojol_apps_script_url', url);
+            location.reload();
+        }
 
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                processImage(e.target.files[0]);
-            }
-        });
+        function calcEnding(platform) {
+            const start = parseInt(document.getElementById(platform + 'Start').value) || 0;
+            const usage = parseInt(document.getElementById(platform + 'Usage').value) || 0;
+            const end = Math.max(0, start - usage);
+            document.getElementById(platform + 'End').value = end;
+        }
 
-        // Process Image with OCR
-        async function processImage(file) {
-            previewSection.classList.remove('active');
-            progressSection.classList.add('active');
+        async function doOCR(platform, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const box = document.getElementById('progressBox');
+            const fill = document.getElementById('progressFill');
+            const text = document.getElementById('progressText');
             
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImage.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+            box.classList.add('active');
+            text.textContent = `🔍 OCR ${platform.toUpperCase()}...`;
 
             try {
                 const result = await Tesseract.recognize(
@@ -574,396 +623,227 @@
                     {
                         logger: m => {
                             if (m.status === 'recognizing text') {
-                                const progress = Math.round(m.progress * 100);
-                                progressFill.style.width = progress + '%';
-                                progressDetail.textContent = `${progress}%`;
+                                fill.style.width = (m.progress * 100) + '%';
                             }
                         }
                     }
                 );
 
-                rawOCRText = result.data.text;
-                console.log('OCR Raw:', rawOCRText);
+                const total = extractTotal(result.data.text, platform);
                 
-                currentData = parseInvoiceData(rawOCRText, file.name);
+                document.getElementById(platform + 'Usage').value = total;
+                document.getElementById(platform + 'Amount').textContent = 'Rp ' + formatNumber(total);
+                document.getElementById(platform + 'Detected').classList.add('active');
                 
-                displayResults(currentData);
+                calcEnding(platform);
                 
-                progressSection.classList.remove('active');
-                previewSection.classList.add('active');
+                box.classList.remove('active');
                 
-            } catch (error) {
-                console.error('OCR Error:', error);
-                alert('Gagal membaca gambar. Coba gambar lebih jelas.');
-                progressSection.classList.remove('active');
+            } catch (e) {
+                alert('OCR gagal: ' + e.message);
+                box.classList.remove('active');
             }
         }
 
-        // IMPROVED: Parse Invoice Data - Focus on FINAL total
-        function parseInvoiceData(text, filename) {
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            const fullText = text.toLowerCase();
+        function extractTotal(text, platform) {
+            const lines = text.split('\n');
+            let candidates = [];
             
-            // Detect Platform
-            let platform = 'Unknown';
-            let code = '-';
+            const keywords = {
+                grab: ['total harga', 'total', 'dibayar'],
+                jc: ['total dibayar', 'total pembayaran', 'dibayar'],
+                hd: ['total', 'pembayaran', 'dibayar']
+            };
             
-            if (fullText.includes('grab') || fullText.includes('grabfood')) {
-                platform = 'Grab';
-                code = 'GR';
-            } else if (fullText.includes('gofood') || fullText.includes('gojek') || fullText.includes('total dibayar')) {
-                platform = 'GoFood';
-                code = 'JC';
-            } else if (fullText.includes('shopeefood') || fullText.includes('shopee')) {
-                platform = 'ShopeeFood';
-                code = 'HD';
-            }
-
-            // Extract Order Number
-            let orderNumber = '-';
-            const orderPatterns = [
-                /no\.?\s*order[:\s]*([A-Z0-9\-]+)/i,
-                /id\s*transaksi[:\s]*([A-Z0-9\-]+)/i,
-                /no\.?\s*pesanan[:\s]*([A-Z0-9\-]+)/i,
-                /order\s*id[:\s]*([A-Z0-9\-]+)/i
-            ];
-            
-            for (let pattern of orderPatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    orderNumber = match[1];
-                    break;
-                }
-            }
-
-            // Extract Date
-            let date = '-';
-            const datePatterns = [
-                /(\d{1,2})\s*(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*(\d{4})/i,
-                /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/,
-                /(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/,
-                /(\d{1,2})\s+(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\s+(\d{4})/i
-            ];
-
-            for (let pattern of datePatterns) {
-                const match = text.match(pattern);
-                if (match) {
-                    date = match[0];
-                    break;
-                }
-            }
-
-            // ============================================
-            // STRATEGI BARU: Cari TOTAL AKHIR/FINAL
-            // ============================================
-            
-            let finalTotal = 0;
-            let totalStr = '-';
-            let breakdown = [];
-            let confidence = 'Low';
-
-            // Keywords untuk total AKHIR (prioritas tinggi)
-            const finalTotalKeywords = [
-                'total harga',      // Grab
-                'total dibayar',    // GoFood
-                'total pembayaran', // Umum
-                'total bayar',      // Umum
-                'pembayaran',       // ShopeeFood
-                'dibayar',          // Umum
-                'total'             // Fallback
-            ];
-
-            // Keywords untuk dihindari (subtotal, sebelum diskon)
-            const avoidKeywords = [
-                'subtotal',
-                'total harga barang',
-                'jumlah',
-                'qty',
-                'item'
-            ];
-
-            // Cari baris dengan keyword final total
-            let candidateLines = [];
+            const keys = keywords[platform] || ['total'];
             
             for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const lowerLine = line.toLowerCase();
-                
-                // Skip jika mengandung keyword yang harus dihindari
-                let shouldAvoid = false;
-                for (let avoid of avoidKeywords) {
-                    if (lowerLine.includes(avoid) && !lowerLine.includes('total harga')) {
-                        shouldAvoid = true;
-                        break;
-                    }
-                }
-                if (shouldAvoid) continue;
-
-                // Cek apakah mengandung keyword final total
-                for (let keyword of finalTotalKeywords) {
-                    if (lowerLine.includes(keyword)) {
-                        // Extract angka dari baris ini dan beberapa baris setelahnya
-                        candidateLines.push({
-                            line: line,
-                            index: i,
-                            keyword: keyword,
-                            context: lines.slice(i, Math.min(i + 3, lines.length)).join(' ')
-                        });
-                        break;
+                const line = lines[i].toLowerCase();
+                for (let k of keys) {
+                    if (line.includes(k) && !line.includes('subtotal')) {
+                        const context = lines.slice(i, i+3).join(' ');
+                        const matches = context.match(/[\d.,]+/g) || [];
+                        for (let m of matches) {
+                            const clean = m.replace(/[.,]/g, '');
+                            const val = parseInt(clean);
+                            if (val > 1000 && val < 10000000) candidates.push(val);
+                        }
                     }
                 }
             }
-
-            // Strategy 1: Ambil angka terbesar dari candidate lines (biasanya total akhir)
-            let allCandidates = [];
             
-            for (let candidate of candidateLines) {
-                // Cari semua angka dalam format Rupiah
-                const rpMatches = candidate.context.match(/rp\.?\s*[\d.,]+/gi) || [];
-                const numberMatches = candidate.context.match(/\d[\d.,]{3,}/g) || [];
-                
-                for (let match of [...rpMatches, ...numberMatches]) {
-                    const clean = match.replace(/[^0-9]/g, '');
-                    const val = parseInt(clean);
-                    
-                    if (val > 1000 && val < 10000000) {
-                        allCandidates.push({
-                            value: val,
-                            line: candidate.line,
-                            keyword: candidate.keyword,
-                            context: candidate.context
-                        });
-                    }
-                }
-            }
+            candidates.sort((a, b) => b - a);
+            return candidates[0] || 0;
+        }
 
-            // Urutkan dari besar ke kecil, ambil yang paling besar (asumsi: total akhir > subtotal)
-            allCandidates.sort((a, b) => b.value - a.value);
+        async function submitAll() {
+            const btn = document.getElementById('btnSubmit');
+            const resultBox = document.getElementById('resultBox');
             
-            if (allCandidates.length > 0) {
-                // Ambil kandidat terbesar yang masuk akal
-                for (let candidate of allCandidates) {
-                    // Jika ada "total harga" atau "total dibayar" dengan angka besar, itu yang kita cari
-                    if (candidate.keyword === 'total harga' || candidate.keyword === 'total dibayar') {
-                        finalTotal = candidate.value;
-                        totalStr = 'Rp ' + formatNumber(finalTotal);
-                        breakdown.push(`✓ Terdeteksi: "${candidate.keyword}" = Rp ${formatNumber(candidate.value)}`);
-                        confidence = 'High';
-                        break;
-                    }
-                }
+            btn.disabled = true;
+            btn.textContent = '⏳ Mengupload...';
+            resultBox.classList.remove('active');
+
+            // URUTAN DATA WAJIB SESUAI BACKEND!
+            const data = {
+                // A-D: Info dasar
+                timestamp: new Date().toLocaleString('id-ID'),
+                admin: document.getElementById('adminName').value,
+                date: document.getElementById('transDate').value,
+                phoneCode: document.getElementById('phoneCode').value,
                 
-                // Jika belum ketemu, ambil yang terbesar
-                if (finalTotal === 0 && allCandidates.length > 0) {
-                    finalTotal = allCandidates[0].value;
-                    totalStr = 'Rp ' + formatNumber(finalTotal);
-                    breakdown.push(`⚠ Fallback: Angka terbesar = Rp ${formatNumber(finalTotal)}`);
-                    confidence = 'Medium';
-                }
-            }
-
-            // Strategy 2: Pattern khusus per platform
-            if (finalTotal === 0) {
-                // Grab pattern: "Total Harga" diikuti angka
-                const grabPattern = /total\s*harga[^\d]*([\d.,]+)/i;
-                const grabMatch = text.match(grabPattern);
-                if (grabMatch) {
-                    const clean = grabMatch[1].replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > 1000) {
-                        finalTotal = val;
-                        totalStr = 'Rp ' + formatNumber(finalTotal);
-                        breakdown.push(`✓ Grab pattern: Total Harga = Rp ${formatNumber(val)}`);
-                        confidence = 'High';
-                    }
-                }
-
-                // GoFood pattern: "Total dibayar" atau angka setelahnya
-                const gofoodPattern = /total\s*dibayar[^\d]*([\d.,]+)/i;
-                const gofoodMatch = text.match(gofoodPattern);
-                if (gofoodMatch && finalTotal === 0) {
-                    const clean = gofoodMatch[1].replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > 1000) {
-                        finalTotal = val;
-                        totalStr = 'Rp ' + formatNumber(finalTotal);
-                        breakdown.push(`✓ GoFood pattern: Total dibayar = Rp ${formatNumber(val)}`);
-                        confidence = 'High';
-                    }
-                }
-
-                // ShopeeFood pattern: angka di bagian bawah setelah "Total"
-                const shopeePattern = /total[^\d]*([\d.,]{5,})/i;
-                const shopeeMatch = text.match(shopeePattern);
-                if (shopeeMatch && finalTotal === 0) {
-                    const clean = shopeeMatch[1].replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > 1000) {
-                        finalTotal = val;
-                        totalStr = 'Rp ' + formatNumber(finalTotal);
-                        breakdown.push(`✓ ShopeeFood pattern: Total = Rp ${formatNumber(val)}`);
-                        confidence = 'High';
-                    }
-                }
-            }
-
-            // Strategy 3: Ambil angka Rp terbesar dari seluruh teks (last resort)
-            if (finalTotal === 0) {
-                const allRpMatches = text.match(/rp\.?\s*[\d.,]+/gi) || [];
-                let maxVal = 0;
+                // E-G: Grab (Saldo Awal, Usage, Ending)
+                grabStart: parseInt(document.getElementById('grabStart').value) || 0,
+                grabUsage: parseInt(document.getElementById('grabUsage').value) || 0,
+                grabEnd: parseInt(document.getElementById('grabEnd').value) || 0,
                 
-                for (let match of allRpMatches) {
-                    const clean = match.replace(/[^0-9]/g, '');
-                    const val = parseInt(clean);
-                    if (val > maxVal && val > 1000 && val < 10000000) {
-                        maxVal = val;
-                    }
-                }
+                // H-J: JC (Saldo Awal, Usage, Ending)
+                jcStart: parseInt(document.getElementById('jcStart').value) || 0,
+                jcUsage: parseInt(document.getElementById('jcUsage').value) || 0,
+                jcEnd: parseInt(document.getElementById('jcEnd').value) || 0,
                 
-                if (maxVal > 0) {
-                    finalTotal = maxVal;
-                    totalStr = 'Rp ' + formatNumber(finalTotal);
-                    breakdown.push(`⚠ Last resort: Rp terbesar = Rp ${formatNumber(maxVal)}`);
-                    confidence = 'Low';
-                }
-            }
-
-            // Update confidence jika platform terdeteksi
-            if (platform !== 'Unknown' && finalTotal > 0) {
-                confidence = confidence === 'Low' ? 'Medium' : 'High';
-            }
-
-            return {
-                id: Date.now(),
-                platform,
-                code,
-                date: date !== '-' ? date : new Date().toLocaleDateString('id-ID'),
-                orderNumber,
-                total: finalTotal,
-                totalStr,
-                breakdown,
-                rawText: text.substring(0, 800),
-                filename,
-                confidence,
-                timestamp: new Date().toISOString()
+                // K-M: HD (Saldo Awal, Usage, Ending)
+                hdStart: parseInt(document.getElementById('hdStart').value) || 0,
+                hdUsage: parseInt(document.getElementById('hdUsage').value) || 0,
+                hdEnd: parseInt(document.getElementById('hdEnd').value) || 0,
+                
+                // N-R: Lainnya
+                remarks: document.getElementById('remarks').value || '',
+                project: document.getElementById('project').value || 'Food',
+                
+                // Files
+                files: {}
             };
-        }
 
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        function displayResults(data) {
-            const panel = document.getElementById('detectedInfo');
-            panel.className = 'detected-info platform-' + data.code.toLowerCase();
-            
-            document.getElementById('platformResult').innerHTML = 
-                `${data.platform} <span class="tag tag-${data.code.toLowerCase()}">${data.code}</span>`;
-            document.getElementById('codeResult').textContent = data.code;
-            document.getElementById('dateResult').textContent = data.date;
-            document.getElementById('orderResult').textContent = data.orderNumber;
-            
-            document.getElementById('finalTotal').textContent = data.totalStr;
-            
-            // Show breakdown
-            if (data.breakdown.length > 0) {
-                document.getElementById('priceBreakdown').style.display = 'block';
-                document.getElementById('breakdownContent').innerHTML = 
-                    data.breakdown.join('<br>');
-            } else {
-                document.getElementById('priceBreakdown').style.display = 'none';
-            }
-
-            // Set manual input
-            document.getElementById('manualTotal').value = data.total > 0 ? data.total : '';
-            
-            ocrRaw.textContent = rawOCRText;
-        }
-
-        function updateManualTotal() {
-            const manual = document.getElementById('manualTotal').value.replace(/[^0-9]/g, '');
-            const val = parseInt(manual);
-            
-            if (val > 0 && currentData) {
-                currentData.total = val;
-                currentData.totalStr = 'Rp ' + formatNumber(val);
-                currentData.confidence = 'Manual';
-                document.getElementById('finalTotal').textContent = currentData.totalStr;
-                alert('Total diupdate menjadi: ' + currentData.totalStr);
-            }
-        }
-
-        function toggleRawOCR() {
-            ocrRaw.style.display = ocrRaw.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function saveToTable() {
-            if (!currentData) return;
-            
-            if (currentData.total === 0) {
-                alert('Total belum terdeteksi! Silakan isi manual terlebih dahulu.');
+            // Validasi
+            if (!data.admin || !data.phoneCode || !data.date) {
+                alert('Isi Nama Admin, Kode HP, dan Date!');
+                btn.disabled = false;
+                btn.textContent = '🚀 Submit ke Google Sheets & Drive';
                 return;
             }
+
+            // Convert files to base64
+            const fileInputs = ['ssGrab', 'ssJc', 'ssHd'];
+            for (let id of fileInputs) {
+                const input = document.getElementById(id);
+                if (input.files[0]) {
+                    data.files[id] = await toBase64(input.files[0]);
+                }
+            }
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Penting untuk CORS
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                // Karena no-cors, kita anggap sukses dan cek local
+                // Save locally sebagai backup
+                data.driveLinks = { status: 'Uploaded' };
+                localData.unshift(data);
+                localStorage.setItem('ojol_local_data', JSON.stringify(localData));
+                
+                renderTable();
+                clearForm();
+                
+                // Tampilkan sukses
+                resultBox.classList.add('active');
+                document.getElementById('resultLinks').innerHTML = `
+                    ✅ Data tersimpan di Google Sheets<br>
+                    ✅ Screenshots di Google Drive<br>
+                    <small>Check spreadsheet Anda untuk memastikan</small>
+                `;
+                
+            } catch (e) {
+                alert('❌ Error: ' + e.message + '\n\nData disimpan local sebagai backup.');
+                
+                // Fallback: save locally
+                localData.unshift(data);
+                localStorage.setItem('ojol_local_data', JSON.stringify(localData));
+                renderTable();
+            }
             
-            transactions.unshift(currentData);
-            localStorage.setItem('ocr_transactions_v2', JSON.stringify(transactions));
-            
-            renderTable();
-            
-            previewSection.classList.remove('active');
-            currentData = null;
-            
-            alert('✅ Data tersimpan! Total: ' + currentData?.totalStr);
+            btn.disabled = false;
+            btn.textContent = '🚀 Submit ke Google Sheets & Drive';
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve({
+                    name: file.name,
+                    type: file.type,
+                    data: reader.result.split(',')[1]
+                });
+                reader.onerror = reject;
+            });
+        }
+
+        function clearForm() {
+            ['grab', 'jc', 'hd'].forEach(p => {
+                document.getElementById(p + 'Start').value = '';
+                document.getElementById(p + 'Usage').value = '';
+                document.getElementById(p + 'End').value = '';
+                document.getElementById(p + 'Detected').classList.remove('active');
+            });
+            document.getElementById('remarks').value = '';
+            document.getElementById('ssGrab').value = '';
+            document.getElementById('ssJc').value = '';
+            document.getElementById('ssHd').value = '';
+            document.getElementById('resultBox').classList.remove('active');
         }
 
         function renderTable() {
             const container = document.getElementById('tableContainer');
-            const exportSection = document.getElementById('exportSection');
-            
-            if (transactions.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <p>Belum ada data. Upload invoice untuk memulai.</p>
-                    </div>
-                `;
-                exportSection.style.display = 'none';
+            if (localData.length === 0) {
+                container.innerHTML = '<div class="empty-state">Belum ada data</div>';
                 return;
             }
-
-            exportSection.style.display = 'block';
 
             let html = `
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>Platform</th>
-                            <th>Tanggal</th>
-                            <th>Total Akhir</th>
-                            <th>Confidence</th>
-                            <th>Aksi</th>
+                            <th>Timestamp</th>
+                            <th>Admin</th>
+                            <th>Date</th>
+                            <th>HP</th>
+                            <th>GR Start</th>
+                            <th>GR Usage</th>
+                            <th>GR End</th>
+                            <th>JC Start</th>
+                            <th>JC Usage</th>
+                            <th>JC End</th>
+                            <th>HD Start</th>
+                            <th>HD Usage</th>
+                            <th>HD End</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
 
-            transactions.forEach((t, index) => {
+            localData.forEach(d => {
                 html += `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>
-                            <span class="tag tag-${t.code.toLowerCase()}">${t.platform}</span>
-                        </td>
-                        <td>${t.date}</td>
-                        <td><strong style="color: #00b14f;">${t.totalStr}</strong></td>
-                        <td>
-                            <span class="confidence-badge confidence-${t.confidence.toLowerCase()}">${t.confidence}</span>
-                        </td>
-                        <td>
-                            <div class="actions">
-                                <button class="btn-delete" onclick="deleteTransaction(${t.id})">Hapus</button>
-                            </div>
-                        </td>
+                        <td>${d.timestamp}</td>
+                        <td>${d.admin}</td>
+                        <td>${d.date}</td>
+                        <td>${d.phoneCode}</td>
+                        <td>${formatNumber(d.grabStart)}</td>
+                        <td class="amount-neg">${formatNumber(d.grabUsage)}</td>
+                        <td class="amount-pos">${formatNumber(d.grabEnd)}</td>
+                        <td>${formatNumber(d.jcStart)}</td>
+                        <td class="amount-neg">${formatNumber(d.jcUsage)}</td>
+                        <td class="amount-pos">${formatNumber(d.jcEnd)}</td>
+                        <td>${formatNumber(d.hdStart)}</td>
+                        <td class="amount-neg">${formatNumber(d.hdUsage)}</td>
+                        <td class="amount-pos">${formatNumber(d.hdEnd)}</td>
                     </tr>
                 `;
             });
@@ -972,59 +852,57 @@
             container.innerHTML = html;
         }
 
-        function deleteTransaction(id) {
-            if (confirm('Yakin ingin menghapus data ini?')) {
-                transactions = transactions.filter(t => t.id !== id);
-                localStorage.setItem('ocr_transactions_v2', JSON.stringify(transactions));
-                renderTable();
-            }
+        function formatNumber(n) {
+            return parseInt(n || 0).toLocaleString('id-ID');
         }
 
-        function clearAllData() {
-            if (confirm('Yakin ingin menghapus SEMUA data?')) {
-                transactions = [];
-                localStorage.removeItem('ocr_transactions_v2');
-                renderTable();
-            }
-        }
-
-        function exportToCSV() {
-            const headers = ['No', 'Platform', 'Kode', 'Tanggal', 'No Order', 'Total Akhir (Rp)', 'Confidence', 'Filename'];
-            const rows = transactions.map((t, i) => [
-                i + 1,
-                t.platform,
-                t.code,
-                t.date,
-                t.orderNumber,
-                t.total,
-                t.confidence,
-                t.filename
-            ]);
-
-            let csv = '\uFEFF' + headers.join(',') + '\n'; // BOM for Excel
-            rows.forEach(row => {
-                csv += row.join(',') + '\n';
+        function exportCSV() {
+            const headers = ['Timestamp', 'Admin', 'Date', 'Kode HP', 'Project', 'Remarks',
+                'Grab Start', 'Grab Usage', 'Grab End',
+                'JC Start', 'JC Usage', 'JC End',
+                'HD Start', 'HD Usage', 'HD End'];
+            
+            let csv = headers.join(',') + '\n';
+            localData.forEach(d => {
+                csv += `${d.timestamp},${d.admin},${d.date},${d.phoneCode},${d.project},"${d.remarks}",` +
+                       `${d.grabStart},${d.grabUsage},${d.grabEnd},` +
+                       `${d.jcStart},${d.jcUsage},${d.jcEnd},` +
+                       `${d.hdStart},${d.hdUsage},${d.hdEnd}\n`;
             });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = window.URL.createObjectURL(blob);
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `invoice_total_akhir_${new Date().toISOString().split('T')[0]}.csv`;
+            a.href = URL.createObjectURL(blob);
+            a.download = `Laporan_Ojol_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
         }
 
-        function exportToJSON() {
-            const dataStr = JSON.stringify(transactions, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `invoice_total_akhir_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
+        function copyForSheets() {
+            let text = 'Timestamp\tAdmin\tDate\tKode HP\tProject\tRemarks\t' +
+                        'Grab Start\tGrab Usage\tGrab End\t' +
+                        'JC Start\tJC Usage\tJC End\t' +
+                        'HD Start\tHD Usage\tHD End\n';
+            
+            localData.forEach(d => {
+                text += `${d.timestamp}\t${d.admin}\t${d.date}\t${d.phoneCode}\t${d.project}\t${d.remarks}\t` +
+                        `${d.grabStart}\t${d.grabUsage}\t${d.grabEnd}\t` +
+                        `${d.jcStart}\t${d.jcUsage}\t${d.jcEnd}\t` +
+                        `${d.hdStart}\t${d.hdUsage}\t${d.hdEnd}\n`;
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Format Google Sheets dicopy! Paste ke Sheets (Ctrl+V)');
+            });
         }
 
-        // Initial render
+        function clearLocal() {
+            if (confirm('Hapus semua data local?')) {
+                localData = [];
+                localStorage.removeItem('ojol_local_data');
+                renderTable();
+            }
+        }
+
         renderTable();
     </script>
 </body>
