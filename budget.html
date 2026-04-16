@@ -3,13 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Keuangan Ojek Online - GRATIS</title>
+    <title>Laporan Keuangan Ojek Online - Smart Validation</title>
     <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        :root {
+            --grab-color: #4a148c;
+            --grab-light: #f3e5f5;
+            --jc-color: #00aa13;
+            --jc-light: #e8f5e9;
+            --hd-color: #ee4d2d;
+            --hd-light: #fff3e0;
+            --primary: #667eea;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ffc107;
+        }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 10px;
@@ -19,74 +32,101 @@
             max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
             overflow: hidden;
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 25px 20px;
             text-align: center;
+            position: relative;
         }
 
-        .header h1 { font-size: 24px; margin-bottom: 5px; }
-        .header p { font-size: 13px; opacity: 0.9; }
+        .header h1 { 
+            font-size: 26px; 
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header p { 
+            font-size: 14px; 
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+        .badge-container {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
 
         .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: bold;
-            margin: 3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        .badge.gr { background: #4a148c; color: white; }
-        .badge.jc { background: #00aa13; color: white; }
-        .badge.hd { background: #ee4d2d; color: white; }
-        .badge.free { background: #ffc107; color: #333; }
+        .badge.gr { background: var(--grab-color); color: white; }
+        .badge.jc { background: var(--jc-color); color: white; }
+        .badge.hd { background: var(--hd-color); color: white; }
+        .badge.free { background: var(--warning); color: #333; }
 
-        .content { padding: 20px; }
+        .content { padding: 25px; }
 
         .alert {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: none;
             color: #155724;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 13px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.15);
         }
 
         .alert-error {
-            background: #f8d7da;
-            border-color: #f5c6cb;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
             color: #721c24;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.15);
         }
 
         .form-section {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: #fafbfc;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #e8ecf1;
         }
 
         .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e8ecf1;
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .form-group {
@@ -95,367 +135,696 @@
         }
 
         .form-group label {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            color: #555;
-            margin-bottom: 5px;
+            color: #4a5568;
+            margin-bottom: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group input, .form-group select {
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
         }
 
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
 
-        .balance-section {
+        /* Platform Cards Layout */
+        .platforms-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin: 15px 0;
+            gap: 25px;
+            margin: 25px 0;
         }
 
-        @media (max-width: 768px) {
-            .balance-section { grid-template-columns: 1fr; }
+        @media (max-width: 1024px) {
+            .platforms-container { grid-template-columns: 1fr; }
         }
 
-        .platform-box {
+        .platform-card {
             background: white;
-            border-radius: 10px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            transition: all 0.3s ease;
+            border-radius: 20px;
+            padding: 25px;
+            border: 3px solid #e8ecf1;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .platform-box.gr { border-color: #4a148c; }
-        .platform-box.jc { border-color: #00aa13; }
-        .platform-box.hd { border-color: #ee4d2d; }
+        .platform-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            transition: height 0.3s ease;
+        }
 
-        /* Animasi error - berkedip merah dan bergetar */
+        .platform-card.gr { 
+            border-color: var(--grab-color); 
+            background: linear-gradient(180deg, white 0%, var(--grab-light) 100%);
+        }
+        .platform-card.gr::before { background: var(--grab-color); }
+        
+        .platform-card.jc { 
+            border-color: var(--jc-color); 
+            background: linear-gradient(180deg, white 0%, var(--jc-light) 100%);
+        }
+        .platform-card.jc::before { background: var(--jc-color); }
+        
+        .platform-card.hd { 
+            border-color: var(--hd-color); 
+            background: linear-gradient(180deg, white 0%, var(--hd-light) 100%);
+        }
+        .platform-card.hd::before { background: var(--hd-color); }
+
+        /* Error Animation */
         @keyframes flashRed {
-            0%, 100% { border-color: #dc3545; box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-            50% { border-color: #ff6b6b; box-shadow: 0 0 20px rgba(220, 53, 69, 0.5); }
+            0%, 100% { 
+                border-color: var(--danger); 
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4),
+                            0 0 30px rgba(220, 53, 69, 0.3);
+                transform: translateX(0);
+            }
+            25% { transform: translateX(-8px); }
+            50% { 
+                border-color: #ff4757; 
+                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0),
+                            0 0 50px rgba(220, 53, 69, 0.5);
+                transform: translateX(8px);
+            }
+            75% { transform: translateX(-4px); }
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        .platform-card.error {
+            animation: flashRed 0.6s ease-in-out 3;
+            border-color: var(--danger) !important;
+            background: linear-gradient(180deg, #fff5f5 0%, #ffe0e0 100%) !important;
         }
 
-        .platform-box.error {
-            animation: flashRed 0.5s ease-in-out 3, shake 0.5s ease-in-out;
-            border-color: #dc3545 !important;
-            background-color: #fff5f5 !important;
-        }
-
-        .platform-box.success {
-            border-color: #28a745 !important;
-            background-color: #f0fff4 !important;
-            box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+        .platform-card.success {
+            border-color: var(--success) !important;
+            background: linear-gradient(180deg, #f0fff4 0%, #dcfce7 100%) !important;
+            box-shadow: 0 10px 40px rgba(40, 167, 69, 0.2);
         }
 
         .platform-header {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 10px;
+            font-weight: 800;
+            font-size: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed rgba(0,0,0,0.1);
+        }
+
+        .platform-header.gr { color: var(--grab-color); }
+        .platform-header.jc { color: var(--jc-color); }
+        .platform-header.hd { color: var(--hd-color); }
+
+        .platform-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .platform-icon.gr { background: var(--grab-color); color: white; }
+        .platform-icon.jc { background: var(--jc-color); color: white; }
+        .platform-icon.hd { background: var(--hd-color); color: white; }
+
+        .wallet-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: auto;
+            background: rgba(0,0,0,0.05);
+        }
+
+        .balance-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .balance-total {
+            background: rgba(255,255,255,0.8);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .balance-total .label {
+            font-size: 11px;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .balance-total .value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #2d3748;
+        }
+
+        .balance-total.gr .value { color: var(--grab-color); }
+        .balance-total.jc .value { color: var(--jc-color); }
+        .balance-total.hd .value { color: var(--hd-color); }
+
+        /* File Upload Sections */
+        .upload-section {
+            background: rgba(255,255,255,0.6);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px dashed #cbd5e0;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.9);
+        }
+
+        .upload-section.error-upload {
+            border-color: var(--danger);
+            background: #fff5f5;
+        }
+
+        .upload-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .platform-header.gr { color: #4a148c; }
-        .platform-header.jc { color: #00aa13; }
-        .platform-header.hd { color: #ee4d2d; }
-
-        .balance-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .balance-row .form-group label {
-            font-size: 10px;
-        }
-
-        .detected-box {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 10px;
-            display: none;
-        }
-
-        .detected-box.active { display: block; }
-        .detected-box .label { font-size: 10px; opacity: 0.9; }
-        .detected-box .amount { font-size: 20px; font-weight: bold; }
-
-        .detected-box.error {
-            background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%) !important;
-        }
-
-        .detected-box.success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
-        }
-
         .file-input-wrapper {
-            margin-top: 8px;
+            position: relative;
         }
 
-        .file-input-wrapper input {
-            font-size: 12px;
+        .file-input-wrapper input[type="file"] {
             width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
+        .file-input-wrapper input[type="file"]:hover {
+            border-color: var(--primary);
+        }
+
+        .file-hint {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .file-hint.error-text {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .file-hint.success-text {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Invoice List */
         .invoice-list {
-            margin-top: 10px;
-            max-height: 150px;
+            margin-top: 15px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
         .invoice-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            margin-bottom: 5px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .invoice-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .invoice-item.gr { border-left-color: var(--grab-color); }
+        .invoice-item.jc { border-left-color: var(--jc-color); }
+        .invoice-item.hd { border-left-color: var(--hd-color); }
+
+        .invoice-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .invoice-name {
             font-size: 12px;
+            font-weight: 600;
+            color: #2d3748;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .invoice-item .amount {
-            font-weight: bold;
-            color: #28a745;
-        }
-
-        .invoice-item .remove-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 2px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 10px;
-        }
-
-        .btn-add-invoice {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 5px;
-            width: 100%;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            cursor: pointer;
+        .invoice-amount {
             font-size: 14px;
-            font-weight: bold;
-            width: 100%;
-            margin-top: 10px;
+            font-weight: 800;
+            color: var(--success);
+            margin-left: 10px;
         }
 
-        .btn-primary:hover { opacity: 0.9; }
-
-        .btn-success {
-            background: #28a745;
+        .remove-btn {
+            background: var(--danger);
             color: white;
             border: none;
-            padding: 15px;
+            width: 28px;
+            height: 28px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: bold;
-            width: 100%;
-            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            margin-left: 10px;
         }
 
-        .btn-success:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
+        .remove-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
         }
 
+        /* Validation Status */
+        .validation-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .validation-box.show { display: block; }
+        
+        .validation-box.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        
+        .validation-box.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .validation-box.warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+
+        /* Progress */
         .progress-box {
             display: none;
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 16px;
+            margin: 25px 0;
             text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
         }
 
         .progress-box.active { display: block; }
 
+        .progress-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+
         .progress-bar {
             width: 100%;
-            height: 8px;
-            background: #ddd;
-            border-radius: 4px;
+            height: 12px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 10px;
             overflow: hidden;
-            margin: 10px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, #764ba2 100%);
             width: 0%;
-            transition: width 0.3s;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
         }
 
-        .validation-status {
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            text-align: center;
-            margin-top: 10px;
-            display: none;
-        }
-
-        .validation-status.show { display: block; }
-        .validation-status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .validation-status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .data-table-container {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            min-width: 1000px;
-        }
-
-        .data-table th {
-            background: #667eea;
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
             color: white;
-            padding: 10px 6px;
-            text-align: center;
-            font-weight: 600;
-            border: 1px solid #5a6fd6;
-            position: sticky;
-            top: 0;
+            border: none;
+            padding: 14px 35px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 15px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .data-table td {
-            padding: 8px 6px;
-            border: 1px solid #ddd;
-            text-align: center;
+        .btn-primary:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
 
-        .data-table tr:nth-child(even) { background: #f8f9fa; }
-        .data-table tr:hover { background: #e3f2fd; }
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
 
-        .amount-pos { color: #28a745; font-weight: bold; }
-        .amount-neg { color: #dc3545; font-weight: bold; }
+        .btn-submit {
+            background: linear-gradient(135deg, var(--success) 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 800;
+            width: 100%;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
 
-        .export-section {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            text-align: center;
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-submit:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
 
         .btn-export {
-            background: #17a2b8;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
+            padding: 10px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            margin: 3px;
-            font-size: 12px;
+            margin: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);
+            transition: all 0.3s ease;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 30px;
-            color: #999;
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3);
         }
 
-        .setup-guide {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 0 8px 8px 0;
-            font-size: 12px;
+        .btn-export.delete {
+            background: linear-gradient(135deg, var(--danger) 0%, #c82333 100%);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
         }
 
-        .setup-guide h4 {
-            margin-bottom: 10px;
-            color: #856404;
+        .btn-export.delete:hover {
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
         }
 
-        .setup-guide ol {
-            margin-left: 20px;
-        }
-
-        .setup-guide li {
-            margin-bottom: 5px;
-        }
-
-        .url-input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ffc107;
-            border-radius: 6px;
-            font-size: 12px;
-            margin-bottom: 10px;
-        }
-
-        .hidden { display: none !important; }
-
+        /* Result Box */
         .result-box {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid var(--success);
+            padding: 25px;
+            border-radius: 16px;
+            margin-top: 25px;
             display: none;
+            animation: slideIn 0.5s ease;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.2);
         }
 
         .result-box.active { display: block; }
 
-        .result-box a {
+        .result-title {
+            font-size: 20px;
+            font-weight: 800;
             color: #155724;
-            word-break: break-all;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .ocr-preview {
-            max-width: 100%;
-            max-height: 100px;
-            border-radius: 6px;
-            margin-top: 5px;
+        /* Data Table */
+        .data-table-container {
+            overflow-x: auto;
+            margin-top: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 12px;
+            min-width: 1000px;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 700;
+            border: none;
+            position: sticky;
+            top: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
+        }
+
+        .data-table th:first-child { border-radius: 16px 0 0 0; }
+        .data-table th:last-child { border-radius: 0 16px 0 0; }
+
+        .data-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e8ecf1;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .data-table tr:nth-child(even) { background: #f8fafc; }
+        .data-table tr:hover { background: #e3f2fd; }
+
+        .amount-pos { 
+            color: var(--success); 
+            font-weight: 800;
+            font-size: 13px;
+        }
+        .amount-neg { 
+            color: var(--danger); 
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        /* Setup Guide */
+        .setup-guide {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            border-left: 5px solid var(--warning);
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 0 16px 16px 0;
+            box-shadow: 0 4px 20px rgba(255, 193, 7, 0.15);
+        }
+
+        .setup-guide h4 {
+            margin-bottom: 15px;
+            color: #856404;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .setup-guide ol {
+            margin-left: 25px;
+            color: #856404;
+        }
+
+        .setup-guide li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid var(--warning);
+            border-radius: 12px;
+            font-size: 14px;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #e0a800;
+            box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.2);
+        }
+
+        .hidden { display: none !important; }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #a0aec0;
+            font-size: 16px;
+        }
+
+        .export-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .content { padding: 15px; }
+            .header { padding: 20px 15px; }
+            .header h1 { font-size: 22px; }
+            .form-section { padding: 20px 15px; }
+            .platform-card { padding: 20px 15px; }
+            .balance-inputs { grid-template-columns: 1fr; }
+            .btn-submit { font-size: 16px; padding: 16px; }
+        }
+
+        /* OCR Result Preview */
+        .ocr-result {
+            margin-top: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            font-size: 13px;
+            border-left: 4px solid;
+        }
+
+        .ocr-result.success {
+            border-left-color: var(--success);
+            background: #f0fff4;
+        }
+
+        .ocr-result.error {
+            border-left-color: var(--danger);
+            background: #fff5f5;
+        }
+
+        .ocr-result-text {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .ocr-result-amount {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--success);
+        }
+
+        /* Stats Summary */
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -463,11 +832,13 @@
     <div class="container">
         <div class="header">
             <h1>📊 Laporan Keuangan Ojek Online</h1>
-            <p>100% Gratis | OCR Auto-detect | Multi-Invoice | Validasi Balance</p>
-            <span class="badge free">✓ FREE</span>
-            <span class="badge gr">GRAB (OVO)</span>
-            <span class="badge jc">GOFOOD (GoPay)</span>
-            <span class="badge hd">SHOPEEFOOD (ShopeePay)</span>
+            <p>Smart Validation System | Multi-Invoice OCR | Auto Balance Check</p>
+            <div class="badge-container">
+                <span class="badge free">✓ FREE</span>
+                <span class="badge gr">🟣 GRAB - OVO</span>
+                <span class="badge jc">🟢 GOFOOD - GOPAY</span>
+                <span class="badge hd">🟠 SHOPEEFOOD - SHOPEEPAY</span>
+            </div>
         </div>
 
         <div class="content">
@@ -476,7 +847,7 @@
                 <h4>🔧 Setup Pertama Kali (GRATIS):</h4>
                 <ol>
                     <li>Buka <a href="https://sheets.new" target="_blank">sheets.new</a> → Buat spreadsheet baru</li>
-                    <li>Copy ID dari URL: <code>https://docs.google.com/spreadsheets/d/<strong>1rwV1QBA_YkSH51mNIKl2fnDGgxmQZ28Q3-iOVXroJoc</strong>/edit</strong></code></li>
+                    <li>Copy ID dari URL: <code>https://docs.google.com/spreadsheets/d/<strong>1rwV1QBA_YkSH51mNIKl2fnDGgxmQZ28Q3-iOVXroJoc</strong>/edit</code></li>
                     <li>Buka <a href="https://script.google.com" target="_blank">script.google.com</a> → New Project</li>
                     <li>Paste CODE.GS (dari bawah) → Ganti SPREADSHEET_ID → Deploy</li>
                     <li>Copy URL Web App → Paste di bawah:</li>
@@ -488,11 +859,31 @@
             <!-- Main Form -->
             <div id="mainForm" class="hidden">
                 <div class="alert" id="statusAlert">
-                    ✓ Terhubung ke Google Sheets & Drive (Gratis)
+                    <span style="font-size: 20px;">✓</span>
+                    <span>Terhubung ke Google Sheets & Drive (Gratis)</span>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="stats-bar" id="statsBar" style="display: none;">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalInvoices">0</div>
+                        <div class="stat-label">Total Invoice</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalUsage">0</div>
+                        <div class="stat-label">Total Usage</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="validatedCount">0/3</div>
+                        <div class="stat-label">Tervalidasi</div>
+                    </div>
                 </div>
 
                 <div class="form-section">
-                    <div class="section-title">👤 Informasi Admin</div>
+                    <div class="section-title">
+                        <span style="font-size: 24px;">👤</span>
+                        <span>Informasi Admin</span>
+                    </div>
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Nama Admin *</label>
@@ -501,7 +892,7 @@
                         <div class="form-group">
                             <label>Kode Handphone *</label>
                             <select id="phoneCode" required>
-                                <option value="">Pilih</option>
+                                <option value="">Pilih Kode</option>
                                 <option value="1b">1b</option>
                                 <option value="2b">2b</option>
                                 <option value="3b">3b</option>
@@ -510,7 +901,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Date *</label>
+                            <label>Tanggal Transaksi *</label>
                             <input type="date" id="transDate" required>
                         </div>
                         <div class="form-group">
@@ -519,168 +910,256 @@
                         </div>
                     </div>
 
-                    <div class="section-title" style="margin-top: 20px;">💰 Input Data Platform (Multi-Invoice + Validasi OCR)</div>
+                    <div class="section-title" style="margin-top: 30px;">
+                        <span style="font-size: 24px;">💰</span>
+                        <span>Input Data Platform - Validasi Ketat</span>
+                    </div>
                     
-                    <div class="balance-section">
-                        <!-- Grab (OVO) -->
-                        <div class="platform-box gr" id="boxGrab">
-                            <div class="platform-header gr">🟣 Grab (OVO)</div>
+                    <div class="platforms-container">
+                        <!-- GRAB (OVO) -->
+                        <div class="platform-card gr" id="boxGrab">
+                            <div class="platform-header gr">
+                                <div class="platform-icon gr">🟣</div>
+                                <div>
+                                    <div>GRAB</div>
+                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">OVO Only</div>
+                                </div>
+                                <span class="wallet-tag">Wajib OVO</span>
+                            </div>
                             
-                            <div class="balance-row">
+                            <div class="balance-inputs">
                                 <div class="form-group">
                                     <label>Saldo Awal</label>
                                     <input type="number" id="grabStart" placeholder="0" onchange="calcEnding('grab')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage (Auto-sum)</label>
-                                    <input type="number" id="grabUsage" placeholder="0" readonly style="background: #e9ecef; font-weight: bold;">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="grabUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label>Ending Balance (Hitung: Saldo - Usage)</label>
-                                <input type="number" id="grabEnd" placeholder="0" readonly style="background: #d4edda; font-weight: bold;">
+                            <div class="balance-total gr">
+                                <div class="label">Ending Balance (Auto Calculate)</div>
+                                <div class="value" id="grabEndDisplay">Rp 0</div>
+                                <input type="hidden" id="grabEnd" value="0">
                             </div>
 
-                            <div class="file-input-wrapper">
-                                <label style="font-size: 10px; color: #666; font-weight: bold;">📄 Upload Multiple Invoice (OCR Auto-detect):</label>
-                                <input type="file" id="grabInvoice" accept="image/*" multiple onchange="handleMultipleInvoices('grab', this)">
+                            <!-- Invoice Upload -->
+                            <div class="upload-section" id="grabInvoiceSection">
+                                <div class="upload-title">
+                                    <span>📄</span>
+                                    <span>Upload Invoice OVO</span>
+                                </div>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="grabInvoice" accept="image/*" multiple 
+                                           onchange="handleMultipleInvoices('grab', this)"
+                                           data-platform="grab">
+                                </div>
+                                <div class="file-hint" id="grabInvoiceHint">
+                                    <span>💡</span>
+                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi OVO</span>
+                                </div>
+                                <div id="grabInvoiceList" class="invoice-list"></div>
                             </div>
 
-                            <div id="grabInvoiceList" class="invoice-list"></div>
-
-                            <div id="grabDetected" class="detected-box">
-                                <div class="label">Total OCR Terdeteksi</div>
-                                <div class="amount" id="grabAmount">Rp 0</div>
+                            <!-- Ending Balance Upload -->
+                            <div class="upload-section" id="grabBalanceSection">
+                                <div class="upload-title">
+                                    <span>📸</span>
+                                    <span>Upload Ending Balance OVO</span>
+                                </div>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="ssGrab" accept="image/*" 
+                                           onchange="doOCREndingBalance('grab', this)"
+                                           data-platform="grab">
+                                </div>
+                                <div class="file-hint" id="grabBalanceHint">
+                                    <span>💡</span>
+                                    <span>Upload screenshot saldo akhir dari aplikasi OVO</span>
+                                </div>
+                                <div id="grabOCRResult"></div>
                             </div>
 
-                            <div class="file-input-wrapper" style="margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px;">
-                                <label style="font-size: 11px; color: #4a148c; font-weight: bold;">📸 SS Ending Balance (OCR Validasi):</label>
-                                <input type="file" id="ssGrab" accept="image/*" onchange="doOCREndingBalance('grab', this)">
-                                <div id="grabOCRResult" style="margin-top: 5px; font-size: 11px;"></div>
-                            </div>
-
-                            <div id="grabValidation" class="validation-status"></div>
+                            <div id="grabValidation" class="validation-box"></div>
                         </div>
 
                         <!-- JC (GoPay) -->
-                        <div class="platform-box jc" id="boxJc">
-                            <div class="platform-header jc">🟢 GoFood (GoPay)</div>
+                        <div class="platform-card jc" id="boxJc">
+                            <div class="platform-header jc">
+                                <div class="platform-icon jc">🟢</div>
+                                <div>
+                                    <div>GOFOOD</div>
+                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">GoPay Only</div>
+                                </div>
+                                <span class="wallet-tag">Wajib GoPay</span>
+                            </div>
                             
-                            <div class="balance-row">
+                            <div class="balance-inputs">
                                 <div class="form-group">
                                     <label>Saldo Awal</label>
                                     <input type="number" id="jcStart" placeholder="0" onchange="calcEnding('jc')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage (Auto-sum)</label>
-                                    <input type="number" id="jcUsage" placeholder="0" readonly style="background: #e9ecef; font-weight: bold;">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="jcUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label>Ending Balance (Hitung: Saldo - Usage)</label>
-                                <input type="number" id="jcEnd" placeholder="0" readonly style="background: #d4edda; font-weight: bold;">
+                            <div class="balance-total jc">
+                                <div class="label">Ending Balance (Auto Calculate)</div>
+                                <div class="value" id="jcEndDisplay">Rp 0</div>
+                                <input type="hidden" id="jcEnd" value="0">
                             </div>
 
-                            <div class="file-input-wrapper">
-                                <label style="font-size: 10px; color: #666; font-weight: bold;">📄 Upload Multiple Invoice (OCR Auto-detect):</label>
-                                <input type="file" id="jcInvoice" accept="image/*" multiple onchange="handleMultipleInvoices('jc', this)">
+                            <!-- Invoice Upload -->
+                            <div class="upload-section" id="jcInvoiceSection">
+                                <div class="upload-title">
+                                    <span>📄</span>
+                                    <span>Upload Invoice GoPay</span>
+                                </div>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="jcInvoice" accept="image/*" multiple 
+                                           onchange="handleMultipleInvoices('jc', this)"
+                                           data-platform="jc">
+                                </div>
+                                <div class="file-hint" id="jcInvoiceHint">
+                                    <span>💡</span>
+                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi GoPay</span>
+                                </div>
+                                <div id="jcInvoiceList" class="invoice-list"></div>
                             </div>
 
-                            <div id="jcInvoiceList" class="invoice-list"></div>
-
-                            <div id="jcDetected" class="detected-box" style="background: linear-gradient(135deg, #00aa13 0%, #28a745 100%);">
-                                <div class="label">Total OCR Terdeteksi</div>
-                                <div class="amount" id="jcAmount">Rp 0</div>
+                            <!-- Ending Balance Upload -->
+                            <div class="upload-section" id="jcBalanceSection">
+                                <div class="upload-title">
+                                    <span>📸</span>
+                                    <span>Upload Ending Balance GoPay</span>
+                                </div>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="ssJc" accept="image/*" 
+                                           onchange="doOCREndingBalance('jc', this)"
+                                           data-platform="jc">
+                                </div>
+                                <div class="file-hint" id="jcBalanceHint">
+                                    <span>💡</span>
+                                    <span>Upload screenshot saldo akhir dari aplikasi GoPay</span>
+                                </div>
+                                <div id="jcOCRResult"></div>
                             </div>
 
-                            <div class="file-input-wrapper" style="margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px;">
-                                <label style="font-size: 11px; color: #00aa13; font-weight: bold;">📸 SS Ending Balance (OCR Validasi):</label>
-                                <input type="file" id="ssJc" accept="image/*" onchange="doOCREndingBalance('jc', this)">
-                                <div id="jcOCRResult" style="margin-top: 5px; font-size: 11px;"></div>
-                            </div>
-
-                            <div id="jcValidation" class="validation-status"></div>
+                            <div id="jcValidation" class="validation-box"></div>
                         </div>
 
                         <!-- HD (ShopeePay) -->
-                        <div class="platform-box hd" id="boxHd">
-                            <div class="platform-header hd">🟠 ShopeeFood (ShopeePay)</div>
+                        <div class="platform-card hd" id="boxHd">
+                            <div class="platform-header hd">
+                                <div class="platform-icon hd">🟠</div>
+                                <div>
+                                    <div>SHOPEEFOOD</div>
+                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">ShopeePay Only</div>
+                                </div>
+                                <span class="wallet-tag">Wajib ShopeePay</span>
+                            </div>
                             
-                            <div class="balance-row">
+                            <div class="balance-inputs">
                                 <div class="form-group">
                                     <label>Saldo Awal</label>
                                     <input type="number" id="hdStart" placeholder="0" onchange="calcEnding('hd')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage (Auto-sum)</label>
-                                    <input type="number" id="hdUsage" placeholder="0" readonly style="background: #e9ecef; font-weight: bold;">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="hdUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label>Ending Balance (Hitung: Saldo - Usage)</label>
-                                <input type="number" id="hdEnd" placeholder="0" readonly style="background: #f8d7da; font-weight: bold;">
+                            <div class="balance-total hd">
+                                <div class="label">Ending Balance (Auto Calculate)</div>
+                                <div class="value" id="hdEndDisplay">Rp 0</div>
+                                <input type="hidden" id="hdEnd" value="0">
                             </div>
 
-                            <div class="file-input-wrapper">
-                                <label style="font-size: 10px; color: #666; font-weight: bold;">📄 Upload Multiple Invoice (OCR Auto-detect):</label>
-                                <input type="file" id="hdInvoice" accept="image/*" multiple onchange="handleMultipleInvoices('hd', this)">
+                            <!-- Invoice Upload -->
+                            <div class="upload-section" id="hdInvoiceSection">
+                                <div class="upload-title">
+                                    <span>📄</span>
+                                    <span>Upload Invoice ShopeePay</span>
+                                </div>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="hdInvoice" accept="image/*" multiple 
+                                           onchange="handleMultipleInvoices('hd', this)"
+                                           data-platform="hd">
+                                </div>
+                                <div class="file-hint" id="hdInvoiceHint">
+                                    <span>💡</span>
+                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi ShopeePay</span>
+                                </div>
+                                <div id="hdInvoiceList" class="invoice-list"></div>
                             </div>
 
-                            <div id="hdInvoiceList" class="invoice-list"></div>
-
-                            <div id="hdDetected" class="detected-box" style="background: linear-gradient(135deg, #ee4d2d 0%, #ff6b35 100%);">
-                                <div class="label">Total OCR Terdeteksi</div>
-                                <div class="amount" id="hdAmount">Rp 0</div>
+                            <!-- Ending Balance Upload -->
+                            <div class="upload-section" id="hdBalanceSection">
+                                <div class="upload-title">
+                                    <span>📸</span>
+                                    <span>Upload Ending Balance ShopeePay</span>
+                                </div>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="ssHd" accept="image/*" 
+                                           onchange="doOCREndingBalance('hd', this)"
+                                           data-platform="hd">
+                                </div>
+                                <div class="file-hint" id="hdBalanceHint">
+                                    <span>💡</span>
+                                    <span>Upload screenshot saldo akhir dari aplikasi ShopeePay</span>
+                                </div>
+                                <div id="hdOCRResult"></div>
                             </div>
 
-                            <div class="file-input-wrapper" style="margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px;">
-                                <label style="font-size: 11px; color: #ee4d2d; font-weight: bold;">📸 SS Ending Balance (OCR Validasi):</label>
-                                <input type="file" id="ssHd" accept="image/*" onchange="doOCREndingBalance('hd', this)">
-                                <div id="hdOCRResult" style="margin-top: 5px; font-size: 11px;"></div>
-                            </div>
-
-                            <div id="hdValidation" class="validation-status"></div>
+                            <div id="hdValidation" class="validation-box"></div>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label>Remarks</label>
-                        <input type="text" id="remarks" placeholder="Keterangan tambahan...">
+                    <div class="form-group" style="margin-top: 25px;">
+                        <label>Remarks / Catatan</label>
+                        <input type="text" id="remarks" placeholder="Tambahkan keterangan jika diperlukan...">
                     </div>
 
                     <div class="progress-box" id="progressBox">
-                        <div id="progressText">⏳ Memproses...</div>
+                        <div class="progress-text" id="progressText">⏳ Memproses...</div>
                         <div class="progress-bar">
                             <div class="progress-fill" id="progressFill"></div>
                         </div>
                     </div>
 
                     <div class="result-box" id="resultBox">
-                        <strong>✅ Berhasil!</strong><br>
-                        <div id="resultLinks"></div>
+                        <div class="result-title">
+                            <span>✅</span>
+                            <span>Berhasil Disimpan!</span>
+                        </div>
+                        <div id="resultLinks" style="color: #155724; line-height: 1.8;"></div>
                     </div>
 
-                    <button class="btn-success" id="btnSubmit" onclick="submitAll()">
-                        🚀 Submit ke Google Sheets & Drive
+                    <button class="btn-submit" id="btnSubmit" onclick="submitAll()">
+                        <span>🚀</span>
+                        <span>Submit ke Google Sheets & Drive</span>
                     </button>
                 </div>
 
                 <!-- Local Data Preview -->
                 <div class="form-section">
-                    <div class="section-title">📋 Data Tersimpan (Local Backup)</div>
+                    <div class="section-title">
+                        <span style="font-size: 24px;">📋</span>
+                        <span>Data Tersimpan (Local Backup)</span>
+                    </div>
                     <div class="data-table-container">
                         <div id="tableContainer">
-                            <div class="empty-state">Belum ada data</div>
+                            <div class="empty-state">Belum ada data tersimpan</div>
                         </div>
                     </div>
                     
                     <div class="export-section">
                         <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
                         <button class="btn-export" onclick="copyForSheets()">📋 Copy Format Sheets</button>
-                        <button class="btn-export" onclick="clearLocal()" style="background: #dc3545;">🗑️ Clear Local</button>
+                        <button class="btn-export delete" onclick="clearLocal()">🗑️ Clear Local Data</button>
                     </div>
                 </div>
             </div>
@@ -689,11 +1168,9 @@
 
     <script>
         // ============================================
-        // CONFIG - GANTI DENGAN URL ANDA
+        // CONFIG & DATA STORAGE
         // ============================================
         let APPS_SCRIPT_URL = localStorage.getItem('ojol_apps_script_url') || '';
-        
-        // Data storage
         let localData = JSON.parse(localStorage.getItem('ojol_local_data') || '[]');
         
         // Invoice storage untuk multiple upload
@@ -710,18 +1187,32 @@
             hd: null
         };
 
+        // Platform detection keywords
+        const PLATFORM_KEYWORDS = {
+            grab: ['ovo', 'saldo ovo', 'ovo balance'],
+            jc: ['gopay', 'gojek', 'saldo gopay', 'saldo kamu'],
+            hd: ['shopeepay', 'shopee', 'saldo shopeepay']
+        };
+
+        const WALLET_KEYWORDS = {
+            grab: ['ovo', 'saldo ovo', 'ovo id', 'ovoid'],
+            jc: ['gopay', 'go-pay', 'saldo gopay', 'saldo kamu'],
+            hd: ['shopeepay', 'shopee pay', 'saldo shopeepay']
+        };
+
         // Init
         document.getElementById('transDate').valueAsDate = new Date();
         
         if (APPS_SCRIPT_URL) {
             document.getElementById('setupGuide').classList.add('hidden');
             document.getElementById('mainForm').classList.remove('hidden');
+            updateStats();
         }
 
         function saveConfig() {
             const url = document.getElementById('appsScriptUrl').value.trim();
             if (!url.includes('script.google.com')) {
-                alert('URL tidak valid! Harus dari script.google.com');
+                alert('❌ URL tidak valid! Harus dari script.google.com');
                 return;
             }
             APPS_SCRIPT_URL = url;
@@ -733,7 +1224,9 @@
             const start = parseInt(document.getElementById(platform + 'Start').value) || 0;
             const usage = parseInt(document.getElementById(platform + 'Usage').value) || 0;
             const end = Math.max(0, start - usage);
+            
             document.getElementById(platform + 'End').value = end;
+            document.getElementById(platform + 'EndDisplay').textContent = 'Rp ' + formatNumber(end);
             
             // Re-validate jika sudah ada OCR ending balance
             if (endingBalanceOCR[platform] !== null) {
@@ -742,7 +1235,40 @@
         }
 
         // ============================================
-        // MULTIPLE INVOICE HANDLER
+        // VALIDASI PLATFORM KETAT
+        // ============================================
+        function validatePlatform(text, expectedPlatform) {
+            const textLower = text.toLowerCase();
+            const keywords = PLATFORM_KEYWORDS[expectedPlatform];
+            
+            // Cek apakah ada keyword yang cocok
+            const hasCorrectWallet = keywords.some(keyword => textLower.includes(keyword));
+            
+            // Cek apakah ada keyword platform lain (cross-platform check)
+            let hasWrongWallet = false;
+            let wrongPlatform = '';
+            
+            for (let [platform, platformKeywords] of Object.entries(PLATFORM_KEYWORDS)) {
+                if (platform !== expectedPlatform) {
+                    if (platformKeywords.some(keyword => textLower.includes(keyword))) {
+                        hasWrongWallet = true;
+                        wrongPlatform = platform;
+                        break;
+                    }
+                }
+            }
+            
+            return {
+                valid: hasCorrectWallet && !hasWrongWallet,
+                hasCorrectWallet,
+                hasWrongWallet,
+                wrongPlatform,
+                detectedWallet: hasCorrectWallet ? expectedPlatform : (hasWrongWallet ? wrongPlatform : 'unknown')
+            };
+        }
+
+        // ============================================
+        // MULTIPLE INVOICE HANDLER DENGAN VALIDASI
         // ============================================
         async function handleMultipleInvoices(platform, input) {
             const files = Array.from(input.files);
@@ -751,8 +1277,15 @@
             const box = document.getElementById('progressBox');
             const fill = document.getElementById('progressFill');
             const text = document.getElementById('progressText');
+            const section = document.getElementById(platform + 'InvoiceSection');
+            const hint = document.getElementById(platform + 'InvoiceHint');
             
             box.classList.add('active');
+            section.classList.remove('error-upload');
+            hint.className = 'file-hint';
+            
+            let validFiles = 0;
+            let invalidFiles = 0;
             
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -772,16 +1305,34 @@
                         }
                     );
 
-                    const amount = extractTotal(result.data.text, platform);
+                    const ocrText = result.data.text;
+                    
+                    // Validasi platform ketat
+                    const validation = validatePlatform(ocrText, platform);
+                    
+                    if (!validation.valid) {
+                        invalidFiles++;
+                        if (validation.hasWrongWallet) {
+                            alert(`❌ FILE DITOLAK!\n\nFile: ${file.name}\n\nTerdeteksi sebagai: ${validation.wrongPlatform.toUpperCase()}\nSeharusnya: ${platform.toUpperCase()}\n\nPastikan upload invoice dari aplikasi yang benar!`);
+                            continue;
+                        } else {
+                            // Warning tapi tetap proses jika tidak terdeteksi sama sekali
+                            const proceed = confirm(`⚠️ PERINGATAN\n\nFile: ${file.name}\nTidak terdeteksi sebagai ${platform.toUpperCase()} dengan jelas.\n\nLanjutkan proses?`);
+                            if (!proceed) continue;
+                        }
+                    }
+                    
+                    const amount = extractTotal(ocrText, platform);
                     
                     // Simpan ke array
                     invoiceData[platform].push({
                         name: file.name,
                         amount: amount,
-                        text: result.data.text
+                        text: ocrText,
+                        validated: validation.valid
                     });
                     
-                    // Update tampilan list
+                    validFiles++;
                     updateInvoiceList(platform);
                     
                 } catch (e) {
@@ -793,8 +1344,22 @@
             updateTotalUsage(platform);
             box.classList.remove('active');
             
+            // Visual feedback
+            if (invalidFiles > 0 && validFiles === 0) {
+                section.classList.add('error-upload');
+                hint.innerHTML = `<span>❌</span><span>Semua file ditolak! Pastikan upload invoice ${platform.toUpperCase()} yang benar.</span>`;
+                hint.className = 'file-hint error-text';
+            } else if (invalidFiles > 0) {
+                hint.innerHTML = `<span>⚠️</span><span>${invalidFiles} file ditolak, ${validFiles} diterima</span>`;
+                hint.className = 'file-hint warning-text';
+            } else {
+                hint.innerHTML = `<span>✅</span><span>${validFiles} invoice berhasil diproses</span>`;
+                hint.className = 'file-hint success-text';
+            }
+            
             // Clear input untuk bisa upload lagi
             input.value = '';
+            updateStats();
         }
 
         function updateInvoiceList(platform) {
@@ -809,9 +1374,11 @@
             let html = '';
             invoices.forEach((inv, index) => {
                 html += `
-                    <div class="invoice-item">
-                        <span>${inv.name}</span>
-                        <span class="amount">Rp ${formatNumber(inv.amount)}</span>
+                    <div class="invoice-item ${platform}">
+                        <div class="invoice-info">
+                            <div class="invoice-name">${inv.name}</div>
+                        </div>
+                        <div class="invoice-amount">Rp ${formatNumber(inv.amount)}</div>
                         <button class="remove-btn" onclick="removeInvoice('${platform}', ${index})">×</button>
                     </div>
                 `;
@@ -824,20 +1391,19 @@
             invoiceData[platform].splice(index, 1);
             updateInvoiceList(platform);
             updateTotalUsage(platform);
+            updateStats();
         }
 
         function updateTotalUsage(platform) {
             const total = invoiceData[platform].reduce((sum, inv) => sum + inv.amount, 0);
             document.getElementById(platform + 'Usage').value = total;
-            document.getElementById(platform + 'Amount').textContent = 'Rp ' + formatNumber(total);
-            document.getElementById(platform + 'Detected').classList.add('active');
             
-            // Recalculate ending
+            // Update display
             calcEnding(platform);
         }
 
         // ============================================
-        // ENDING BALANCE OCR & VALIDASI
+        // ENDING BALANCE OCR DENGAN VALIDASI KETAT
         // ============================================
         async function doOCREndingBalance(platform, input) {
             const file = input.files[0];
@@ -847,10 +1413,14 @@
             const fill = document.getElementById('progressFill');
             const text = document.getElementById('progressText');
             const resultDiv = document.getElementById(platform + 'OCRResult');
+            const section = document.getElementById(platform + 'BalanceSection');
+            const hint = document.getElementById(platform + 'BalanceHint');
             
             box.classList.add('active');
             text.textContent = `🔍 OCR Ending Balance ${platform.toUpperCase()}...`;
             fill.style.width = '0%';
+            section.classList.remove('error-upload');
+            hint.className = 'file-hint';
 
             try {
                 const result = await Tesseract.recognize(
@@ -865,39 +1435,86 @@
                     }
                 );
 
-                // Extract balance dari screenshot e-wallet
-                const balance = extractBalanceFromScreenshot(result.data.text, platform);
+                const ocrText = result.data.text;
+                
+                // Validasi platform ketat
+                const validation = validatePlatform(ocrText, platform);
+                
+                if (!validation.valid) {
+                    if (validation.hasWrongWallet) {
+                        // Error besar - file salah platform
+                        section.classList.add('error-upload');
+                        hint.innerHTML = `<span>❌</span><span>FILE SALAH! Terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}, seharusnya ${platform.toUpperCase()}</span>`;
+                        hint.className = 'file-hint error-text';
+                        
+                        resultDiv.innerHTML = `
+                            <div class="ocr-result error">
+                                <div class="ocr-result-text">❌ VALIDASI GAGAL</div>
+                                <div style="font-size: 12px; margin-top: 5px;">
+                                    File ini terdeteksi sebagai <strong>${validation.wrongPlatform.toUpperCase()}</strong><br>
+                                    Harusnya: <strong>${platform.toUpperCase()}</strong><br><br>
+                                    Silakan upload screenshot saldo dari aplikasi yang benar!
+                                </div>
+                            </div>
+                        `;
+                        
+                        box.classList.remove('active');
+                        input.value = ''; // Clear file
+                        return;
+                    } else {
+                        // Warning - tidak terdeteksi dengan jelas
+                        const proceed = confirm(`⚠️ PERINGATAN\n\nScreenshot tidak terdeteksi sebagai ${platform.toUpperCase()} dengan jelas.\n\nLanjutkan proses?`);
+                        if (!proceed) {
+                            input.value = '';
+                            box.classList.remove('active');
+                            return;
+                        }
+                    }
+                }
+                
+                // Extract balance
+                const balance = extractBalanceFromScreenshot(ocrText, platform);
                 endingBalanceOCR[platform] = balance;
                 
                 resultDiv.innerHTML = `
-                    <div style="color: #28a745; font-weight: bold;">
-                        ✓ OCR Terbaca: Rp ${formatNumber(balance)}
+                    <div class="ocr-result success">
+                        <div class="ocr-result-text">✅ OCR BERHASIL</div>
+                        <div class="ocr-result-amount">Rp ${formatNumber(balance)}</div>
+                        <div style="font-size: 11px; color: #718096; margin-top: 5px;">
+                            Terdeteksi: ${validation.detectedWallet.toUpperCase()}
+                        </div>
                     </div>
                 `;
+                
+                hint.innerHTML = `<span>✅</span><span>Ending balance berhasil terbaca</span>`;
+                hint.className = 'file-hint success-text';
                 
                 box.classList.remove('active');
                 
                 // Lakukan validasi
                 validateEndingBalance(platform);
+                updateStats();
                 
             } catch (e) {
                 resultDiv.innerHTML = `
-                    <div style="color: #dc3545;">❌ OCR gagal: ${e.message}</div>
+                    <div class="ocr-result error">
+                        <div class="ocr-result-text">❌ OCR GAGAL</div>
+                        <div style="font-size: 12px;">${e.message}</div>
+                    </div>
                 `;
                 box.classList.remove('active');
             }
         }
 
         function extractBalanceFromScreenshot(text, platform) {
-            // Pattern untuk berbagai e-wallet
             const lines = text.split('\n');
             let candidates = [];
             
             // Keywords berdasarkan platform/e-wallet
             const keywords = {
-                grab: ['ovo', 'saldo', 'rp', 'balance'],
-                jc: ['gopay', 'saldo kamu', 'saldo', 'rp'],
-                hd: ['shopeepay', 'saldo', 'rp']
+                grab: ['ovo', 'saldo', 'rp', 'balance', 'ovo id', 'ovoid'],
+                jc: ['gopay', 'saldo kamu', 'saldo', 'rp', 'saldo gopay'],
+                hd: ['shopeepay', 'saldo', 'rp', 'shopee pay', 'saldo shopeepay']
             };
             
             const keys = keywords[platform] || ['saldo', 'rp', 'balance'];
@@ -908,12 +1525,10 @@
                 
                 for (let k of keys) {
                     if (line.includes(k)) {
-                        // Cek line ini dan line berikutnya
                         const context = lines.slice(i, i + 2).join(' ');
                         const matches = context.match(/[\d.,]+/g) || [];
                         
                         for (let m of matches) {
-                            // Bersihkan format
                             const clean = m.replace(/[.,]/g, '');
                             const val = parseInt(clean);
                             if (val > 1000 && val < 100000000) {
@@ -932,7 +1547,6 @@
         function validateEndingBalance(platform) {
             const platformBox = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
             const validationDiv = document.getElementById(platform + 'Validation');
-            const detectedBox = document.getElementById(platform + 'Detected');
             
             const calculatedEnd = parseInt(document.getElementById(platform + 'End').value) || 0;
             const ocrBalance = endingBalanceOCR[platform];
@@ -949,27 +1563,23 @@
                 // Success state
                 platformBox.classList.remove('error');
                 platformBox.classList.add('success');
-                detectedBox.classList.remove('error');
-                detectedBox.classList.add('success');
                 
-                validationDiv.className = 'validation-status show success';
+                validationDiv.className = 'validation-box show success';
                 validationDiv.innerHTML = `
                     ✅ VALIDASI BERHASIL<br>
-                    Hitung: Rp ${formatNumber(calculatedEnd)} ≈ OCR: Rp ${formatNumber(ocrBalance)}
+                    <small>Hitung: Rp ${formatNumber(calculatedEnd)} ≈ OCR: Rp ${formatNumber(ocrBalance)}</small>
                 `;
                 return true;
             } else {
                 // Error state - berkedip dan bergetar
                 platformBox.classList.remove('success');
                 platformBox.classList.add('error');
-                detectedBox.classList.remove('success');
-                detectedBox.classList.add('error');
                 
-                validationDiv.className = 'validation-status show error';
+                validationDiv.className = 'validation-box show error';
                 validationDiv.innerHTML = `
                     ❌ VALIDASI GAGAL!<br>
-                    Hitung: Rp ${formatNumber(calculatedEnd)} ≠ OCR: Rp ${formatNumber(ocrBalance)}<br>
-                    <small>Selisih: Rp ${formatNumber(Math.abs(calculatedEnd - ocrBalance))}</small>
+                    <small>Hitung: Rp ${formatNumber(calculatedEnd)} ≠ OCR: Rp ${formatNumber(ocrBalance)}<br>
+                    Selisih: Rp ${formatNumber(Math.abs(calculatedEnd - ocrBalance))}</small>
                 `;
                 
                 // Hapus class error setelah animasi selesai untuk bisa trigger lagi
@@ -989,9 +1599,9 @@
             let candidates = [];
             
             const keywords = {
-                grab: ['total harga', 'total', 'dibayar', 'total pembayaran'],
-                jc: ['total dibayar', 'total pembayaran', 'dibayar', 'total'],
-                hd: ['total', 'pembayaran', 'dibayar', 'total harga']
+                grab: ['total harga', 'total', 'dibayar', 'total pembayaran', 'ovo'],
+                jc: ['total dibayar', 'total pembayaran', 'dibayar', 'total', 'gopay'],
+                hd: ['total', 'pembayaran', 'dibayar', 'total harga', 'shopeepay']
             };
             
             const keys = keywords[platform] || ['total'];
@@ -1013,6 +1623,29 @@
             
             candidates.sort((a, b) => b - a);
             return candidates[0] || 0;
+        }
+
+        // ============================================
+        // STATS UPDATE
+        // ============================================
+        function updateStats() {
+            const totalInv = invoiceData.grab.length + invoiceData.jc.length + invoiceData.hd.length;
+            const totalUse = (parseInt(document.getElementById('grabUsage').value) || 0) +
+                            (parseInt(document.getElementById('jcUsage').value) || 0) +
+                            (parseInt(document.getElementById('hdUsage').value) || 0);
+            
+            let validated = 0;
+            if (endingBalanceOCR.grab !== null) validated++;
+            if (endingBalanceOCR.jc !== null) validated++;
+            if (endingBalanceOCR.hd !== null) validated++;
+            
+            document.getElementById('totalInvoices').textContent = totalInv;
+            document.getElementById('totalUsage').textContent = 'Rp ' + formatNumber(totalUse);
+            document.getElementById('validatedCount').textContent = validated + '/3';
+            
+            if (totalInv > 0) {
+                document.getElementById('statsBar').style.display = 'flex';
+            }
         }
 
         // ============================================
@@ -1039,15 +1672,14 @@
             }
             
             if (!allValid) {
-                alert('❌ Tidak dapat submit!\n\nValidasi ending balance gagal untuk: ' + invalidPlatforms.join(', ') + '\n\nPastikan:\n1. Saldo Awal sudah benar\n2. Semua invoice sudah diupload\n3. Screenshot ending balance sesuai');
+                alert('❌ TIDAK DAPAT SUBMIT!\n\nValidasi ending balance gagal untuk: ' + invalidPlatforms.join(', ') + '\n\nPastikan:\n1. Saldo Awal sudah benar\n2. Semua invoice sudah diupload\n3. Screenshot ending balance sesuai');
                 return;
             }
             
             btn.disabled = true;
-            btn.textContent = '⏳ Mengupload...';
+            btn.innerHTML = '<span>⏳</span><span>Mengupload...</span>';
             resultBox.classList.remove('active');
 
-            // URUTAN DATA WAJIB SESUAI BACKEND!
             const data = {
                 timestamp: new Date().toLocaleString('id-ID'),
                 admin: document.getElementById('adminName').value,
@@ -1074,15 +1706,13 @@
                 ocrValidation: endingBalanceOCR
             };
 
-            // Validasi field wajib
             if (!data.admin || !data.phoneCode || !data.date) {
-                alert('Isi Nama Admin, Kode HP, dan Date!');
+                alert('❌ Isi Nama Admin, Kode HP, dan Tanggal!');
                 btn.disabled = false;
-                btn.textContent = '🚀 Submit ke Google Sheets & Drive';
+                btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
                 return;
             }
 
-            // Convert ending balance files to base64
             const fileInputs = ['ssGrab', 'ssJc', 'ssHd'];
             for (let id of fileInputs) {
                 const input = document.getElementById(id);
@@ -1095,9 +1725,7 @@
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 
@@ -1117,14 +1745,13 @@
                 
             } catch (e) {
                 alert('❌ Error: ' + e.message + '\n\nData disimpan local sebagai backup.');
-                
                 localData.unshift(data);
                 localStorage.setItem('ojol_local_data', JSON.stringify(localData));
                 renderTable();
             }
             
             btn.disabled = false;
-            btn.textContent = '🚀 Submit ke Google Sheets & Drive';
+            btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
         }
 
         function toBase64(file) {
@@ -1144,17 +1771,26 @@
             ['grab', 'jc', 'hd'].forEach(p => {
                 document.getElementById(p + 'Start').value = '';
                 document.getElementById(p + 'Usage').value = '';
-                document.getElementById(p + 'End').value = '';
-                document.getElementById(p + 'Detected').classList.remove('active');
-                document.getElementById(p + 'Detected').classList.remove('success');
-                document.getElementById(p + 'Detected').classList.remove('error');
+                document.getElementById(p + 'End').value = '0';
+                document.getElementById(p + 'EndDisplay').textContent = 'Rp 0';
                 document.getElementById('box' + p.charAt(0).toUpperCase() + p.slice(1)).classList.remove('success', 'error');
                 document.getElementById(p + 'Validation').classList.remove('show');
                 document.getElementById(p + 'OCRResult').innerHTML = '';
                 document.getElementById(p + 'InvoiceList').innerHTML = '';
+                
+                // Reset hints
+                const hints = [p + 'InvoiceHint', p + 'BalanceHint'];
+                hints.forEach(hintId => {
+                    const hint = document.getElementById(hintId);
+                    if (hint) {
+                        hint.className = 'file-hint';
+                        hint.innerHTML = hintId.includes('Invoice') 
+                            ? `<span>💡</span><span>Upload screenshot invoice/bukti pembayaran</span>`
+                            : `<span>💡</span><span>Upload screenshot saldo akhir</span>`;
+                    }
+                });
             });
             
-            // Reset data
             invoiceData = { grab: [], jc: [], hd: [] };
             endingBalanceOCR = { grab: null, jc: null, hd: null };
             
@@ -1163,12 +1799,13 @@
             document.getElementById('ssJc').value = '';
             document.getElementById('ssHd').value = '';
             document.getElementById('resultBox').classList.remove('active');
+            document.getElementById('statsBar').style.display = 'none';
         }
 
         function renderTable() {
             const container = document.getElementById('tableContainer');
             if (localData.length === 0) {
-                container.innerHTML = '<div class="empty-state">Belum ada data</div>';
+                container.innerHTML = '<div class="empty-state">Belum ada data tersimpan</div>';
                 return;
             }
 
