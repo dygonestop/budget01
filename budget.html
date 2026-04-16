@@ -42,7 +42,7 @@
             font-weight: bold;
             margin: 3px;
         }
-        .badge.gr { background: #00b14f; color: white; }
+        .badge.gr { background: #4a148c; color: white; }
         .badge.jc { background: #00aa13; color: white; }
         .badge.hd { background: #ee4d2d; color: white; }
         .badge.free { background: #ffc107; color: #333; }
@@ -130,11 +130,36 @@
             border-radius: 10px;
             padding: 15px;
             border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
         }
 
-        .platform-box.gr { border-color: #00b14f; }
+        .platform-box.gr { border-color: #4a148c; }
         .platform-box.jc { border-color: #00aa13; }
         .platform-box.hd { border-color: #ee4d2d; }
+
+        /* Animasi error - berkedip merah dan bergetar */
+        @keyframes flashRed {
+            0%, 100% { border-color: #dc3545; box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            50% { border-color: #ff6b6b; box-shadow: 0 0 20px rgba(220, 53, 69, 0.5); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .platform-box.error {
+            animation: flashRed 0.5s ease-in-out 3, shake 0.5s ease-in-out;
+            border-color: #dc3545 !important;
+            background-color: #fff5f5 !important;
+        }
+
+        .platform-box.success {
+            border-color: #28a745 !important;
+            background-color: #f0fff4 !important;
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+        }
 
         .platform-header {
             font-weight: bold;
@@ -145,7 +170,7 @@
             gap: 8px;
         }
 
-        .platform-header.gr { color: #00b14f; }
+        .platform-header.gr { color: #4a148c; }
         .platform-header.jc { color: #00aa13; }
         .platform-header.hd { color: #ee4d2d; }
 
@@ -174,12 +199,64 @@
         .detected-box .label { font-size: 10px; opacity: 0.9; }
         .detected-box .amount { font-size: 20px; font-weight: bold; }
 
+        .detected-box.error {
+            background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%) !important;
+        }
+
+        .detected-box.success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+        }
+
         .file-input-wrapper {
             margin-top: 8px;
         }
 
         .file-input-wrapper input {
             font-size: 12px;
+            width: 100%;
+        }
+
+        .invoice-list {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .invoice-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .invoice-item .amount {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .invoice-item .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .btn-add-invoice {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
             width: 100%;
         }
 
@@ -243,6 +320,28 @@
             transition: width 0.3s;
         }
 
+        .validation-status {
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .validation-status.show { display: block; }
+        .validation-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .validation-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
         .data-table-container {
             overflow-x: auto;
             margin-top: 20px;
@@ -277,10 +376,6 @@
 
         .amount-pos { color: #28a745; font-weight: bold; }
         .amount-neg { color: #dc3545; font-weight: bold; }
-
-        .status-success { color: #28a745; }
-        .status-pending { color: #ffc107; }
-        .status-error { color: #dc3545; }
 
         .export-section {
             margin-top: 20px;
@@ -355,17 +450,24 @@
             color: #155724;
             word-break: break-all;
         }
+
+        .ocr-preview {
+            max-width: 100%;
+            max-height: 100px;
+            border-radius: 6px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📊 Laporan Keuangan Ojek Online</h1>
-            <p>100% Gratis | OCR Auto-detect | Google Sheets Integration</p>
+            <p>100% Gratis | OCR Auto-detect | Multi-Invoice | Validasi Balance</p>
             <span class="badge free">✓ FREE</span>
-            <span class="badge gr">GRAB</span>
-            <span class="badge jc">GOFOOD</span>
-            <span class="badge hd">SHOPEEFOOD</span>
+            <span class="badge gr">GRAB (OVO)</span>
+            <span class="badge jc">GOFOOD (GoPay)</span>
+            <span class="badge hd">SHOPEEFOOD (ShopeePay)</span>
         </div>
 
         <div class="content">
@@ -417,12 +519,12 @@
                         </div>
                     </div>
 
-                    <div class="section-title" style="margin-top: 20px;">💰 Input Data Platform</div>
+                    <div class="section-title" style="margin-top: 20px;">💰 Input Data Platform (Multi-Invoice + Validasi OCR)</div>
                     
                     <div class="balance-section">
-                        <!-- Grab -->
-                        <div class="platform-box gr">
-                            <div class="platform-header gr">🟢 Grab (GR)</div>
+                        <!-- Grab (OVO) -->
+                        <div class="platform-box gr" id="boxGrab">
+                            <div class="platform-header gr">🟣 Grab (OVO)</div>
                             
                             <div class="balance-row">
                                 <div class="form-group">
@@ -430,35 +532,40 @@
                                     <input type="number" id="grabStart" placeholder="0" onchange="calcEnding('grab')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage</label>
-                                    <input type="number" id="grabUsage" placeholder="OCR" readonly style="background: #e9ecef;">
+                                    <label>Total Usage (Auto-sum)</label>
+                                    <input type="number" id="grabUsage" placeholder="0" readonly style="background: #e9ecef; font-weight: bold;">
                                 </div>
                             </div>
                             
                             <div class="form-group">
-                                <label>Ending Balance</label>
+                                <label>Ending Balance (Hitung: Saldo - Usage)</label>
                                 <input type="number" id="grabEnd" placeholder="0" readonly style="background: #d4edda; font-weight: bold;">
                             </div>
 
                             <div class="file-input-wrapper">
-                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
-                                <input type="file" id="grabInvoice" accept="image/*" onchange="doOCR('grab', this)">
+                                <label style="font-size: 10px; color: #666; font-weight: bold;">📄 Upload Multiple Invoice (OCR Auto-detect):</label>
+                                <input type="file" id="grabInvoice" accept="image/*" multiple onchange="handleMultipleInvoices('grab', this)">
                             </div>
 
+                            <div id="grabInvoiceList" class="invoice-list"></div>
+
                             <div id="grabDetected" class="detected-box">
-                                <div class="label">OCR Terdeteksi</div>
+                                <div class="label">Total OCR Terdeteksi</div>
                                 <div class="amount" id="grabAmount">Rp 0</div>
                             </div>
 
-                            <div class="file-input-wrapper" style="margin-top: 8px;">
-                                <label style="font-size: 10px; color: #666;">📸 SS Ending Balance:</label>
-                                <input type="file" id="ssGrab" accept="image/*">
+                            <div class="file-input-wrapper" style="margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px;">
+                                <label style="font-size: 11px; color: #4a148c; font-weight: bold;">📸 SS Ending Balance (OCR Validasi):</label>
+                                <input type="file" id="ssGrab" accept="image/*" onchange="doOCREndingBalance('grab', this)">
+                                <div id="grabOCRResult" style="margin-top: 5px; font-size: 11px;"></div>
                             </div>
+
+                            <div id="grabValidation" class="validation-status"></div>
                         </div>
 
-                        <!-- JC -->
-                        <div class="platform-box jc">
-                            <div class="platform-header jc">🟢 GoFood (JC)</div>
+                        <!-- JC (GoPay) -->
+                        <div class="platform-box jc" id="boxJc">
+                            <div class="platform-header jc">🟢 GoFood (GoPay)</div>
                             
                             <div class="balance-row">
                                 <div class="form-group">
@@ -466,35 +573,40 @@
                                     <input type="number" id="jcStart" placeholder="0" onchange="calcEnding('jc')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage</label>
-                                    <input type="number" id="jcUsage" placeholder="OCR" readonly style="background: #e9ecef;">
+                                    <label>Total Usage (Auto-sum)</label>
+                                    <input type="number" id="jcUsage" placeholder="0" readonly style="background: #e9ecef; font-weight: bold;">
                                 </div>
                             </div>
                             
                             <div class="form-group">
-                                <label>Ending Balance</label>
+                                <label>Ending Balance (Hitung: Saldo - Usage)</label>
                                 <input type="number" id="jcEnd" placeholder="0" readonly style="background: #d4edda; font-weight: bold;">
                             </div>
 
                             <div class="file-input-wrapper">
-                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
-                                <input type="file" id="jcInvoice" accept="image/*" onchange="doOCR('jc', this)">
+                                <label style="font-size: 10px; color: #666; font-weight: bold;">📄 Upload Multiple Invoice (OCR Auto-detect):</label>
+                                <input type="file" id="jcInvoice" accept="image/*" multiple onchange="handleMultipleInvoices('jc', this)">
                             </div>
 
+                            <div id="jcInvoiceList" class="invoice-list"></div>
+
                             <div id="jcDetected" class="detected-box" style="background: linear-gradient(135deg, #00aa13 0%, #28a745 100%);">
-                                <div class="label">OCR Terdeteksi</div>
+                                <div class="label">Total OCR Terdeteksi</div>
                                 <div class="amount" id="jcAmount">Rp 0</div>
                             </div>
 
-                            <div class="file-input-wrapper" style="margin-top: 8px;">
-                                <label style="font-size: 10px; color: #666;">📸 SS Ending Balance:</label>
-                                <input type="file" id="ssJc" accept="image/*">
+                            <div class="file-input-wrapper" style="margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px;">
+                                <label style="font-size: 11px; color: #00aa13; font-weight: bold;">📸 SS Ending Balance (OCR Validasi):</label>
+                                <input type="file" id="ssJc" accept="image/*" onchange="doOCREndingBalance('jc', this)">
+                                <div id="jcOCRResult" style="margin-top: 5px; font-size: 11px;"></div>
                             </div>
+
+                            <div id="jcValidation" class="validation-status"></div>
                         </div>
 
-                        <!-- HD -->
-                        <div class="platform-box hd">
-                            <div class="platform-header hd">🟠 ShopeeFood (HD)</div>
+                        <!-- HD (ShopeePay) -->
+                        <div class="platform-box hd" id="boxHd">
+                            <div class="platform-header hd">🟠 ShopeeFood (ShopeePay)</div>
                             
                             <div class="balance-row">
                                 <div class="form-group">
@@ -502,30 +614,35 @@
                                     <input type="number" id="hdStart" placeholder="0" onchange="calcEnding('hd')">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Usage</label>
-                                    <input type="number" id="hdUsage" placeholder="OCR" readonly style="background: #e9ecef;">
+                                    <label>Total Usage (Auto-sum)</label>
+                                    <input type="number" id="hdUsage" placeholder="0" readonly style="background: #e9ecef; font-weight: bold;">
                                 </div>
                             </div>
                             
                             <div class="form-group">
-                                <label>Ending Balance</label>
+                                <label>Ending Balance (Hitung: Saldo - Usage)</label>
                                 <input type="number" id="hdEnd" placeholder="0" readonly style="background: #f8d7da; font-weight: bold;">
                             </div>
 
                             <div class="file-input-wrapper">
-                                <label style="font-size: 10px; color: #666;">📄 Upload Invoice (OCR):</label>
-                                <input type="file" id="hdInvoice" accept="image/*" onchange="doOCR('hd', this)">
+                                <label style="font-size: 10px; color: #666; font-weight: bold;">📄 Upload Multiple Invoice (OCR Auto-detect):</label>
+                                <input type="file" id="hdInvoice" accept="image/*" multiple onchange="handleMultipleInvoices('hd', this)">
                             </div>
 
+                            <div id="hdInvoiceList" class="invoice-list"></div>
+
                             <div id="hdDetected" class="detected-box" style="background: linear-gradient(135deg, #ee4d2d 0%, #ff6b35 100%);">
-                                <div class="label">OCR Terdeteksi</div>
+                                <div class="label">Total OCR Terdeteksi</div>
                                 <div class="amount" id="hdAmount">Rp 0</div>
                             </div>
 
-                            <div class="file-input-wrapper" style="margin-top: 8px;">
-                                <label style="font-size: 10px; color: #666;">📸 SS Ending Balance:</label>
-                                <input type="file" id="ssHd" accept="image/*">
+                            <div class="file-input-wrapper" style="margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px;">
+                                <label style="font-size: 11px; color: #ee4d2d; font-weight: bold;">📸 SS Ending Balance (OCR Validasi):</label>
+                                <input type="file" id="ssHd" accept="image/*" onchange="doOCREndingBalance('hd', this)">
+                                <div id="hdOCRResult" style="margin-top: 5px; font-size: 11px;"></div>
                             </div>
+
+                            <div id="hdValidation" class="validation-status"></div>
                         </div>
                     </div>
 
@@ -578,6 +695,20 @@
         
         // Data storage
         let localData = JSON.parse(localStorage.getItem('ojol_local_data') || '[]');
+        
+        // Invoice storage untuk multiple upload
+        let invoiceData = {
+            grab: [],
+            jc: [],
+            hd: []
+        };
+        
+        // Ending balance OCR results
+        let endingBalanceOCR = {
+            grab: null,
+            jc: null,
+            hd: null
+        };
 
         // Init
         document.getElementById('transDate').valueAsDate = new Date();
@@ -603,18 +734,123 @@
             const usage = parseInt(document.getElementById(platform + 'Usage').value) || 0;
             const end = Math.max(0, start - usage);
             document.getElementById(platform + 'End').value = end;
+            
+            // Re-validate jika sudah ada OCR ending balance
+            if (endingBalanceOCR[platform] !== null) {
+                validateEndingBalance(platform);
+            }
         }
 
-        async function doOCR(platform, input) {
-            const file = input.files[0];
-            if (!file) return;
+        // ============================================
+        // MULTIPLE INVOICE HANDLER
+        // ============================================
+        async function handleMultipleInvoices(platform, input) {
+            const files = Array.from(input.files);
+            if (files.length === 0) return;
 
             const box = document.getElementById('progressBox');
             const fill = document.getElementById('progressFill');
             const text = document.getElementById('progressText');
             
             box.classList.add('active');
-            text.textContent = `🔍 OCR ${platform.toUpperCase()}...`;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                text.textContent = `🔍 OCR ${platform.toUpperCase()} - Invoice ${i + 1}/${files.length}...`;
+                
+                try {
+                    const result = await Tesseract.recognize(
+                        file,
+                        'ind+eng',
+                        {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    const totalProgress = ((i + m.progress) / files.length) * 100;
+                                    fill.style.width = totalProgress + '%';
+                                }
+                            }
+                        }
+                    );
+
+                    const amount = extractTotal(result.data.text, platform);
+                    
+                    // Simpan ke array
+                    invoiceData[platform].push({
+                        name: file.name,
+                        amount: amount,
+                        text: result.data.text
+                    });
+                    
+                    // Update tampilan list
+                    updateInvoiceList(platform);
+                    
+                } catch (e) {
+                    console.error('OCR gagal untuk', file.name, e);
+                }
+            }
+            
+            // Update total
+            updateTotalUsage(platform);
+            box.classList.remove('active');
+            
+            // Clear input untuk bisa upload lagi
+            input.value = '';
+        }
+
+        function updateInvoiceList(platform) {
+            const listContainer = document.getElementById(platform + 'InvoiceList');
+            const invoices = invoiceData[platform];
+            
+            if (invoices.length === 0) {
+                listContainer.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            invoices.forEach((inv, index) => {
+                html += `
+                    <div class="invoice-item">
+                        <span>${inv.name}</span>
+                        <span class="amount">Rp ${formatNumber(inv.amount)}</span>
+                        <button class="remove-btn" onclick="removeInvoice('${platform}', ${index})">×</button>
+                    </div>
+                `;
+            });
+            
+            listContainer.innerHTML = html;
+        }
+
+        function removeInvoice(platform, index) {
+            invoiceData[platform].splice(index, 1);
+            updateInvoiceList(platform);
+            updateTotalUsage(platform);
+        }
+
+        function updateTotalUsage(platform) {
+            const total = invoiceData[platform].reduce((sum, inv) => sum + inv.amount, 0);
+            document.getElementById(platform + 'Usage').value = total;
+            document.getElementById(platform + 'Amount').textContent = 'Rp ' + formatNumber(total);
+            document.getElementById(platform + 'Detected').classList.add('active');
+            
+            // Recalculate ending
+            calcEnding(platform);
+        }
+
+        // ============================================
+        // ENDING BALANCE OCR & VALIDASI
+        // ============================================
+        async function doOCREndingBalance(platform, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const box = document.getElementById('progressBox');
+            const fill = document.getElementById('progressFill');
+            const text = document.getElementById('progressText');
+            const resultDiv = document.getElementById(platform + 'OCRResult');
+            
+            box.classList.add('active');
+            text.textContent = `🔍 OCR Ending Balance ${platform.toUpperCase()}...`;
+            fill.style.width = '0%';
 
             try {
                 const result = await Tesseract.recognize(
@@ -629,30 +865,133 @@
                     }
                 );
 
-                const total = extractTotal(result.data.text, platform);
+                // Extract balance dari screenshot e-wallet
+                const balance = extractBalanceFromScreenshot(result.data.text, platform);
+                endingBalanceOCR[platform] = balance;
                 
-                document.getElementById(platform + 'Usage').value = total;
-                document.getElementById(platform + 'Amount').textContent = 'Rp ' + formatNumber(total);
-                document.getElementById(platform + 'Detected').classList.add('active');
-                
-                calcEnding(platform);
+                resultDiv.innerHTML = `
+                    <div style="color: #28a745; font-weight: bold;">
+                        ✓ OCR Terbaca: Rp ${formatNumber(balance)}
+                    </div>
+                `;
                 
                 box.classList.remove('active');
                 
+                // Lakukan validasi
+                validateEndingBalance(platform);
+                
             } catch (e) {
-                alert('OCR gagal: ' + e.message);
+                resultDiv.innerHTML = `
+                    <div style="color: #dc3545;">❌ OCR gagal: ${e.message}</div>
+                `;
                 box.classList.remove('active');
             }
         }
 
+        function extractBalanceFromScreenshot(text, platform) {
+            // Pattern untuk berbagai e-wallet
+            const lines = text.split('\n');
+            let candidates = [];
+            
+            // Keywords berdasarkan platform/e-wallet
+            const keywords = {
+                grab: ['ovo', 'saldo', 'rp', 'balance'],
+                jc: ['gopay', 'saldo kamu', 'saldo', 'rp'],
+                hd: ['shopeepay', 'saldo', 'rp']
+            };
+            
+            const keys = keywords[platform] || ['saldo', 'rp', 'balance'];
+            
+            // Cari angka setelah keywords
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].toLowerCase();
+                
+                for (let k of keys) {
+                    if (line.includes(k)) {
+                        // Cek line ini dan line berikutnya
+                        const context = lines.slice(i, i + 2).join(' ');
+                        const matches = context.match(/[\d.,]+/g) || [];
+                        
+                        for (let m of matches) {
+                            // Bersihkan format
+                            const clean = m.replace(/[.,]/g, '');
+                            const val = parseInt(clean);
+                            if (val > 1000 && val < 100000000) {
+                                candidates.push(val);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Ambil yang paling besar (biasanya saldo utama)
+            candidates.sort((a, b) => b - a);
+            return candidates[0] || 0;
+        }
+
+        function validateEndingBalance(platform) {
+            const platformBox = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
+            const validationDiv = document.getElementById(platform + 'Validation');
+            const detectedBox = document.getElementById(platform + 'Detected');
+            
+            const calculatedEnd = parseInt(document.getElementById(platform + 'End').value) || 0;
+            const ocrBalance = endingBalanceOCR[platform];
+            
+            if (ocrBalance === null) {
+                validationDiv.classList.remove('show');
+                return false;
+            }
+            
+            const tolerance = 100; // Toleransi Rp 100 untuk rounding
+            const isValid = Math.abs(calculatedEnd - ocrBalance) <= tolerance;
+            
+            if (isValid) {
+                // Success state
+                platformBox.classList.remove('error');
+                platformBox.classList.add('success');
+                detectedBox.classList.remove('error');
+                detectedBox.classList.add('success');
+                
+                validationDiv.className = 'validation-status show success';
+                validationDiv.innerHTML = `
+                    ✅ VALIDASI BERHASIL<br>
+                    Hitung: Rp ${formatNumber(calculatedEnd)} ≈ OCR: Rp ${formatNumber(ocrBalance)}
+                `;
+                return true;
+            } else {
+                // Error state - berkedip dan bergetar
+                platformBox.classList.remove('success');
+                platformBox.classList.add('error');
+                detectedBox.classList.remove('success');
+                detectedBox.classList.add('error');
+                
+                validationDiv.className = 'validation-status show error';
+                validationDiv.innerHTML = `
+                    ❌ VALIDASI GAGAL!<br>
+                    Hitung: Rp ${formatNumber(calculatedEnd)} ≠ OCR: Rp ${formatNumber(ocrBalance)}<br>
+                    <small>Selisih: Rp ${formatNumber(Math.abs(calculatedEnd - ocrBalance))}</small>
+                `;
+                
+                // Hapus class error setelah animasi selesai untuk bisa trigger lagi
+                setTimeout(() => {
+                    platformBox.classList.remove('error');
+                }, 2000);
+                
+                return false;
+            }
+        }
+
+        // ============================================
+        // EXTRACT TOTAL DARI INVOICE
+        // ============================================
         function extractTotal(text, platform) {
             const lines = text.split('\n');
             let candidates = [];
             
             const keywords = {
-                grab: ['total harga', 'total', 'dibayar'],
-                jc: ['total dibayar', 'total pembayaran', 'dibayar'],
-                hd: ['total', 'pembayaran', 'dibayar']
+                grab: ['total harga', 'total', 'dibayar', 'total pembayaran'],
+                jc: ['total dibayar', 'total pembayaran', 'dibayar', 'total'],
+                hd: ['total', 'pembayaran', 'dibayar', 'total harga']
             };
             
             const keys = keywords[platform] || ['total'];
@@ -676,9 +1015,33 @@
             return candidates[0] || 0;
         }
 
+        // ============================================
+        // SUBMIT HANDLER
+        // ============================================
         async function submitAll() {
             const btn = document.getElementById('btnSubmit');
             const resultBox = document.getElementById('resultBox');
+            
+            // Validasi semua platform
+            const platforms = ['grab', 'jc', 'hd'];
+            let allValid = true;
+            let invalidPlatforms = [];
+            
+            for (let platform of platforms) {
+                const ocrBalance = endingBalanceOCR[platform];
+                if (ocrBalance !== null) {
+                    const isValid = validateEndingBalance(platform);
+                    if (!isValid) {
+                        allValid = false;
+                        invalidPlatforms.push(platform.toUpperCase());
+                    }
+                }
+            }
+            
+            if (!allValid) {
+                alert('❌ Tidak dapat submit!\n\nValidasi ending balance gagal untuk: ' + invalidPlatforms.join(', ') + '\n\nPastikan:\n1. Saldo Awal sudah benar\n2. Semua invoice sudah diupload\n3. Screenshot ending balance sesuai');
+                return;
+            }
             
             btn.disabled = true;
             btn.textContent = '⏳ Mengupload...';
@@ -686,36 +1049,32 @@
 
             // URUTAN DATA WAJIB SESUAI BACKEND!
             const data = {
-                // A-D: Info dasar
                 timestamp: new Date().toLocaleString('id-ID'),
                 admin: document.getElementById('adminName').value,
                 date: document.getElementById('transDate').value,
                 phoneCode: document.getElementById('phoneCode').value,
                 
-                // E-G: Grab (Saldo Awal, Usage, Ending)
                 grabStart: parseInt(document.getElementById('grabStart').value) || 0,
                 grabUsage: parseInt(document.getElementById('grabUsage').value) || 0,
                 grabEnd: parseInt(document.getElementById('grabEnd').value) || 0,
                 
-                // H-J: JC (Saldo Awal, Usage, Ending)
                 jcStart: parseInt(document.getElementById('jcStart').value) || 0,
                 jcUsage: parseInt(document.getElementById('jcUsage').value) || 0,
                 jcEnd: parseInt(document.getElementById('jcEnd').value) || 0,
                 
-                // K-M: HD (Saldo Awal, Usage, Ending)
                 hdStart: parseInt(document.getElementById('hdStart').value) || 0,
                 hdUsage: parseInt(document.getElementById('hdUsage').value) || 0,
                 hdEnd: parseInt(document.getElementById('hdEnd').value) || 0,
                 
-                // N-R: Lainnya
                 remarks: document.getElementById('remarks').value || '',
                 project: document.getElementById('project').value || 'Food',
                 
-                // Files
-                files: {}
+                files: {},
+                invoiceDetails: invoiceData,
+                ocrValidation: endingBalanceOCR
             };
 
-            // Validasi
+            // Validasi field wajib
             if (!data.admin || !data.phoneCode || !data.date) {
                 alert('Isi Nama Admin, Kode HP, dan Date!');
                 btn.disabled = false;
@@ -723,7 +1082,7 @@
                 return;
             }
 
-            // Convert files to base64
+            // Convert ending balance files to base64
             const fileInputs = ['ssGrab', 'ssJc', 'ssHd'];
             for (let id of fileInputs) {
                 const input = document.getElementById(id);
@@ -735,15 +1094,13 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Penting untuk CORS
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data)
                 });
                 
-                // Karena no-cors, kita anggap sukses dan cek local
-                // Save locally sebagai backup
                 data.driveLinks = { status: 'Uploaded' };
                 localData.unshift(data);
                 localStorage.setItem('ojol_local_data', JSON.stringify(localData));
@@ -751,7 +1108,6 @@
                 renderTable();
                 clearForm();
                 
-                // Tampilkan sukses
                 resultBox.classList.add('active');
                 document.getElementById('resultLinks').innerHTML = `
                     ✅ Data tersimpan di Google Sheets<br>
@@ -762,7 +1118,6 @@
             } catch (e) {
                 alert('❌ Error: ' + e.message + '\n\nData disimpan local sebagai backup.');
                 
-                // Fallback: save locally
                 localData.unshift(data);
                 localStorage.setItem('ojol_local_data', JSON.stringify(localData));
                 renderTable();
@@ -791,7 +1146,18 @@
                 document.getElementById(p + 'Usage').value = '';
                 document.getElementById(p + 'End').value = '';
                 document.getElementById(p + 'Detected').classList.remove('active');
+                document.getElementById(p + 'Detected').classList.remove('success');
+                document.getElementById(p + 'Detected').classList.remove('error');
+                document.getElementById('box' + p.charAt(0).toUpperCase() + p.slice(1)).classList.remove('success', 'error');
+                document.getElementById(p + 'Validation').classList.remove('show');
+                document.getElementById(p + 'OCRResult').innerHTML = '';
+                document.getElementById(p + 'InvoiceList').innerHTML = '';
             });
+            
+            // Reset data
+            invoiceData = { grab: [], jc: [], hd: [] };
+            endingBalanceOCR = { grab: null, jc: null, hd: null };
+            
             document.getElementById('remarks').value = '';
             document.getElementById('ssGrab').value = '';
             document.getElementById('ssJc').value = '';
