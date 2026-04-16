@@ -1876,116 +1876,121 @@
         // ============================================
         // ENDING BALANCE OCR DENGAN VALIDASI KETAT & LOADING
         // ============================================
-        async function doOCREndingBalance(platform, input) {
-            const file = input.files[0];
-            if (!file) return;
+       async function doOCREndingBalance(platform, input) {
+    const file = input.files[0];
+    if (!file) return;
 
-            const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-            const resultDiv = document.getElementById(platform + 'OCRResult');
-            const section = document.getElementById(platform + 'BalanceSection');
-            const hint = document.getElementById(platform + 'BalanceHint');
-            const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
-            
-            // Setup abort controller
-            currentOCRController = new AbortController();
-            const signal = currentOCRController.signal;
-            
-            // Show loading states
-            box.classList.add('processing');
-            section.classList.add('processing');
-            loadingIndicator.classList.add('active');
-            loadingIndicator.querySelector('.platform-loading-text').textContent = 'Membaca Saldo...';
-            loadingIndicator.querySelector('.platform-loading-subtext').textContent = 'OCR sedang berjalan';
-            
-            hint.className = 'file-hint processing-text';
-            hint.innerHTML = `<span>⏳</span><span>Sedang membaca saldo...</span>`;
+    const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
+    const resultDiv = document.getElementById(platform + 'OCRResult');
+    const section = document.getElementById(platform + 'BalanceSection');
+    const hint = document.getElementById(platform + 'BalanceHint');
+    const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
+    
+    // Setup abort controller
+    currentOCRController = new AbortController();
+    const signal = currentOCRController.signal;
+    
+    // Show loading states
+    box.classList.add('processing');
+    section.classList.add('processing');
+    loadingIndicator.classList.add('active');
+    loadingIndicator.querySelector('.platform-loading-text').textContent = 'Membaca Saldo...';
+    loadingIndicator.querySelector('.platform-loading-subtext').textContent = 'OCR sedang berjalan';
+    
+    hint.className = 'file-hint processing-text';
+    hint.innerHTML = `<span>⏳</span><span>Sedang membaca saldo...</span>`;
 
-            try {
-                const result = await Tesseract.recognize(
-                    file,
-                    'ind+eng',
-                    {
-                        logger: m => {
-                            if (signal.aborted) return;
-                            if (m.status === 'recognizing text') {
-                                const percent = Math.round(m.progress * 100);
-                                hint.innerHTML = `<span>⏳</span><span>Membaca... ${percent}%</span>`;
-                            }
-                        }
-                    }
-                );
-
-                if (signal.aborted) return;
-
-                const ocrText = result.data.text;
-                
-                // Validasi platform ketat
-                const validation = validatePlatform(ocrText, platform);
-                
-                if (!validation.valid) {
-                    if (validation.hasWrongWallet) {
-                        // Error besar - file salah platform
-                        section.classList.add('error-upload');
-                        hint.innerHTML = `<span>❌</span><span>FILE SALAH! Terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}</span>`;
-                        hint.className = 'file-hint error-text';
-                        
-                        resultDiv.innerHTML = `
-                            <div class="ocr-result error">
-                                <div class="ocr-result-text">❌ VALIDASI GAGAL</div>
-                                <div style="font-size: 12px; margin-top: 5px;">
-                                    File ini terdeteksi sebagai <strong>${validation.wrongPlatform.toUpperCase()}</strong><br>
-                                    Harusnya: <strong>${platform.toUpperCase()}</strong><br><br>
-                                    Silakan upload screenshot saldo dari aplikasi yang benar!
-                                </div>
-                            </div>
-                        `;
-                        
-                        showToast('error', 'File Salah!', `Terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}`, 5000);
-                        input.value = ''; // Clear file
-                        return;
-                    } else {
-                        // Warning - tidak terdeteksi dengan jelas
-                        const proceed = confirm(`⚠️ PERINGATAN\n\nScreenshot tidak terdeteksi sebagai ${platform.toUpperCase()} dengan jelas.\n\nLanjutkan proses?`);
-                        if (!proceed) {
-                            input.value = '';
-                            return;
-                        }
+    try {
+        const result = await Tesseract.recognize(
+            file,
+            'ind+eng',
+            {
+                logger: m => {
+                    if (signal.aborted) return;
+                    if (m.status === 'recognizing text') {
+                        const percent = Math.round(m.progress * 100);
+                        hint.innerHTML = `<span>⏳</span><span>Membaca... ${percent}%</span>`;
                     }
                 }
-                
-                // Extract balance
-                const balance = extractBalanceFromScreenshot(ocrText, platform);
-                endingBalanceOCR[platform] = balance;
+            }
+        );
+
+        if (signal.aborted) return;
+
+        const ocrText = result.data.text;
+        
+        // Validasi platform ketat
+        const validation = validatePlatform(ocrText, platform);
+        
+        if (!validation.valid) {
+            if (validation.hasWrongWallet) {
+                // Error besar - file salah platform
+                section.classList.add('error-upload');
+                hint.innerHTML = `<span>❌</span><span>FILE SALAH! Terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}</span>`;
+                hint.className = 'file-hint error-text';
                 
                 resultDiv.innerHTML = `
-                                    <div class="ocr-result success">
-                        <div class="ocr-result-text">✅ OCR BERHASIL</div>
-                        <div class="ocr-result-amount">Rp ${formatNumber(balance)}</div>
-                        <div style="font-size: 11px; color: #718096; margin-top: 5px;">
-                            Terdeteksi: ${validation.detectedWallet.toUpperCase()}
+                    <div class="ocr-result error">
+                        <div class="ocr-result-text">❌ VALIDASI GAGAL</div>
+                        <div style="font-size: 12px; margin-top: 5px;">
+                            File ini terdeteksi sebagai <strong>${validation.wrongPlatform.toUpperCase()}</strong><br>
+                            Harusnya: <strong>${platform.toUpperCase()}</strong><br><br>
+                            Silakan upload screenshot saldo dari aplikasi yang benar!
                         </div>
                     </div>
                 `;
                 
-                hint.innerHTML = `<span>✅</span><span>Ending balance berhasil terbaca</span>`;
-                hint.className = 'file-hint success-text';
-                
-                box.classList.remove('active');
-                
-                // Lakukan validasi
-                validateEndingBalance(platform);
-                updateStats();
-                
-            } catch (e) {
-                resultDiv.innerHTML = `
-                    <div class="ocr-result error">
-                        <div class="ocr-result-text">❌ OCR GAGAL</div>
-                        <div style="font-size: 12px;">${e.message}</div>
-                    </div>
-                `;
-                box.classList.remove('active');
+                showToast('error', 'File Salah!', `Terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}`, 5000);
+                input.value = ''; // Clear file
+                return; // Finally block tetap akan dijalankan
+            } else {
+                // Warning - tidak terdeteksi dengan jelas
+                const proceed = confirm(`⚠️ PERINGATAN\n\nScreenshot tidak terdeteksi sebagai ${platform.toUpperCase()} dengan jelas.\n\nLanjutkan proses?`);
+                if (!proceed) {
+                    input.value = '';
+                    return; // Finally block tetap akan dijalankan
+                }
             }
         }
+        
+        // Extract balance
+        const balance = extractBalanceFromScreenshot(ocrText, platform);
+        endingBalanceOCR[platform] = balance;
+        
+        resultDiv.innerHTML = `
+            <div class="ocr-result success">
+                <div class="ocr-result-text">✅ OCR BERHASIL</div>
+                <div class="ocr-result-amount">Rp ${formatNumber(balance)}</div>
+                <div style="font-size: 11px; color: #718096; margin-top: 5px;">
+                    Terdeteksi: ${validation.detectedWallet.toUpperCase()}
+                </div>
+            </div>
+        `;
+        
+        hint.innerHTML = `<span>✅</span><span>Ending balance berhasil terbaca</span>`;
+        hint.className = 'file-hint success-text';
+        
+        // Lakukan validasi
+        validateEndingBalance(platform);
+        updateStats();
+        
+    } catch (e) {
+        resultDiv.innerHTML = `
+            <div class="ocr-result error">
+                <div class="ocr-result-text">❌ OCR GAGAL</div>
+                <div style="font-size: 12px;">${e.message}</div>
+            </div>
+        `;
+        hint.innerHTML = `<span>❌</span><span>Gagal membaca gambar</span>`;
+        hint.className = 'file-hint error-text';
+    } finally {
+        // PERBAIKAN: Pastikan semua loading state dimatikan di sini
+        box.classList.remove('processing');
+        section.classList.remove('processing');
+        loadingIndicator.classList.remove('active');
+        box.classList.remove('active');
+    }
+}
 
         function extractBalanceFromScreenshot(text, platform) {
             const lines = text.split('\n');
