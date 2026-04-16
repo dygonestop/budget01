@@ -19,6 +19,7 @@
             --danger: #dc3545;
             --success: #28a745;
             --warning: #ffc107;
+            --info: #17a2b8;
         }
         
         body {
@@ -238,6 +239,25 @@
             box-shadow: 0 10px 40px rgba(40, 167, 69, 0.2);
         }
 
+        /* Loading State untuk Platform Card */
+        .platform-card.processing {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .platform-card.processing::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(2px);
+            z-index: 10;
+            border-radius: 17px;
+        }
+
         .platform-header {
             font-weight: 800;
             font-size: 16px;
@@ -320,6 +340,7 @@
             margin-bottom: 15px;
             border: 2px dashed #cbd5e0;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         .upload-section:hover {
@@ -330,6 +351,12 @@
         .upload-section.error-upload {
             border-color: var(--danger);
             background: #fff5f5;
+        }
+
+        .upload-section.processing {
+            border-color: var(--info);
+            background: #e3f2fd;
+            pointer-events: none;
         }
 
         .upload-title {
@@ -361,6 +388,12 @@
             border-color: var(--primary);
         }
 
+        .file-input-wrapper input[type="file"]:disabled {
+            background: #edf2f7;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
         .file-hint {
             font-size: 11px;
             color: #a0aec0;
@@ -377,6 +410,11 @@
 
         .file-hint.success-text {
             color: var(--success);
+            font-weight: 600;
+        }
+
+        .file-hint.processing-text {
+            color: var(--info);
             font-weight: 600;
         }
 
@@ -397,6 +435,12 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border-left: 4px solid;
             transition: all 0.3s ease;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .invoice-item:hover {
@@ -487,42 +531,209 @@
             border: 2px solid #ffc107;
         }
 
-        /* Progress */
-        .progress-box {
+        /* Progress - REDESIGNED */
+        .progress-overlay {
             display: none;
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            padding: 25px;
-            border-radius: 16px;
-            margin: 25px 0;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
 
-        .progress-box.active { display: block; }
-
-        .progress-text {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1565c0;
-            margin-bottom: 15px;
+        .progress-overlay.active {
+            display: flex;
         }
 
-        .progress-bar {
+        .progress-modal {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
             width: 100%;
-            height: 12px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            animation: modalPop 0.3s ease;
         }
 
-        .progress-fill {
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .progress-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(102, 126, 234, 0); }
+        }
+
+        .progress-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .progress-subtitle {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 30px;
+        }
+
+        .progress-detail {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            color: #4a5568;
+            border-left: 4px solid var(--primary);
+        }
+
+        .progress-bar-container {
+            background: #edf2f7;
+            border-radius: 12px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .progress-bar-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--primary) 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-percentage {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .progress-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, var(--danger) 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Platform specific loading indicators */
+        .platform-loading-indicator {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            min-width: 200px;
+        }
+
+        .platform-loading-indicator.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .platform-loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .platform-loading-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .platform-loading-subtext {
+            font-size: 12px;
+            color: #718096;
         }
 
         /* Buttons */
@@ -762,6 +973,8 @@
             .platform-card { padding: 20px 15px; }
             .balance-inputs { grid-template-columns: 1fr; }
             .btn-submit { font-size: 16px; padding: 16px; }
+            .progress-modal { padding: 30px 20px; }
+            .progress-title { font-size: 20px; }
         }
 
         /* OCR Result Preview */
@@ -772,6 +985,7 @@
             border-radius: 10px;
             font-size: 13px;
             border-left: 4px solid;
+            animation: slideIn 0.3s ease;
         }
 
         .ocr-result.success {
@@ -826,9 +1040,113 @@
             font-weight: 600;
             text-transform: uppercase;
         }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            padding: 20px 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 15px;
+            z-index: 2000;
+            max-width: 400px;
+            animation: slideInRight 0.4s ease;
+        }
+
+        .toast.active {
+            display: flex;
+        }
+
+        .toast-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .toast-icon.success { background: #d4edda; }
+        .toast-icon.error { background: #f8d7da; }
+        .toast-icon.warning { background: #fff3cd; }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 3px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            .toast {
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+                max-width: none;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Progress Overlay -->
+    <div id="progressOverlay" class="progress-overlay">
+        <div class="progress-modal">
+            <div class="progress-icon">🔍</div>
+            <div class="progress-title">Membaca Invoice...</div>
+            <div class="progress-subtitle">Mohon tunggu, sedang memproses dengan OCR</div>
+            
+            <div class="progress-detail" id="progressDetail">
+                Menginisialisasi...
+            </div>
+            
+            <div class="progress-bar-container">
+                <div id="progressBarFill" class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+            
+            <div class="progress-percentage" id="progressPercentage">0%</div>
+            
+            <div class="progress-stats">
+                <div class="progress-stat">
+                    <span>📄</span>
+                    <span id="progressFileCount">File 0/0</span>
+                </div>
+                <div class="progress-stat">
+                    <span>⏱️</span>
+                    <span id="progressTime">00:00</span>
+                </div>
+            </div>
+            
+            <button class="btn-cancel" onclick="cancelOCR()">
+                <span>✕</span>
+                <span>Batalkan</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <div class="toast-icon" id="toastIcon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title" id="toastTitle">Berhasil!</div>
+            <div class="toast-message" id="toastMessage">Data telah diproses</div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>📊 Laporan Keuangan Ojek Online</h1>
@@ -918,6 +1236,13 @@
                     <div class="platforms-container">
                         <!-- GRAB (OVO) -->
                         <div class="platform-card gr" id="boxGrab">
+                            <!-- Platform Loading Indicator -->
+                            <div id="grabLoadingIndicator" class="platform-loading-indicator">
+                                <div class="platform-loading-spinner"></div>
+                                <div class="platform-loading-text">Memproses...</div>
+                                <div class="platform-loading-subtext">M membaca invoice</div>
+                            </div>
+
                             <div class="platform-header gr">
                                 <div class="platform-icon gr">🟣</div>
                                 <div>
@@ -985,6 +1310,12 @@
 
                         <!-- JC (GoPay) -->
                         <div class="platform-card jc" id="boxJc">
+                            <div id="jcLoadingIndicator" class="platform-loading-indicator">
+                                <div class="platform-loading-spinner"></div>
+                                <div class="platform-loading-text">Memproses...</div>
+                                <div class="platform-loading-subtext">M membaca invoice</div>
+                            </div>
+
                             <div class="platform-header jc">
                                 <div class="platform-icon jc">🟢</div>
                                 <div>
@@ -1052,6 +1383,12 @@
 
                         <!-- HD (ShopeePay) -->
                         <div class="platform-card hd" id="boxHd">
+                            <div id="hdLoadingIndicator" class="platform-loading-indicator">
+                                <div class="platform-loading-spinner"></div>
+                                <div class="platform-loading-text">Memproses...</div>
+                                <div class="platform-loading-subtext">M membaca invoice</div>
+                            </div>
+
                             <div class="platform-header hd">
                                 <div class="platform-icon hd">🟠</div>
                                 <div>
@@ -1123,13 +1460,6 @@
                         <input type="text" id="remarks" placeholder="Tambahkan keterangan jika diperlukan...">
                     </div>
 
-                    <div class="progress-box" id="progressBox">
-                        <div class="progress-text" id="progressText">⏳ Memproses...</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill"></div>
-                        </div>
-                    </div>
-
                     <div class="result-box" id="resultBox">
                         <div class="result-title">
                             <span>✅</span>
@@ -1187,6 +1517,11 @@
             hd: null
         };
 
+        // OCR Controller untuk cancel
+        let currentOCRController = null;
+        let ocrStartTime = null;
+        let ocrTimerInterval = null;
+
         // Platform detection keywords
         const PLATFORM_KEYWORDS = {
             grab: ['ovo', 'saldo ovo', 'ovo balance'],
@@ -1212,7 +1547,7 @@
         function saveConfig() {
             const url = document.getElementById('appsScriptUrl').value.trim();
             if (!url.includes('script.google.com')) {
-                alert('❌ URL tidak valid! Harus dari script.google.com');
+                showToast('error', 'URL tidak valid!', 'Harus dari script.google.com');
                 return;
             }
             APPS_SCRIPT_URL = url;
@@ -1232,6 +1567,97 @@
             if (endingBalanceOCR[platform] !== null) {
                 validateEndingBalance(platform);
             }
+        }
+
+        // ============================================
+        // TOAST NOTIFICATION
+        // ============================================
+        function showToast(type, title, message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const titleEl = document.getElementById('toastTitle');
+            const messageEl = document.getElementById('toastMessage');
+            
+            const icons = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠'
+            };
+            
+            const colors = {
+                success: '#d4edda',
+                error: '#f8d7da',
+                warning: '#fff3cd'
+            };
+            
+            icon.textContent = icons[type];
+            icon.className = 'toast-icon ' + type;
+            icon.style.background = colors[type];
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, duration);
+        }
+
+        // ============================================
+        // PROGRESS OVERLAY FUNCTIONS
+        // ============================================
+        function showProgressOverlay(title, subtitle) {
+            const overlay = document.getElementById('progressOverlay');
+            document.querySelector('.progress-title').textContent = title;
+            document.querySelector('.progress-subtitle').textContent = subtitle;
+            document.getElementById('progressBarFill').style.width = '0%';
+            document.getElementById('progressPercentage').textContent = '0%';
+            document.getElementById('progressDetail').textContent = 'Menginisialisasi...';
+            document.getElementById('progressFileCount').textContent = 'File 0/0';
+            document.getElementById('progressTime').textContent = '00:00';
+            
+            overlay.classList.add('active');
+            
+            // Start timer
+            ocrStartTime = Date.now();
+            ocrTimerInterval = setInterval(updateProgressTime, 1000);
+        }
+
+        function hideProgressOverlay() {
+            const overlay = document.getElementById('progressOverlay');
+            overlay.classList.remove('active');
+            
+            if (ocrTimerInterval) {
+                clearInterval(ocrTimerInterval);
+                ocrTimerInterval = null;
+            }
+        }
+
+        function updateProgressTime() {
+            if (!ocrStartTime) return;
+            const elapsed = Math.floor((Date.now() - ocrStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('progressTime').textContent = `${minutes}:${seconds}`;
+        }
+
+        function updateProgress(current, total, fileIndex, totalFiles, detail) {
+            const percentage = Math.round((current / total) * 100);
+            const overallProgress = ((fileIndex - 1 + (current / 100)) / totalFiles) * 100;
+            
+            document.getElementById('progressBarFill').style.width = overallProgress + '%';
+            document.getElementById('progressPercentage').textContent = Math.round(overallProgress) + '%';
+            document.getElementById('progressFileCount').textContent = `File ${fileIndex}/${totalFiles}`;
+            document.getElementById('progressDetail').textContent = detail || `Memproses file ${fileIndex} dari ${totalFiles}...`;
+        }
+
+        function cancelOCR() {
+            if (currentOCRController) {
+                currentOCRController.abort();
+                currentOCRController = null;
+            }
+            hideProgressOverlay();
+            showToast('warning', 'Dibatalkan', 'Proses OCR dihentikan', 3000);
         }
 
         // ============================================
@@ -1268,98 +1694,142 @@
         }
 
         // ============================================
-        // MULTIPLE INVOICE HANDLER DENGAN VALIDASI
+        // MULTIPLE INVOICE HANDLER DENGAN VALIDASI & LOADING
         // ============================================
         async function handleMultipleInvoices(platform, input) {
             const files = Array.from(input.files);
             if (files.length === 0) return;
 
-            const box = document.getElementById('progressBox');
-            const fill = document.getElementById('progressFill');
-            const text = document.getElementById('progressText');
+            const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
             const section = document.getElementById(platform + 'InvoiceSection');
             const hint = document.getElementById(platform + 'InvoiceHint');
+            const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
             
-            box.classList.add('active');
-            section.classList.remove('error-upload');
-            hint.className = 'file-hint';
+            // Setup abort controller
+            currentOCRController = new AbortController();
+            const signal = currentOCRController.signal;
             
+            // Show loading states
+            box.classList.add('processing');
+            section.classList.add('processing');
+            loadingIndicator.classList.add('active');
+            hint.className = 'file-hint processing-text';
+            hint.innerHTML = `<span>⏳</span><span>Sedang memproses ${files.length} file...</span>`;
+            
+            // Show progress overlay
+            showProgressOverlay(
+                `Membaca Invoice ${platform.toUpperCase()}`, 
+                `Sedang memproses ${files.length} file dengan OCR`
+            );
+
             let validFiles = 0;
             let invalidFiles = 0;
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                text.textContent = `🔍 OCR ${platform.toUpperCase()} - Invoice ${i + 1}/${files.length}...`;
-                
-                try {
-                    const result = await Tesseract.recognize(
-                        file,
-                        'ind+eng',
-                        {
-                            logger: m => {
-                                if (m.status === 'recognizing text') {
-                                    const totalProgress = ((i + m.progress) / files.length) * 100;
-                                    fill.style.width = totalProgress + '%';
+            let processedCount = 0;
+
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    if (signal.aborted) break;
+                    
+                    const file = files[i];
+                    updateProgress(0, 100, i + 1, files.length, `Membaca ${file.name}...`);
+                    
+                    try {
+                        const result = await Tesseract.recognize(
+                            file,
+                            'ind+eng',
+                            {
+                                logger: m => {
+                                    if (signal.aborted) return;
+                                    if (m.status === 'recognizing text') {
+                                        updateProgress(
+                                            m.progress * 100, 
+                                            100, 
+                                            i + 1, 
+                                            files.length, 
+                                            `OCR ${file.name}... ${Math.round(m.progress * 100)}%`
+                                        );
+                                    }
                                 }
                             }
-                        }
-                    );
+                        );
 
-                    const ocrText = result.data.text;
-                    
-                    // Validasi platform ketat
-                    const validation = validatePlatform(ocrText, platform);
-                    
-                    if (!validation.valid) {
-                        invalidFiles++;
-                        if (validation.hasWrongWallet) {
-                            alert(`❌ FILE DITOLAK!\n\nFile: ${file.name}\n\nTerdeteksi sebagai: ${validation.wrongPlatform.toUpperCase()}\nSeharusnya: ${platform.toUpperCase()}\n\nPastikan upload invoice dari aplikasi yang benar!`);
-                            continue;
-                        } else {
-                            // Warning tapi tetap proses jika tidak terdeteksi sama sekali
-                            const proceed = confirm(`⚠️ PERINGATAN\n\nFile: ${file.name}\nTidak terdeteksi sebagai ${platform.toUpperCase()} dengan jelas.\n\nLanjutkan proses?`);
-                            if (!proceed) continue;
+                        if (signal.aborted) break;
+
+                        const ocrText = result.data.text;
+                        
+                        // Validasi platform ketat
+                        const validation = validatePlatform(ocrText, platform);
+                        
+                        if (!validation.valid) {
+                            invalidFiles++;
+                            if (validation.hasWrongWallet) {
+                                showToast('error', 'File Ditolak!', `${file.name} terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}`);
+                                continue;
+                            } else {
+                                // Warning tapi tetap proses jika tidak terdeteksi sama sekali
+                                const proceed = confirm(`⚠️ PERINGATAN\n\nFile: ${file.name}\nTidak terdeteksi sebagai ${platform.toUpperCase()} dengan jelas.\n\nLanjutkan proses?`);
+                                if (!proceed) continue;
+                            }
                         }
+                        
+                        const amount = extractTotal(ocrText, platform);
+                        
+                        // Simpan ke array
+                        invoiceData[platform].push({
+                            name: file.name,
+                            amount: amount,
+                            text: ocrText,
+                            validated: validation.valid
+                        });
+                        
+                        validFiles++;
+                        updateInvoiceList(platform);
+                        
+                    } catch (e) {
+                        console.error('OCR gagal untuk', file.name, e);
+                        showToast('error', 'OCR Gagal', `Tidak bisa membaca ${file.name}`);
                     }
                     
-                    const amount = extractTotal(ocrText, platform);
-                    
-                    // Simpan ke array
-                    invoiceData[platform].push({
-                        name: file.name,
-                        amount: amount,
-                        text: ocrText,
-                        validated: validation.valid
-                    });
-                    
-                    validFiles++;
-                    updateInvoiceList(platform);
-                    
-                } catch (e) {
-                    console.error('OCR gagal untuk', file.name, e);
+                    processedCount++;
                 }
+                
+                // Update total
+                updateTotalUsage(platform);
+                
+                // Visual feedback
+                if (invalidFiles > 0 && validFiles === 0) {
+                    section.classList.add('error-upload');
+                    hint.innerHTML = `<span>❌</span><span>Semua file ditolak! Pastikan upload invoice ${platform.toUpperCase()} yang benar.</span>`;
+                    hint.className = 'file-hint error-text';
+                    showToast('error', 'Semua File Ditolak!', `Pastikan upload invoice ${platform.toUpperCase()}`, 5000);
+                } else if (invalidFiles > 0) {
+                    hint.innerHTML = `<span>⚠️</span><span>${invalidFiles} file ditolak, ${validFiles} diterima</span>`;
+                    hint.className = 'file-hint warning-text';
+                    showToast('warning', 'Sebagian Diterima', `${validFiles} diterima, ${invalidFiles} ditolak`);
+                } else {
+                    hint.innerHTML = `<span>✅</span><span>${validFiles} invoice berhasil diproses</span>`;
+                    hint.className = 'file-hint success-text';
+                    showToast('success', 'Berhasil!', `${validFiles} invoice telah diproses`);
+                }
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    showToast('warning', 'Dibatalkan', 'Proses OCR dihentikan');
+                } else {
+                    showToast('error', 'Error', error.message);
+                }
+            } finally {
+                // Cleanup
+                hideProgressOverlay();
+                box.classList.remove('processing');
+                section.classList.remove('processing');
+                loadingIndicator.classList.remove('active');
+                currentOCRController = null;
+                
+                // Clear input untuk bisa upload lagi
+                input.value = '';
+                updateStats();
             }
-            
-            // Update total
-            updateTotalUsage(platform);
-            box.classList.remove('active');
-            
-            // Visual feedback
-            if (invalidFiles > 0 && validFiles === 0) {
-                section.classList.add('error-upload');
-                hint.innerHTML = `<span>❌</span><span>Semua file ditolak! Pastikan upload invoice ${platform.toUpperCase()} yang benar.</span>`;
-                hint.className = 'file-hint error-text';
-            } else if (invalidFiles > 0) {
-                hint.innerHTML = `<span>⚠️</span><span>${invalidFiles} file ditolak, ${validFiles} diterima</span>`;
-                hint.className = 'file-hint warning-text';
-            } else {
-                hint.innerHTML = `<span>✅</span><span>${validFiles} invoice berhasil diproses</span>`;
-                hint.className = 'file-hint success-text';
-            }
-            
-            // Clear input untuk bisa upload lagi
-            input.value = '';
-            updateStats();
         }
 
         function updateInvoiceList(platform) {
@@ -1392,6 +1862,7 @@
             updateInvoiceList(platform);
             updateTotalUsage(platform);
             updateStats();
+            showToast('success', 'Dihapus', 'Invoice telah dihapus');
         }
 
         function updateTotalUsage(platform) {
@@ -1403,24 +1874,31 @@
         }
 
         // ============================================
-        // ENDING BALANCE OCR DENGAN VALIDASI KETAT
+        // ENDING BALANCE OCR DENGAN VALIDASI KETAT & LOADING
         // ============================================
         async function doOCREndingBalance(platform, input) {
             const file = input.files[0];
             if (!file) return;
 
-            const box = document.getElementById('progressBox');
-            const fill = document.getElementById('progressFill');
-            const text = document.getElementById('progressText');
+            const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
             const resultDiv = document.getElementById(platform + 'OCRResult');
             const section = document.getElementById(platform + 'BalanceSection');
             const hint = document.getElementById(platform + 'BalanceHint');
+            const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
             
-            box.classList.add('active');
-            text.textContent = `🔍 OCR Ending Balance ${platform.toUpperCase()}...`;
-            fill.style.width = '0%';
-            section.classList.remove('error-upload');
-            hint.className = 'file-hint';
+            // Setup abort controller
+            currentOCRController = new AbortController();
+            const signal = currentOCRController.signal;
+            
+            // Show loading states
+            box.classList.add('processing');
+            section.classList.add('processing');
+            loadingIndicator.classList.add('active');
+            loadingIndicator.querySelector('.platform-loading-text').textContent = 'Membaca Saldo...';
+            loadingIndicator.querySelector('.platform-loading-subtext').textContent = 'OCR sedang berjalan';
+            
+            hint.className = 'file-hint processing-text';
+            hint.innerHTML = `<span>⏳</span><span>Sedang membaca saldo...</span>`;
 
             try {
                 const result = await Tesseract.recognize(
@@ -1428,12 +1906,16 @@
                     'ind+eng',
                     {
                         logger: m => {
+                            if (signal.aborted) return;
                             if (m.status === 'recognizing text') {
-                                fill.style.width = (m.progress * 100) + '%';
+                                const percent = Math.round(m.progress * 100);
+                                hint.innerHTML = `<span>⏳</span><span>Membaca... ${percent}%</span>`;
                             }
                         }
                     }
                 );
+
+                if (signal.aborted) return;
 
                 const ocrText = result.data.text;
                 
@@ -1444,7 +1926,7 @@
                     if (validation.hasWrongWallet) {
                         // Error besar - file salah platform
                         section.classList.add('error-upload');
-                        hint.innerHTML = `<span>❌</span><span>FILE SALAH! Terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}, seharusnya ${platform.toUpperCase()}</span>`;
+                        hint.innerHTML = `<span>❌</span><span>FILE SALAH! Terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}</span>`;
                         hint.className = 'file-hint error-text';
                         
                         resultDiv.innerHTML = `
@@ -1458,7 +1940,7 @@
                             </div>
                         `;
                         
-                        box.classList.remove('active');
+                        showToast('error', 'File Salah!', `Terdeteksi sebagai ${validation.wrongPlatform.toUpperCase()}`, 5000);
                         input.value = ''; // Clear file
                         return;
                     } else {
@@ -1466,7 +1948,6 @@
                         const proceed = confirm(`⚠️ PERINGATAN\n\nScreenshot tidak terdeteksi sebagai ${platform.toUpperCase()} dengan jelas.\n\nLanjutkan proses?`);
                         if (!proceed) {
                             input.value = '';
-                            box.classList.remove('active');
                             return;
                         }
                     }
@@ -1477,7 +1958,7 @@
                 endingBalanceOCR[platform] = balance;
                 
                 resultDiv.innerHTML = `
-                    <div class="ocr-result success">
+                                    <div class="ocr-result success">
                         <div class="ocr-result-text">✅ OCR BERHASIL</div>
                         <div class="ocr-result-amount">Rp ${formatNumber(balance)}</div>
                         <div style="font-size: 11px; color: #718096; margin-top: 5px;">
