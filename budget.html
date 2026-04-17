@@ -1427,7 +1427,7 @@
                     <li>Paste CODE.GS (dari bawah) → Ganti SPREADSHEET_ID → Deploy</li>
                     <li>Copy URL Web App → Paste di bawah:</li>
                 </ol>
-                <input type="text" id="appsScriptUrl" class="url-input" placeholder="https://script.google.com/macros/s/AKfycbwYrfWR5l3n-MP-nojLjdiIWi9EPmJ6MDt-gfWVl4Ni77veqI35Cf0VuvOh38uQ0uTI/exec">
+                <input type="text" id="appsScriptUrl" class="url-input" placeholder="https://script.google.com/macros/s/AKfycbxA9qZwPVtS75jmz58Po3nueksMbecswa5kbwhwDrxEQuC08cKHRvlcQTPj7BAuGu4y/exec">
                 <button class="btn-primary" onclick="saveConfig()">💾 Simpan Config</button>
             </div>
 
@@ -1760,6 +1760,54 @@
     </div>
 
     <script>
+// 1. Fungsi Ambil Saldo Otomatis saat input Kode HP
+document.getElementById('phoneCode').addEventListener('blur', async function() {
+    const code = this.value.trim().toLowerCase();
+    if (!code) return;
+
+    // Tampilkan indikator loading jika ada
+    console.log("Mencari saldo terakhir untuk:", code);
+
+    try {
+        const response = await fetch(`${SCRIPT_URL}?action=getLastBalance&phoneCode=${code}`);
+        const result = await response.json();
+
+        if (result.success) {
+          // Isi Saldo Awal secara otomatis
+          document.getElementById('grabStart').value = result.grabEnd;
+          document.getElementById('jcStart').value = result.jcEnd;
+          document.getElementById('hdStart').value = result.hdEnd;
+          
+          // Hitung ulang semua platform
+          calculate('grab');
+          calculate('jc');
+          calculate('hd');
+          alert("Saldo awal berhasil dimuat otomatis!");
+        }
+    } catch (e) {
+        console.error("Gagal menarik saldo:", e);
+    }
+});
+
+// 2. Fungsi Hitung: (Awal + TopUp) - Usage
+function calculate(platform) {
+    const start = parseInt(document.getElementById(platform + 'Start').value) || 0;
+    const topup = parseInt(document.getElementById(platform + 'TopUp').value) || 0;
+    const usage = parseInt(document.getElementById(platform + 'Usage').value) || 0;
+
+    const ending = (start + topup) - usage;
+    document.getElementById(platform + 'End').value = ending;
+}
+
+// 3. Integrasi ke OCR (Panggil calculate setelah OCR selesai)
+async function processOCR(file, platform) {
+    // ... kode Tesseract Anda ...
+    const amount = extractAmount(result.data.text);
+    if (amount) {
+        document.getElementById(platform + 'Usage').value = amount;
+        calculate(platform); // Otomatis hitung saldo akhir setelah OCR masuk
+    }
+}
 // ============================================
 // CONFIG & DATA STORAGE
 // ============================================
