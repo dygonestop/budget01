@@ -1875,6 +1875,10 @@ function showMainForm(show) {
 // SALDO AWAL AUTO-FETCH (FIXED!)
 // ============================================
 
+// ============================================
+// SALDO AWAL AUTO-FETCH (FINAL FIX - WITH TOP UP)
+// ============================================
+
 let remoteBalances = { grab: 0, jc: 0, hd: 0 };
 
 async function fetchLastBalanceFromSheets() {
@@ -1883,6 +1887,8 @@ async function fetchLastBalanceFromSheets() {
     
     if (!pCode) {
         console.log('Kode HP kosong');
+        remoteBalances = { grab: 0, jc: 0, hd: 0 };
+        updateAllPlatforms();
         return;
     }
     
@@ -1909,29 +1915,25 @@ async function fetchLastBalanceFromSheets() {
         console.log('Response dari GAS:', result);
 
         if (result.success) {
-            // Simpan ending balance untuk jadi saldo awal
             remoteBalances.grab = result.grabEnd || 0;
             remoteBalances.jc = result.jcEnd || 0;
             remoteBalances.hd = result.hdEnd || 0;
             
             showToast('success', 'Data Ditemukan!', 
-                `Saldo terakhir ${pCode}: Grab Rp ${formatNumber(remoteBalances.grab)}, JC Rp ${formatNumber(remoteBalances.jc)}, HD Rp ${formatNumber(remoteBalances.hd)}`);
+                `Ending balance ${pCode}: Grab Rp ${formatNumber(remoteBalances.grab)}, GoFood Rp ${formatNumber(remoteBalances.jc)}, Shopee Rp ${formatNumber(remoteBalances.hd)}`);
             
             console.log('Remote balances set:', remoteBalances);
         } else {
-            // Kode HP baru
             remoteBalances = { grab: 0, jc: 0, hd: 0 };
             showToast('info', 'Kode HP Baru', `Memulai dengan saldo 0 untuk ${pCode}`);
         }
         
-        // Update semua platform dengan saldo awal yang benar
         updateAllPlatforms();
         
     } catch (e) {
         console.error("Error fetch:", e);
-        showToast('error', 'Gagal Ambil Data!', e.message);
+        showToast('error', 'Gagal Ambil Data!', 'Menggunakan data local...');
         
-        // Fallback ke local
         remoteBalances.grab = getLastBalanceFromLocal('grab', pCode);
         remoteBalances.jc = getLastBalanceFromLocal('jc', pCode);
         remoteBalances.hd = getLastBalanceFromLocal('hd', pCode);
@@ -1944,7 +1946,7 @@ async function fetchLastBalanceFromSheets() {
 }
 
 function getLastBalanceFromLocal(platform, phoneCode) {
-    for (let i = 0; i < localData.length; i++) {
+    for (let i = localData.length - 1; i >= 0; i--) {
         const data = localData[i];
         const dataPhone = (data.phoneCode || '').toLowerCase().replace(/\s+/g, '');
         if (dataPhone === phoneCode) {
@@ -1956,28 +1958,19 @@ function getLastBalanceFromLocal(platform, phoneCode) {
 
 function updateAllPlatforms() {
     ['grab', 'jc', 'hd'].forEach(p => {
-        const startInput = document.getElementById(p + 'Start');
-        const endDisplay = document.getElementById(p + 'EndDisplay');
-        const endInput = document.getElementById(p + 'End');
-        
-        if (startInput) {
-            // Saldo Awal = Ending Balance terakhir dari Sheets
-            startInput.value = remoteBalances[p];
-            console.log(`Set ${p}Start = ${remoteBalances[p]}`);
-        }
-        
-        // Hitung ulang ending balance (Start + 0 - 0 = Start)
         calcEnding(p);
     });
 }
 
 /**
- * Hitung Ending Balance
- * Formula: Ending = Saldo Awal - Usage
- * (Tidak ada Top Up di struktur Anda!)
+ * Hitung Saldo Awal dan Ending Balance
+ * Formula: 
+ * - Saldo Awal = Ending Balance Terakhir + Top Up
+ * - Ending Balance = Saldo Awal - Usage
  */
 function calcEnding(platform) {
     const startInput = document.getElementById(platform + 'Start');
+    const topUpInput = document.getElementById(platform + 'TopUp');
     const usageInput = document.getElementById(platform + 'Usage');
     const endInput = document.getElementById(platform + 'End');
     const endDisplay = document.getElementById(platform + 'EndDisplay');
@@ -1987,10 +1980,16 @@ function calcEnding(platform) {
         return;
     }
 
-    const startVal = parseInt(startInput.value) || 0;
-    const usageVal = parseInt(usageInput.value) || 0;
+    // Ambil nilai
+    const lastEnding = remoteBalances[platform] || 0;
+    const topUpVal = parseInt(topUpInput?.value) || 0;
+    const usageVal = parseInt(usageInput?.value) || 0;
 
-    // Formula: Ending = Saldo Awal - Usage
+    // Hitung Saldo Awal = Ending Balance Terakhir + Top Up
+    const startVal = lastEnding + topUpVal;
+    startInput.value = startVal;
+
+    // Hitung Ending Balance = Saldo Awal - Usage
     const finalEnd = startVal - usageVal;
     endInput.value = finalEnd;
 
@@ -1998,7 +1997,7 @@ function calcEnding(platform) {
         endDisplay.innerText = 'Rp ' + finalEnd.toLocaleString('id-ID');
     }
     
-    console.log(`Calc ${platform}: Start=${startVal}, Usage=${usageVal}, End=${finalEnd}`);
+    console.log(`${platform}: LastEnd=${lastEnding} + TopUp=${topUpVal} = Start=${startVal} - Usage=${usageVal} = End=${finalEnd}`);
 }
 
 function updateTotalUsage(platform) {
@@ -2007,7 +2006,7 @@ function updateTotalUsage(platform) {
     
     if (usageInput) {
         usageInput.value = total;
-        calcEnding(platform); // Recalculate ending
+        calcEnding(platform);
     }
 }
 
