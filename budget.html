@@ -1487,16 +1487,19 @@
                                 <span class="wallet-tag">Wajib OVO</span>
                             </div>
                             
-                            <div class="balance-inputs">
-                                <div class="form-group">
-                                    <label>Saldo Awal</label>
-                                    <input type="number" id="grabStart" placeholder="0" onchange="calcEnding('grab')">
-                                </div>
-                                <div class="form-group">
-                                    <label>Total Usage</label>
-                                    <input type="number" id="grabUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
-                                </div>
-                            </div>
+                            <div class="balance-inputs" style="grid-template-columns: 1fr 1fr 1fr;"> <div class="form-group">
+        <label>Top Up</label>
+        <input type="number" id="grabTopUp" placeholder="0" onchange="calcEnding('grab')" value="0">
+    </div>
+    <div class="form-group">
+        <label>Saldo Awal</label>
+        <input type="number" id="grabStart" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
+    </div>
+    <div class="form-group">
+        <label>Total Usage</label>
+        <input type="number" id="grabUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
+    </div>
+</div>
                             
                             <div class="balance-total gr">
                                 <div class="label">Ending Balance (Auto Calculate)</div>
@@ -1790,19 +1793,22 @@
             location.reload();
         }
 
-        // Fungsi untuk mencari saldo terakhir berdasarkan Kode HP di data lokal
+       // 1. Fungsi mencari saldo terakhir di data lokal berdasarkan Kode HP
 function getLastBalance(platform, phoneCode) {
+    if (!phoneCode) return 0;
     const normalizedTarget = phoneCode.toLowerCase().replace(/\s+/g, '');
-    // Cari data terbaru di localData (data pertama adalah yang terbaru karena menggunakan unshift)
+    
+    // Cari data terbaru di localData (data pertama adalah yang terbaru)
     const latestData = localData.find(d => d.phoneCode === normalizedTarget);
     
     if (latestData) {
-        // Mengambil nilai ending balance sesuai platform (grabEnd, jcEnd, atau hdEnd)
+        // Mengambil nilai ending balance sesi sebelumnya (misal: grabEnd)
         return parseInt(latestData[`${platform}End`]) || 0;
     }
-    return 0; // Jika kode HP baru/belum ada data, mulai dari 0
+    return 0; // Jika kode HP baru, mulai dari 0
 }
 
+// 2. Fungsi hitung Saldo Awal & Ending Sesi Ini
 function calcEnding(platform) {
     const phoneInput = document.getElementById('phoneCode');
     const topUpInput = document.getElementById(`${platform}TopUp`);
@@ -1811,39 +1817,41 @@ function calcEnding(platform) {
     const endInput = document.getElementById(`${platform}End`);
     const endDisplay = document.getElementById(`${platform}EndDisplay`);
 
-    // 1. Validasi Kode HP harus diisi dulu
+    // Validasi Kode HP harus ada isinya
     if (!phoneInput.value.trim()) {
-        alert("Isi Kode HP terlebih dahulu agar sistem bisa menarik saldo terakhir!");
-        topUpInput.value = "";
+        alert("⚠️ Masukkan KODE HP dulu agar saldo awal muncul otomatis!");
+        topUpInput.value = 0;
         phoneInput.focus();
         return;
     }
 
-    // 2. Efek Getar jika Top Up Kosong (Wajib diisi walau 0)
+    // Efek Getar jika Top Up dikosongkan (Wajib isi minimal 0)
     if (topUpInput.value === "") {
         topUpInput.classList.add('input-error-shake');
-        startInput.value = 0;
+        setTimeout(() => topUpInput.classList.remove('input-error-shake'), 500);
         return;
-    } else {
-        topUpInput.classList.remove('input-error-shake');
     }
 
-    // 3. Ambil Ending Balance terakhir dari Kode HP tersebut
+    // AMBIL DATA
     const lastEnding = getLastBalance(platform, phoneInput.value);
     const topUpVal = parseInt(topUpInput.value) || 0;
     const usageVal = parseInt(usageInput.value) || 0;
 
-    // 4. LOGIKA SALDO AWAL: Ending Terakhir + Top Up
+    // LOGIKA UTAMA: Saldo Awal = Sisa Kemarin + Top Up Hari Ini
     const calculatedStart = lastEnding + topUpVal;
     startInput.value = calculatedStart;
 
-    // 5. HITUNG ENDING BALANCE SESI INI
+    // HITUNG ENDING: Saldo Awal - Pemakaian
     const finalEnd = calculatedStart - usageVal;
     endInput.value = finalEnd;
-    endDisplay.innerText = `Rp ${finalEnd.toLocaleString('id-ID')}`;
+    
+    // Update Tampilan Tulisan Rp
+    if (endDisplay) {
+        endDisplay.innerText = `Rp ${finalEnd.toLocaleString('id-ID')}`;
+    }
 
-    // Jalankan validasi OCR jika ada
-    if (typeof checkValidation === "function") checkValidation(platform);
+    // Jalankan validasi OCR jika screenshot sudah ada
+    if (typeof validateEndingBalance === "function") validateEndingBalance(platform);
 }
 
         // ============================================
