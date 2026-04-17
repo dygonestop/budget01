@@ -3,219 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ojol Smart Report</title>
+    <title>Ojol Smart OCR Report</title>
     <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
     <style>
-        :root { --grab: #00B14F; --jc: #EE2737; --hd: #EE4D2D; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        :root { --grab: #00B14F; --jc: #EE2737; --hd: #EE4D2D; --bg: #f0f2f5; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); padding: 15px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .card { border: 1px solid #ddd; padding: 15px; border-radius: 10px; position: relative; }
-        .card.grab { border-top: 5px solid var(--grab); }
-        .card.jc { border-top: 5px solid var(--jc); }
-        .card.hd { border-top: 5px solid var(--hd); }
-        input, select, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .ocr-preview { font-size: 12px; color: #666; background: #eee; padding: 5px; border-radius: 3px; margin-top: 5px; }
-        .status-valid { color: green; font-weight: bold; }
-        .status-invalid { color: red; font-weight: bold; }
-        button { width: 100%; padding: 15px; background: #2c3e50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        .card { border: 1px solid #eee; padding: 20px; border-radius: 15px; background: #fff; }
+        .card.grab { border-left: 8px solid var(--grab); }
+        .card.jc { border-left: 8px solid var(--jc); }
+        .card.hd { border-left: 8px solid var(--hd); }
+        label { font-weight: bold; font-size: 13px; color: #555; display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1.5px solid #dde; border-radius: 8px; font-size: 14px; transition: 0.3s; }
+        input:focus { border-color: #667eea; outline: none; }
+        input[readonly] { background-color: #f9f9f9; color: #777; border-style: dashed; }
+        .ocr-box { background: #f8f9fa; border: 1px solid #e9ecef; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 10px; }
+        .status-badge { font-size: 12px; font-weight: bold; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+        .invalid { background: #ffe3e3; color: #e03131; }
+        .valid { background: #ebfbee; color: #2b8a3e; }
+        button { width: 100%; padding: 18px; background: #1a1a1a; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
         button:disabled { background: #ccc; cursor: not-allowed; }
-        .loading-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); color:white; justify-content:center; align-items:center; z-index:1000; }
+        #loader { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; justify-content:center; align-items:center; flex-direction:column; }
     </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loader">Mohon Tunggu... Sedang Memproses Data...</div>
+<div id="loader"><b>Sedang Memproses Gambar...</b><br>Tunggu sebentar...</div>
 
 <div class="container">
-    <h2 style="text-align: center;">Laporan Keuangan Ojol</h2>
+    <h2 style="margin-top:0">Input Laporan Harian</h2>
     
-    <div class="card" style="margin-bottom: 20px;">
+    <div class="card" style="margin-bottom:20px">
         <div class="grid">
             <div>
-                <label>Nama Admin</label>
-                <input type="text" id="admin" placeholder="Nama Anda">
+                <label>Admin</label>
+                <input type="text" id="admin" placeholder="Nama Admin">
             </div>
             <div>
                 <label>Tanggal</label>
                 <input type="date" id="date">
             </div>
             <div>
-                <label>Kode HP</label>
-                <input type="text" id="phoneCode" placeholder="Contoh: 1b" onblur="fetchLastBalance()">
+                <label>Kode HP (Contoh: 1b, 1 B, 1B)</label>
+                <input type="text" id="phoneCode" onblur="fetchLastBalance()" placeholder="Ketik Kode HP...">
             </div>
         </div>
     </div>
 
     <div class="grid">
         <div class="card grab">
-            <h4>GRAB</h4>
-            <input type="number" id="grabStart" placeholder="Saldo Awal" oninput="validateCalc('grab')">
-            <input type="number" id="grabUsage" placeholder="Usage (Manual)" oninput="validateCalc('grab')">
-            <label>Upload Screenshot Ending Balance:</label>
-            <input type="file" id="fileGrab" accept="image/*" onchange="processOCR(this, 'grab')">
-            <div id="ocrGrab" class="ocr-preview">OCR: Menunggu gambar...</div>
-            <div id="valGrab" class="status-invalid">Status: Belum Valid</div>
-            <input type="hidden" id="grabEndOCR">
+            <h3>GRAB</h3>
+            <label>Saldo Awal (Dari Sheet)</label>
+            <input type="number" id="grabStart" readonly>
+            
+            <label>Upload Screenshot 1 (Usage/Total Order)</label>
+            <input type="file" accept="image/*" onchange="processOCR(this, 'grab', 'usage')">
+            <input type="number" id="grabUsage" placeholder="Usage terdeteksi OCR..." readonly>
+            
+            <label>Upload Screenshot 2 (Ending Balance)</label>
+            <input type="file" accept="image/*" onchange="processOCR(this, 'grab', 'end')">
+            <input type="number" id="grabEnd" placeholder="Ending terdeteksi OCR..." readonly>
+            
+            <div id="valGrab" class="status-badge invalid">Status: Belum Lengkap</div>
         </div>
 
         <div class="card jc">
-            <h4>JC (GOFOOD)</h4>
-            <input type="number" id="jcStart" placeholder="Saldo Awal" oninput="validateCalc('jc')">
-            <input type="number" id="jcUsage" placeholder="Usage (Manual)" oninput="validateCalc('jc')">
-            <label>Upload Screenshot Ending Balance:</label>
-            <input type="file" id="fileJc" accept="image/*" onchange="processOCR(this, 'jc')">
-            <div id="ocrJc" class="ocr-preview">OCR: Menunggu gambar...</div>
-            <div id="valJc" class="status-invalid">Status: Belum Valid</div>
-            <input type="hidden" id="jcEndOCR">
+            <h3>JC (GOFOOD)</h3>
+            <label>Saldo Awal (Dari Sheet)</label>
+            <input type="number" id="jcStart" readonly>
+            
+            <label>Upload Screenshot 1 (Usage/Total Order)</label>
+            <input type="file" accept="image/*" onchange="processOCR(this, 'jc', 'usage')">
+            <input type="number" id="jcUsage" placeholder="Usage terdeteksi OCR..." readonly>
+            
+            <label>Upload Screenshot 2 (Ending Balance)</label>
+            <input type="file" accept="image/*" onchange="processOCR(this, 'jc', 'end')">
+            <input type="number" id="jcEnd" placeholder="Ending terdeteksi OCR..." readonly>
+            
+            <div id="valJc" class="status-badge invalid">Status: Belum Lengkap</div>
         </div>
 
         <div class="card hd">
-            <h4>HD (SHOPEE)</h4>
-            <input type="number" id="hdStart" placeholder="Saldo Awal" oninput="validateCalc('hd')">
-            <input type="number" id="hdUsage" placeholder="Usage (Manual)" oninput="validateCalc('hd')">
-            <label>Upload Screenshot Ending Balance:</label>
-            <input type="file" id="fileHd" accept="image/*" onchange="processOCR(this, 'hd')">
-            <div id="ocrHd" class="ocr-preview">OCR: Menunggu gambar...</div>
-            <div id="valHd" class="status-invalid">Status: Belum Valid</div>
-            <input type="hidden" id="hdEndOCR">
+            <h3>HD (SHOPEE)</h3>
+            <label>Saldo Awal (Dari Sheet)</label>
+            <input type="number" id="hdStart" readonly>
+            
+            <label>Upload Screenshot 1 (Usage/Total Order)</label>
+            <input type="file" accept="image/*" onchange="processOCR(this, 'hd', 'usage')">
+            <input type="number" id="hdUsage" placeholder="Usage terdeteksi OCR..." readonly>
+            
+            <label>Upload Screenshot 2 (Ending Balance)</label>
+            <input type="file" accept="image/*" onchange="processOCR(this, 'hd', 'end')">
+            <input type="number" id="hdEnd" placeholder="Ending terdeteksi OCR..." readonly>
+            
+            <div id="valHd" class="status-badge invalid">Status: Belum Lengkap</div>
         </div>
     </div>
 
-    <textarea id="remarks" placeholder="Catatan Tambahan (Opsional)" rows="3"></textarea>
-    <button id="btnSubmit" disabled onclick="submitData()">KIRIM LAPORAN</button>
+    <label style="margin-top:20px">Catatan</label>
+    <textarea id="remarks" style="width:100%; border-radius:8px; border:1px solid #dde; padding:10px" rows="3"></textarea>
+    
+    <button id="btnSubmit" disabled onclick="submitData()">KIRIM DATA KE SHEET</button>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUx-5JZEpRVJrf5G22zWFdXS85t-YZBac1GH5zbAIfczPR-ltLpxQ20Th5PReV9oQ2/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbT00p1PtU9_0JNFUXlMGxDAwqvPv_LGEdV7EYTBGEEiIm4sgEe6CMa3Dfgx25r__e/exec';
     let fileStore = {};
 
-    // 1. Ambil Saldo Terakhir Otomatis
+    // Ambil saldo awal berdasarkan kode HP
     async function fetchLastBalance() {
-        const rawCode = document.getElementById('phoneCode').value;
-        if(!rawCode) return;
-        
-        const cleanCode = rawCode.toLowerCase().replace(/\s+/g, '');
-        document.getElementById('phoneCode').value = cleanCode; // Normalisasi tampilan
+        const raw = document.getElementById('phoneCode').value;
+        if(!raw) return;
+        const clean = raw.toLowerCase().replace(/\s+/g, '');
+        document.getElementById('phoneCode').value = clean;
 
         try {
-            const resp = await fetch(`${SCRIPT_URL}?action=getLastBalance&phoneCode=${cleanCode}`);
+            const resp = await fetch(`${SCRIPT_URL}?action=getLastBalance&phoneCode=${clean}`);
             const res = await resp.json();
-            
             document.getElementById('grabStart').value = res.grabEnd || 0;
             document.getElementById('jcStart').value = res.jcEnd || 0;
             document.getElementById('hdStart').value = res.hdEnd || 0;
-            
-            validateCalc('grab'); validateCalc('jc'); validateCalc('hd');
-        } catch(e) { console.log("New Phone Code"); }
+            validate(clean.slice(0,-1)); // Trigger re-check
+        } catch(e) {}
     }
 
-    // 2. OCR dengan Validasi Ketat
-    async function processOCR(input, platform) {
+    // OCR Otomatis untuk Usage dan Ending Balance
+    async function processOCR(input, platform, type) {
         if (!input.files[0]) return;
-        const display = document.getElementById(`ocr${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
-        const statusDiv = document.getElementById(`val${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
-        
-        display.innerText = "Processing OCR...";
+        document.getElementById('loader').style.display = 'flex';
         
         const reader = new FileReader();
         reader.onload = async () => {
             const base64 = reader.result;
-            fileStore[`ss${platform.charAt(0).toUpperCase() + platform.slice(1)}`] = {
-                data: base64,
-                name: input.files[0].name,
-                type: input.files[0].type
-            };
+            // Simpan file untuk upload
+            fileStore[`ss${platform}${type}`] = { data: base64, name: input.files[0].name, type: input.files[0].type };
 
-            const result = await Tesseract.recognize(base64, 'eng');
-            const text = result.data.text;
-            
-            // Ekstrak angka paling besar/terakhir (biasanya saldo)
-            const numbers = text.replace(/[,.]/g, '').match(/\d+/g);
-            if (numbers) {
-                const detected = Math.max(...numbers.map(Number));
-                display.innerText = `OCR Detected: Rp ${detected.toLocaleString()}`;
-                document.getElementById(`${platform}EndOCR`).value = detected;
-                validateCalc(platform);
-            } else {
-                display.innerText = "OCR Gagal membaca angka.";
+            try {
+                const result = await Tesseract.recognize(base64, 'eng');
+                const text = result.data.text;
+                
+                // Cari angka (membersihkan titik/koma)
+                const numbers = text.replace(/[,.]/g, '').match(/\d+/g);
+                if (numbers) {
+                    // Cari angka yang masuk akal (biasanya nominal ratusan/ribuan)
+                    const detected = Math.max(...numbers.map(Number));
+                    
+                    if(type === 'usage') {
+                        document.getElementById(`${platform}Usage`).value = detected;
+                    } else {
+                        document.getElementById(`${platform}End`).value = detected;
+                    }
+                }
+            } catch (err) {
+                alert("Gagal membaca gambar. Coba lagi.");
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+                validate(platform);
             }
         };
         reader.readAsDataURL(input.files[0]);
     }
 
-    // 3. Validasi: Saldo Awal - Usage === OCR Ending Balance
-    function validateCalc(platform) {
+    // Validasi: Saldo Awal - OCR Usage === OCR Ending
+    function validate(platform) {
         const start = parseInt(document.getElementById(`${platform}Start`).value) || 0;
         const usage = parseInt(document.getElementById(`${platform}Usage`).value) || 0;
-        const ocrEnd = parseInt(document.getElementById(`${platform}EndOCR`).value) || 0;
-        
+        const end = parseInt(document.getElementById(`${platform}End`).value) || 0;
         const statusDiv = document.getElementById(`val${platform.charAt(0).toUpperCase() + platform.slice(1)}`);
-        const expectedEnd = start - usage;
+        
+        const calculatedEnd = start - usage;
 
-        if (ocrEnd > 0 && expectedEnd === ocrEnd) {
-            statusDiv.innerText = "Status: VALID (Sesuai)";
-            statusDiv.className = "status-valid";
+        if (usage > 0 && end > 0 && calculatedEnd === end) {
+            statusDiv.innerText = "Status: VALID (Cocok)";
+            statusDiv.className = "status-badge valid";
         } else {
-            statusDiv.innerText = `Status: TIDAK VALID (Selisih ${expectedEnd - ocrEnd})`;
-            statusDiv.className = "status-invalid";
+            statusDiv.innerText = `Status: TIDAK VALID (Selisih ${calculatedEnd - end})`;
+            statusDiv.className = "status-badge invalid";
         }
         
-        checkGlobalValidity();
+        checkReady();
     }
 
-    function checkGlobalValidity() {
-        const vGr = document.getElementById('valGrab').className === "status-valid";
-        const vJc = document.getElementById('valJc').className === "status-valid";
-        const vHd = document.getElementById('valHd').className === "status-valid";
+    function checkReady() {
+        const v1 = document.getElementById('valGrab').className.includes('valid');
+        const v2 = document.getElementById('valJc').className.includes('valid');
+        const v3 = document.getElementById('valHd').className.includes('valid');
         const admin = document.getElementById('admin').value;
-        
-        document.getElementById('btnSubmit').disabled = !(vGr && vJc && vHd && admin);
+        document.getElementById('btnSubmit').disabled = !(v1 && v2 && v3 && admin);
     }
 
-    // 4. Kirim Data
     async function submitData() {
         document.getElementById('loader').style.display = 'flex';
-        
         const payload = {
             admin: document.getElementById('admin').value,
             date: document.getElementById('date').value,
             phoneCode: document.getElementById('phoneCode').value,
             grabStart: document.getElementById('grabStart').value,
             grabUsage: document.getElementById('grabUsage').value,
-            grabEnd: document.getElementById('grabEndOCR').value,
+            grabEnd: document.getElementById('grabEnd').value,
             jcStart: document.getElementById('jcStart').value,
             jcUsage: document.getElementById('jcUsage').value,
-            jcEnd: document.getElementById('jcEndOCR').value,
+            jcEnd: document.getElementById('jcEnd').value,
             hdStart: document.getElementById('hdStart').value,
             hdUsage: document.getElementById('hdUsage').value,
-            hdEnd: document.getElementById('hdEndOCR').value,
+            hdEnd: document.getElementById('hdEnd').value,
             remarks: document.getElementById('remarks').value,
             files: fileStore
         };
 
         try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            if(result.success) {
-                alert("Data Berhasil Disinkronkan ke Sheet!");
-                location.reload();
-            } else {
-                alert("Error: " + result.error);
-            }
-        } catch (e) {
-            alert("Terjadi kesalahan jaringan.");
-        } finally {
-            document.getElementById('loader').style.display = 'none';
-        }
+            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const res = await resp.json();
+            if(res.success) { alert("Data Berhasil Masuk Sheet!"); location.reload(); }
+        } catch(e) { alert("Gagal mengirim data."); }
+        finally { document.getElementById('loader').style.display = 'none'; }
     }
-    
-    // Set default date today
     document.getElementById('date').valueAsDate = new Date();
 </script>
-
 </body>
 </html>
