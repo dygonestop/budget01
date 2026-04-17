@@ -6,6 +6,23 @@
     <title>Laporan Keuangan Ojek Online - Smart Validation</title>
     <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
 <style>
+/* Animasi Getar Merah untuk Input Kosong */
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+
+.input-error-shake {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    animation: shakeError 0.4s ease-in-out;
+}
+
+/* Memaksa tampilan Kode HP kecil di layar */
+#phoneCode {
+    text-transform: lowercase;
+}
         /* ============================================
            CSS VARIABLES & RESET
            ============================================ */
@@ -1432,16 +1449,9 @@
                             <input type="text" id="adminName" placeholder="Contoh: Edho" required>
                         </div>
                         <div class="form-group">
-                            <label>Kode Handphone *</label>
-                            <select id="phoneCode" required>
-                                <option value="">Pilih Kode</option>
-                                <option value="1b">1b</option>
-                                <option value="2b">2b</option>
-                                <option value="3b">3b</option>
-                                <option value="4b">4b</option>
-                                <option value="5b">5b</option>
-                            </select>
-                        </div>
+    <label>Kode Handphone *</label>
+    <input type="text" id="phoneCode" placeholder="Contoh: 1b" required>
+</div>
                         <div class="form-group">
                             <label>Tanggal Transaksi *</label>
                             <input type="date" id="transDate" required>
@@ -2359,107 +2369,138 @@ async function doOCREndingBalance(platform, input) {
         // SUBMIT HANDLER
         // ============================================
         async function submitAll() {
-            const btn = document.getElementById('btnSubmit');
-            const resultBox = document.getElementById('resultBox');
-            
-            // Validasi semua platform
-            const platforms = ['grab', 'jc', 'hd'];
-            let allValid = true;
-            let invalidPlatforms = [];
-            
-            for (let platform of platforms) {
-                const ocrBalance = endingBalanceOCR[platform];
-                if (ocrBalance !== null) {
-                    const isValid = validateEndingBalance(platform);
-                    if (!isValid) {
-                        allValid = false;
-                        invalidPlatforms.push(platform.toUpperCase());
-                    }
-                }
-            }
-            
-            if (!allValid) {
-                alert('❌ TIDAK DAPAT SUBMIT!\n\nValidasi ending balance gagal untuk: ' + invalidPlatforms.join(', ') + '\n\nPastikan:\n1. Saldo Awal sudah benar\n2. Semua invoice sudah diupload\n3. Screenshot ending balance sesuai');
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.innerHTML = '<span>⏳</span><span>Mengupload...</span>';
-            resultBox.classList.remove('active');
-
-            const data = {
-                timestamp: new Date().toLocaleString('id-ID'),
-                admin: document.getElementById('adminName').value,
-                date: document.getElementById('transDate').value,
-                phoneCode: document.getElementById('phoneCode').value,
-                
-                grabStart: parseInt(document.getElementById('grabStart').value) || 0,
-                grabUsage: parseInt(document.getElementById('grabUsage').value) || 0,
-                grabEnd: parseInt(document.getElementById('grabEnd').value) || 0,
-                
-                jcStart: parseInt(document.getElementById('jcStart').value) || 0,
-                jcUsage: parseInt(document.getElementById('jcUsage').value) || 0,
-                jcEnd: parseInt(document.getElementById('jcEnd').value) || 0,
-                
-                hdStart: parseInt(document.getElementById('hdStart').value) || 0,
-                hdUsage: parseInt(document.getElementById('hdUsage').value) || 0,
-                hdEnd: parseInt(document.getElementById('hdEnd').value) || 0,
-                
-                remarks: document.getElementById('remarks').value || '',
-                project: document.getElementById('project').value || 'Food',
-                
-                files: {},
-                invoiceDetails: invoiceData,
-                ocrValidation: endingBalanceOCR
-            };
-
-            if (!data.admin || !data.phoneCode || !data.date) {
-                alert('❌ Isi Nama Admin, Kode HP, dan Tanggal!');
-                btn.disabled = false;
-                btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
-                return;
-            }
-
-            const fileInputs = ['ssGrab', 'ssJc', 'ssHd'];
-            for (let id of fileInputs) {
-                const input = document.getElementById(id);
-                if (input.files[0]) {
-                    data.files[id] = await toBase64(input.files[0]);
-                }
-            }
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                data.driveLinks = { status: 'Uploaded' };
-                localData.unshift(data);
-                localStorage.setItem('ojol_local_data', JSON.stringify(localData));
-                
-                renderTable();
-                clearForm();
-                
-                resultBox.classList.add('active');
-                document.getElementById('resultLinks').innerHTML = `
-                    ✅ Data tersimpan di Google Sheets<br>
-                    ✅ Screenshots di Google Drive<br>
-                    <small>Check spreadsheet Anda untuk memastikan</small>
-                `;
-                
-            } catch (e) {
-                alert('❌ Error: ' + e.message + '\n\nData disimpan local sebagai backup.');
-                localData.unshift(data);
-                localStorage.setItem('ojol_local_data', JSON.stringify(localData));
-                renderTable();
-            }
-            
-            btn.disabled = false;
-            btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
+    const btn = document.getElementById('btnSubmit');
+    const resultBox = document.getElementById('resultBox');
+    
+    // 1. TAMBAHAN: VALIDASI INPUT TOP UP (Wajib isi walau 0)
+    const platforms = ['grab', 'jc', 'hd'];
+    let topUpValid = true;
+    platforms.forEach(p => {
+        const input = document.getElementById(`${p}TopUp`);
+        if (!input || input.value === "") {
+            input.classList.add('input-error-shake');
+            setTimeout(() => input.classList.remove('input-error-shake'), 500);
+            topUpValid = false;
         }
+    });
+
+    if (!topUpValid) {
+        alert('❌ TIDAK DAPAT SUBMIT!\n\nKolom Top Up wajib diisi (isi 0 jika tidak ada top up).');
+        return;
+    }
+
+    // 2. KODE ASLI: Validasi Ending Balance OCR
+    let allValid = true;
+    let invalidPlatforms = [];
+    
+    for (let platform of platforms) {
+        const ocrBalance = endingBalanceOCR[platform];
+        if (ocrBalance !== null) {
+            const isValid = validateEndingBalance(platform);
+            if (!isValid) {
+                allValid = false;
+                invalidPlatforms.push(platform.toUpperCase());
+            }
+        }
+    }
+    
+    if (!allValid) {
+        alert('❌ TIDAK DAPAT SUBMIT!\n\nValidasi ending balance gagal untuk: ' + invalidPlatforms.join(', ') + '\n\nPastikan:\n1. Saldo Awal sudah benar\n2. Semua invoice sudah diupload\n3. Screenshot ending balance sesuai');
+        return;
+    }
+    
+    // 3. TAMBAHAN: NORMALISASI KODE HP (Case Insensitive & Hapus Spasi)
+    const rawPhoneCode = document.getElementById('phoneCode').value;
+    const normalizedPhoneCode = rawPhoneCode.toLowerCase().replace(/\s+/g, '');
+
+    if (!normalizedPhoneCode) {
+        alert('❌ Kode HP harus diisi!');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span><span>Mengupload...</span>';
+    resultBox.classList.remove('active');
+
+    // 4. KODE ASLI (DENGAN PENYESUAIAN ID): Menyiapkan Object Data
+    const data = {
+        timestamp: new Date().toLocaleString('id-ID'),
+        admin: document.getElementById('adminName').value,
+        date: document.getElementById('transDate').value,
+        phoneCode: normalizedPhoneCode, // Menggunakan kode yang sudah bersih
+        
+        // Data Platform (Pastikan ID input sesuai dengan HTML baru)
+        grabTopUp: parseInt(document.getElementById('grabTopUp').value) || 0,
+        grabStart: parseInt(document.getElementById('grabStart').value) || 0,
+        grabUsage: parseInt(document.getElementById('grabUsage').value) || 0,
+        grabEnd: parseInt(document.getElementById('grabEnd').value) || 0,
+        
+        jcTopUp: parseInt(document.getElementById('jcTopUp').value) || 0,
+        jcStart: parseInt(document.getElementById('jcStart').value) || 0,
+        jcUsage: parseInt(document.getElementById('jcUsage').value) || 0,
+        jcEnd: parseInt(document.getElementById('jcEnd').value) || 0,
+        
+        hdTopUp: parseInt(document.getElementById('hdTopUp').value) || 0,
+        hdStart: parseInt(document.getElementById('hdStart').value) || 0,
+        hdUsage: parseInt(document.getElementById('hdUsage').value) || 0,
+        hdEnd: parseInt(document.getElementById('hdEnd').value) || 0,
+        
+        remarks: document.getElementById('remarks').value || '',
+        project: document.getElementById('project').value || 'Food',
+        
+        files: {},
+        invoiceDetails: invoiceData,
+        ocrValidation: endingBalanceOCR
+    };
+
+    // Validasi Admin (Kode HP sudah divalidasi di atas)
+    if (!data.admin || !data.date) {
+        alert('❌ Isi Nama Admin dan Tanggal!');
+        btn.disabled = false;
+        btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
+        return;
+    }
+
+    const fileInputs = ['ssGrab', 'ssJc', 'ssHd'];
+    for (let id of fileInputs) {
+        const input = document.getElementById(id);
+        if (input.files[0]) {
+            data.files[id] = await toBase64(input.files[0]);
+        }
+    }
+
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        data.driveLinks = { status: 'Uploaded' };
+        localData.unshift(data);
+        localStorage.setItem('ojol_local_data', JSON.stringify(localData));
+        
+        renderTable();
+        clearForm();
+        
+        resultBox.classList.add('active');
+        document.getElementById('resultLinks').innerHTML = `
+            ✅ Data tersimpan di Google Sheets<br>
+            ✅ Screenshots di Google Drive<br>
+            <small>Check spreadsheet Anda untuk memastikan</small>
+        `;
+        
+    } catch (e) {
+        alert('❌ Error: ' + e.message + '\n\nData disimpan local sebagai backup.');
+        localData.unshift(data);
+        localStorage.setItem('ojol_local_data', JSON.stringify(localData));
+        renderTable();
+    }
+    
+    btn.disabled = false;
+    btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
+}
 
         function toBase64(file) {
             return new Promise((resolve, reject) => {
