@@ -95,17 +95,28 @@
         /* ============================================
            LAYOUT CONTAINER
            ============================================ */
-        .container {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            background: var(--surface);
-            backdrop-filter: blur(20px);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-glass);
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
+/* Container Utama */
+.container {
+    width: 98%;
+    max-width: 1600px; /* Diperlebar untuk monitor desktop */
+    margin: 0 auto;
+}
+
+/* Membuat grid platform 3 kolom di desktop */
+@media (min-width: 1024px) {
+    .platform-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        align-items: start;
+    }
+}
+
+/* Pastikan input tidak terlalu besar */
+input[type="number"], input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+}
 
         /* ============================================
            HEADER SECTION
@@ -1411,7 +1422,7 @@
                     <li>Paste CODE.GS (dari bawah) → Ganti SPREADSHEET_ID → Deploy</li>
                     <li>Copy URL Web App → Paste di bawah:</li>
                 </ol>
-                <input type="text" id="appsScriptUrl" class="url-input" placeholder="https://script.google.com/macros/s/AKfycbx9Gh_kwZLRm2CEBJLqsNtDfwlVVX7-KDCeL1xhn3HZHnpMGjwY8Wbpjj2l2scdoVrU/exec">
+                <input type="text" id="appsScriptUrl" class="url-input" placeholder="https://script.google.com/macros/s/AKfycbyUEfEPOd4siVY30AO2417SqHVKlAtGk5QMBu6JTHpnx5UvwGHk2JOuRKpxyszXlrLv/exec">
                 <button class="btn-primary" onclick="saveConfig()">💾 Simpan Config</button>
             </div>
 
@@ -1446,12 +1457,12 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Nama Admin *</label>
-                            <input type="text" id="adminName" placeholder="Contoh: Edho" required>
+                            <input type="text" id="adminName" placeholder="Contoh: Admin" required>
                         </div>
                         <div class="form-group">
     <label>Kode Handphone *</label>
     <input type="text" id="phoneCode" placeholder="Contoh: 1b" required 
-       oninput="['grab','jc','hd'].forEach(p => calcEnding(p))">
+       onchange="fetchLastBalanceFromSheets()">
 
                         <div class="form-group">
                             <label>Tanggal Transaksi *</label>
@@ -1802,47 +1813,72 @@
             location.reload();
         }
 
-     // Fungsi mencari saldo terakhir berdasarkan Kode HP di tabel lokal
-function getLastBalance(platform, phoneCode) {
-    if (!phoneCode) return 0;
-    const target = phoneCode.toLowerCase().replace(/\s+/g, '');
-    // Cari data paling atas (terbaru) yang kode HP-nya cocok
-    const latest = localData.find(d => d.phoneCode.toLowerCase().replace(/\s+/g, '') === target);
-    return latest ? (parseInt(latest[`${platform}End`]) || 0) : 0;
+     // Variable untuk menyimpan saldo terakhir dari Sheets (Cache)
+let remoteBalances = { grab: 0, jc: 0, hd: 0 };
+
+async function fetchLastBalanceFromSheets() {
+    const phoneInput = document.getElementById('phoneCode');
+    const pCode = phoneInput.value.trim();
+    if (!pCode) return;
+
+    // Tampilkan loading kecil di label atau input jika perlu
+    console.log("Mencari saldo terakhir untuk: " + pCode);
+
+    try {
+        // Tembak URL GAS dengan parameter action & phoneCode
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=getLastBalance&phoneCode=${pCode}`);
+        const result = await response.json();
+
+        if (result.success) {
+            remoteBalances.grab = result.grabEnd;
+            remoteBalances.jc = result.jcEnd;
+            remoteBalances.hd = result.hdEnd;
+        } else {
+            // Jika kode HP baru, reset ke 0
+            remoteBalances = { grab: 0, jc: 0, hd: 0 };
+        }
+        
+        // Setelah data didapat, hitung ulang semua platform
+        ['grab', 'jc', 'hd'].forEach(p => calcEnding(p));
+
+    } catch (e) {
+        console.error("Gagal ambil data dari Sheets, menggunakan local backup.");
+        // Fallback: jika internet error, cari di localData
+        ['grab', 'jc', 'hd'].forEach(p => {
+            remoteBalances[p] = getLastBalanceFromLocal(p, pCode);
+            calcEnding(p);
+        });
+    }
 }
 
 function calcEnding(platform) {
-    const phoneCode = document.getElementById('phoneCode').value;
     const topUpInput = document.getElementById(`${platform}TopUp`);
     const startInput = document.getElementById(`${platform}Start`);
     const usageInput = document.getElementById(`${platform}Usage`);
     const endInput = document.getElementById(`${platform}End`);
     const endDisplay = document.getElementById(`${platform}EndDisplay`);
 
-    // 1. Efek Getar jika kosong
+    // 1. Getar Merah jika Top Up Kosong
     if (topUpInput.value === "") {
         topUpInput.classList.add('input-error-shake');
-        return;
+        setTimeout(() => topUpInput.classList.remove('input-error-shake'), 500);
     } else {
         topUpInput.classList.remove('input-error-shake');
     }
 
-    // 2. Ambil saldo terakhir dari Kode HP tersebut
-    const lastEnding = getLastBalance(platform, phoneCode);
+    const lastEnding = remoteBalances[platform] || 0;
     const topUpVal = parseInt(topUpInput.value) || 0;
     const usageVal = parseInt(usageInput.value) || 0;
 
-    // 3. LOGIKA: Saldo Awal = Ending Terakhir + Top Up
+    // 2. LOGIKA: Saldo Awal = Sisa dari Sheets + Top Up
     const calculatedStart = lastEnding + topUpVal;
     startInput.value = calculatedStart;
 
-    // 4. Hitung Ending Sesi Ini
+    // 3. LOGIKA: Ending = Saldo Awal - Usage
     const finalEnd = calculatedStart - usageVal;
     endInput.value = finalEnd;
-    if (endDisplay) endDisplay.innerText = `Rp ${finalEnd.toLocaleString('id-ID')}`;
 
-    // Jalankan validasi OCR
-    if (typeof validateEndingBalance === "function") validateEndingBalance(platform);
+    if (endDisplay) endDisplay.innerText = `Rp ${finalEnd.toLocaleString('id-ID')}`;
 }
 
         // ============================================
