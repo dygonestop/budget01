@@ -1563,19 +1563,16 @@
                                 <span class="wallet-tag">Wajib GoPay</span>
                             </div>
                             
-                            <label>Top Up</label>
-        <input type="number" id="jcTopUp" placeholder="0" onchange="calcEnding('grab')" value="0">
-    </div>
-    <div class="form-group">
-        <label>Saldo Awal</label>
-        <input type="number" id="jcStart" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
-    </div>
-    <div class="form-group">
-        <label>Total Usage</label>
-        <input type="number" id="jcUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
-    </div>
-</div>
-
+                            <div class="balance-inputs">
+                                <div class="form-group">
+                                    <label>Saldo Awal</label>
+                                    <input type="number" id="jcStart" placeholder="0" onchange="calcEnding('jc')">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="jcUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
+                                </div>
+                            </div>
                             
                             <div class="balance-total jc">
                                 <div class="label">Ending Balance (Auto Calculate)</div>
@@ -1639,19 +1636,17 @@
                                 <span class="wallet-tag">Wajib ShopeePay</span>
                             </div>
                             
-                            <label>Top Up</label>
-        <input type="number" id="hdTopUp" placeholder="0" onchange="calcEnding('grab')" value="0">
-    </div>
-    <div class="form-group">
-        <label>Saldo Awal</label>
-        <input type="number" id="hdStart" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
-    </div>
-    <div class="form-group">
-        <label>Total Usage</label>
-        <input type="number" id="hdUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
-    </div>
-</div>
-
+                            <div class="balance-inputs">
+                                <div class="form-group">
+                                    <label>Saldo Awal</label>
+                                    <input type="number" id="hdStart" placeholder="0" onchange="calcEnding('hd')">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Usage</label>
+                                    <input type="number" id="hdUsage" placeholder="0" readonly style="background: #edf2f7; font-weight: 700;">
+                                </div>
+                            </div>
+                            
                             <div class="balance-total hd">
                                 <div class="label">Ending Balance (Auto Calculate)</div>
                                 <div class="value" id="hdEndDisplay">Rp 0</div>
