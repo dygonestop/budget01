@@ -93,30 +93,44 @@
         }
 
         /* ============================================
-           LAYOUT CONTAINER
+           LAYOUT CONTAINER - DESKTOP OPTIMIZED
            ============================================ */
-/* Container Utama */
-.container {
-    width: 98%;
-    max-width: 1600px; /* Diperlebar untuk monitor desktop */
-    margin: 0 auto;
-}
+        .container {
+            width: 98%;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-glass);
+            overflow: hidden;
+        }
 
-/* Membuat grid platform 3 kolom di desktop */
-@media (min-width: 1024px) {
-    .platform-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        align-items: start;
-    }
-}
+        /* Platform Grid - 3 columns on desktop */
+        .platforms-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
 
-/* Pastikan input tidak terlalu besar */
-input[type="number"], input[type="text"] {
-    width: 100%;
-    box-sizing: border-box;
-}
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .platforms-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .platforms-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Pastikan input tidak terlalu besar */
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
 
         /* ============================================
            HEADER SECTION
@@ -356,13 +370,6 @@ input[type="number"], input[type="text"] {
         /* ============================================
            PLATFORM CARDS
            ============================================ */
-        .platforms-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: var(--space-5);
-            margin: var(--space-6) 0;
-        }
-
         .platform-card {
             background: white;
             border-radius: var(--radius-lg);
@@ -371,6 +378,7 @@ input[type="number"], input[type="text"] {
             position: relative;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
+            min-width: 0; /* Prevent overflow in grid */
         }
 
         .platform-card::before {
@@ -481,9 +489,15 @@ input[type="number"], input[type="text"] {
         /* Balance Inputs */
         .balance-inputs {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: var(--space-3);
             margin-bottom: var(--space-4);
+        }
+
+        @media (max-width: 400px) {
+            .balance-inputs {
+                grid-template-columns: 1fr;
+            }
         }
 
         .balance-total {
@@ -1247,11 +1261,6 @@ input[type="number"], input[type="text"] {
                 padding: var(--space-4);
             }
 
-            .platforms-container {
-                grid-template-columns: 1fr;
-                gap: var(--space-4);
-            }
-
             .balance-inputs {
                 grid-template-columns: 1fr;
             }
@@ -1297,10 +1306,6 @@ input[type="number"], input[type="text"] {
             .container {
                 max-width: 95%;
             }
-
-            .platforms-container {
-                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            }
         }
 
         @media (min-width: 1025px) {
@@ -1309,7 +1314,7 @@ input[type="number"], input[type="text"] {
             }
 
             .container {
-                max-width: 1000px;
+                max-width: 1400px;
             }
         }
 
@@ -1422,7 +1427,7 @@ input[type="number"], input[type="text"] {
                     <li>Paste CODE.GS (dari bawah) → Ganti SPREADSHEET_ID → Deploy</li>
                     <li>Copy URL Web App → Paste di bawah:</li>
                 </ol>
-                <input type="text" id="appsScriptUrl" class="url-input" placeholder="https://script.google.com/macros/s/AKfycbyUEfEPOd4siVY30AO2417SqHVKlAtGk5QMBu6JTHpnx5UvwGHk2JOuRKpxyszXlrLv/exec">
+                <input type="text" id="appsScriptUrl" class="url-input" placeholder="https://script.google.com/macros/s/AKfycbyJPVQLY76mObAIpwI5reGxuDEJ1fl8zPSVrGrvUxzg_KFkV83wT3mpMdwFqcuAmYl9/exec">
                 <button class="btn-primary" onclick="saveConfig()">💾 Simpan Config</button>
             </div>
 
@@ -1460,10 +1465,10 @@ input[type="number"], input[type="text"] {
                             <input type="text" id="adminName" placeholder="Contoh: Admin" required>
                         </div>
                         <div class="form-group">
-    <label>Kode Handphone *</label>
-    <input type="text" id="phoneCode" placeholder="Contoh: 1b" required 
-       onchange="fetchLastBalanceFromSheets()">
-
+                            <label>Kode Handphone *</label>
+                            <input type="text" id="phoneCode" placeholder="Contoh: 1b" required 
+                                   onchange="fetchLastBalanceFromSheets()">
+                        </div>
                         <div class="form-group">
                             <label>Tanggal Transaksi *</label>
                             <input type="date" id="transDate" required>
@@ -1498,20 +1503,20 @@ input[type="number"], input[type="text"] {
                                 <span class="wallet-tag">Wajib OVO</span>
                             </div>
                             
-                            <div class="balance-inputs" style="grid-template-columns: 1fr 1fr 1fr;">
-    <div class="form-group">
-        <label style="color: var(--grab); font-weight: bold;">Top Up</label>
-        <input type="number" id="grabTopUp" placeholder="0" oninput="calcEnding('grab')" value="0">
-    </div>
-    <div class="form-group">
-        <label>Saldo Awal (Auto)</label>
-        <input type="number" id="grabStart" readonly style="background: #f1f5f9;">
-    </div>
-    <div class="form-group">
-        <label>Usage</label>
-        <input type="number" id="grabUsage" readonly style="background: #f1f5f9;">
-    </div>
-</div>
+                            <div class="balance-inputs">
+                                <div class="form-group">
+                                    <label style="color: var(--grab); font-weight: bold;">Top Up</label>
+                                    <input type="number" id="grabTopUp" placeholder="0" oninput="calcEnding('grab')" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Saldo Awal (Auto)</label>
+                                    <input type="number" id="grabStart" readonly style="background: #f1f5f9;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Usage</label>
+                                    <input type="number" id="grabUsage" readonly style="background: #f1f5f9;">
+                                </div>
+                            </div>
                             
                             <div class="balance-total gr">
                                 <div class="label">Ending Balance (Auto Calculate)</div>
@@ -1575,22 +1580,22 @@ input[type="number"], input[type="text"] {
                                 <span class="wallet-tag">Wajib GoPay</span>
                             </div>
                             
-                <div class="balance-inputs" style="grid-template-columns: 1fr 1fr 1fr;">
-    <div class="form-group">
-        <label style="color: var(--gofood); font-weight: bold;">Top Up</label>
-        <input type="number" id="jcTopUp" placeholder="0" oninput="calcEnding('jc')" value="0">
-    </div>
-    <div class="form-group">
-        <label>Saldo Awal (Auto)</label>
-        <input type="number" id="jcStart" readonly style="background: #f1f5f9;">
-    </div>
-    <div class="form-group">
-        <label>Usage</label>
-        <input type="number" id="jcUsage" readonly style="background: #f1f5f9;">
-    </div>
-</div>              
+                            <div class="balance-inputs">
+                                <div class="form-group">
+                                    <label style="color: var(--gofood); font-weight: bold;">Top Up</label>
+                                    <input type="number" id="jcTopUp" placeholder="0" oninput="calcEnding('jc')" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Saldo Awal (Auto)</label>
+                                    <input type="number" id="jcStart" readonly style="background: #f1f5f9;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Usage</label>
+                                    <input type="number" id="jcUsage" readonly style="background: #f1f5f9;">
+                                </div>
+                            </div>              
                 
-            <div class="balance-total jc">
+                            <div class="balance-total jc">
                                 <div class="label">Ending Balance (Auto Calculate)</div>
                                 <div class="value" id="jcEndDisplay">Rp 0</div>
                                 <input type="hidden" id="jcEnd" value="0">
@@ -1652,20 +1657,20 @@ input[type="number"], input[type="text"] {
                                 <span class="wallet-tag">Wajib ShopeePay</span>
                             </div>
                             
-                            <div class="balance-inputs" style="grid-template-columns: 1fr 1fr 1fr;">
-    <div class="form-group">
-        <label style="color: var(--shopee); font-weight: bold;">Top Up</label>
-        <input type="number" id="hdTopUp" placeholder="0" oninput="calcEnding('hd')" value="0">
-    </div>
-    <div class="form-group">
-        <label>Saldo Awal (Auto)</label>
-        <input type="number" id="hdStart" readonly style="background: #f1f5f9;">
-    </div>
-    <div class="form-group">
-        <label>Usage</label>
-        <input type="number" id="hdUsage" readonly style="background: #f1f5f9;">
-    </div>
-</div>
+                            <div class="balance-inputs">
+                                <div class="form-group">
+                                    <label style="color: var(--shopee); font-weight: bold;">Top Up</label>
+                                    <input type="number" id="hdTopUp" placeholder="0" oninput="calcEnding('hd')" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Saldo Awal (Auto)</label>
+                                    <input type="number" id="hdStart" readonly style="background: #f1f5f9;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Usage</label>
+                                    <input type="number" id="hdUsage" readonly style="background: #f1f5f9;">
+                                </div>
+                            </div>
                             
                             <div class="balance-total hd">
                                 <div class="label">Ending Balance (Auto Calculate)</div>
@@ -1813,73 +1818,88 @@ input[type="number"], input[type="text"] {
             location.reload();
         }
 
-     // Variable untuk menyimpan saldo terakhir dari Sheets (Cache)
-let remoteBalances = { grab: 0, jc: 0, hd: 0 };
+        // Variable untuk menyimpan saldo terakhir dari Sheets (Cache)
+        let remoteBalances = { grab: 0, jc: 0, hd: 0 };
 
-async function fetchLastBalanceFromSheets() {
-    const phoneInput = document.getElementById('phoneCode');
-    const pCode = phoneInput.value.trim();
-    if (!pCode) return;
+        async function fetchLastBalanceFromSheets() {
+            const phoneInput = document.getElementById('phoneCode');
+            const pCode = phoneInput.value.trim().toLowerCase().replace(/\s+/g, '');
+            if (!pCode) return;
 
-    // Tampilkan loading kecil di label atau input jika perlu
-    console.log("Mencari saldo terakhir untuk: " + pCode);
+            // Tampilkan loading kecil di label atau input jika perlu
+            console.log("Mencari saldo terakhir untuk: " + pCode);
 
-    try {
-        // Tembak URL GAS dengan parameter action & phoneCode
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=getLastBalance&phoneCode=${pCode}`);
-        const result = await response.json();
+            try {
+                // Tembak URL GAS dengan parameter action & phoneCode
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=getLastBalance&phoneCode=${pCode}`);
+                const result = await response.json();
 
-        if (result.success) {
-            remoteBalances.grab = result.grabEnd;
-            remoteBalances.jc = result.jcEnd;
-            remoteBalances.hd = result.hdEnd;
-        } else {
-            // Jika kode HP baru, reset ke 0
-            remoteBalances = { grab: 0, jc: 0, hd: 0 };
+                if (result.success) {
+                    remoteBalances.grab = parseInt(result.grabEnd) || 0;
+                    remoteBalances.jc = parseInt(result.jcEnd) || 0;
+                    remoteBalances.hd = parseInt(result.hdEnd) || 0;
+                    showToast('success', 'Data Ditemukan', `Saldo terakhir untuk ${pCode} berhasil dimuat`);
+                } else {
+                    // Jika kode HP baru, reset ke 0
+                    remoteBalances = { grab: 0, jc: 0, hd: 0 };
+                    showToast('info', 'Kode HP Baru', 'Memulai dengan saldo 0 untuk semua platform');
+                }
+                
+                // Setelah data didapat, hitung ulang semua platform
+                ['grab', 'jc', 'hd'].forEach(p => calcEnding(p));
+
+            } catch (e) {
+                console.error("Gagal ambil data dari Sheets, menggunakan local backup.");
+                showToast('warning', 'Offline Mode', 'Menggunakan data local sebagai backup');
+                // Fallback: jika internet error, cari di localData
+                ['grab', 'jc', 'hd'].forEach(p => {
+                    remoteBalances[p] = getLastBalanceFromLocal(p, pCode);
+                    calcEnding(p);
+                });
+            }
         }
-        
-        // Setelah data didapat, hitung ulang semua platform
-        ['grab', 'jc', 'hd'].forEach(p => calcEnding(p));
 
-    } catch (e) {
-        console.error("Gagal ambil data dari Sheets, menggunakan local backup.");
-        // Fallback: jika internet error, cari di localData
-        ['grab', 'jc', 'hd'].forEach(p => {
-            remoteBalances[p] = getLastBalanceFromLocal(p, pCode);
-            calcEnding(p);
-        });
-    }
-}
+        function getLastBalanceFromLocal(platform, phoneCode) {
+            // Cari dari localData yang sudah tersimpan
+            for (let i = 0; i < localData.length; i++) {
+                const data = localData[i];
+                const dataPhone = (data.phoneCode || '').toLowerCase().replace(/\s+/g, '');
+                if (dataPhone === phoneCode) {
+                    return parseInt(data[platform + 'End']) || 0;
+                }
+            }
+            return 0;
+        }
 
-function calcEnding(platform) {
-    const topUpInput = document.getElementById(`${platform}TopUp`);
-    const startInput = document.getElementById(`${platform}Start`);
-    const usageInput = document.getElementById(`${platform}Usage`);
-    const endInput = document.getElementById(`${platform}End`);
-    const endDisplay = document.getElementById(`${platform}EndDisplay`);
+        function calcEnding(platform) {
+            const topUpInput = document.getElementById(`${platform}TopUp`);
+            const startInput = document.getElementById(`${platform}Start`);
+            const usageInput = document.getElementById(`${platform}Usage`);
+            const endInput = document.getElementById(`${platform}End`);
+            const endDisplay = document.getElementById(`${platform}EndDisplay`);
 
-    // 1. Getar Merah jika Top Up Kosong
-    if (topUpInput.value === "") {
-        topUpInput.classList.add('input-error-shake');
-        setTimeout(() => topUpInput.classList.remove('input-error-shake'), 500);
-    } else {
-        topUpInput.classList.remove('input-error-shake');
-    }
+            // 1. Getar Merah jika Top Up Kosong
+            if (topUpInput.value === "") {
+                topUpInput.classList.add('input-error-shake');
+                setTimeout(() => topUpInput.classList.remove('input-error-shake'), 500);
+            } else {
+                topUpInput.classList.remove('input-error-shake');
+            }
 
-    const lastEnding = remoteBalances[platform] || 0;
-    const topUpVal = parseInt(topUpInput.value) || 0;
-    const usageVal = parseInt(usageInput.value) || 0;
+            const lastEnding = remoteBalances[platform] || 0;
+            const topUpVal = parseInt(topUpInput.value) || 0;
+            const usageVal = parseInt(usageInput.value) || 0;
 
-    // 2. LOGIKA: Saldo Awal = Sisa dari Sheets + Top Up
-    const calculatedStart = lastEnding + topUpVal;
-    startInput.value = calculatedStart;
+            // 2. LOGIKA: Saldo Awal = Sisa dari Sheets + Top Up
+            const calculatedStart = lastEnding + topUpVal;
+            startInput.value = calculatedStart;
 
-    // 3. LOGIKA: Ending = Saldo Awal - Usage
-    const finalEnd = calculatedStart - usageVal;
-    endInput.value = finalEnd;
+            // 3. LOGIKA: Ending = Saldo Awal - Usage
+            const finalEnd = calculatedStart - usageVal;
+            endInput.value = finalEnd;
 
-    if (endDisplay) endDisplay.innerText = `Rp ${finalEnd.toLocaleString('id-ID')}`;
-}
+            if (endDisplay) endDisplay.innerText = `Rp ${finalEnd.toLocaleString('id-ID')}`;
+        }
 
         // ============================================
         // TOAST NOTIFICATION
@@ -1893,13 +1913,15 @@ function calcEnding(platform) {
             const icons = {
                 success: '✓',
                 error: '✕',
-                warning: '⚠'
+                warning: '⚠',
+                info: 'ℹ'
             };
             
             const colors = {
                 success: '#d4edda',
                 error: '#f8d7da',
-                warning: '#fff3cd'
+                warning: '#fff3cd',
+                info: '#d1ecf1'
             };
             
             icon.textContent = icons[type];
@@ -2099,7 +2121,7 @@ function calcEnding(platform) {
                         
                     } catch (e) {
                         console.error('OCR gagal untuk', file.name, e);
-                        showToast('error', 'OCR Gagal', `Tidak bisa membaca ${file.name}`);
+                        showToast('error', 'OCR Gagal
                     }
                     
                     processedCount++;
