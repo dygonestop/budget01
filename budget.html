@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Keuangan Ojek Online - Smart Validation</title>
-    <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
+    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 <style>
 /* Animasi Getar Merah untuk Input Kosong */
 @keyframes shakeError {
@@ -1806,16 +1806,34 @@ async function doOCREndingBalance(platform, input) {
     const file = input.files[0];
     if (!file) return;
 
-    const result = await Tesseract.recognize(file, 'eng');
-    const text = result.data.text;
+    try {
+        const result = await Tesseract.recognize(file, 'eng');
+        const text = result.data.text;
 
-    const amount = extractAmount(text);
+        const amount = extractAmount(text);
 
-    endingBalanceOCR[platform] = amount;
+        if (!amount || amount <= 0) {
+            alert("OCR gagal baca saldo!");
+            return;
+        }
 
-    validateEndingBalance(platform);
+        endingBalanceOCR[platform] = amount;
+
+        // tampilkan ke UI (biar keliatan)
+        document.getElementById(platform + 'OCRResult').innerHTML = `
+            <div class="ocr-result success">
+                <div class="ocr-result-text">OCR Terdeteksi</div>
+                <div class="ocr-result-amount">Rp ${amount.toLocaleString()}</div>
+            </div>
+        `;
+
+        validateEndingBalance(platform);
+
+    } catch (e) {
+        alert("OCR error!");
+        console.error(e);
+    }
 }
-
 // ===============================
 // EXTRACT ANGKA (FINAL)
 // ===============================
@@ -1872,6 +1890,25 @@ async function submitAll() {
     } else {
         alert("GAGAL!");
     }
+}
+async function handleMultipleInvoices(platform, input) {
+    const files = Array.from(input.files);
+    if (files.length === 0) return;
+
+    let total = 0;
+
+    for (let file of files) {
+        const result = await Tesseract.recognize(file, 'eng');
+        const text = result.data.text;
+
+        const amount = extractAmount(text);
+
+        total += amount;
+    }
+
+    document.getElementById(platform + 'Usage').value = total;
+
+    calcEnding(platform);
 }
 </script>
 </body>
