@@ -1698,1111 +1698,181 @@
         </div>
     </div>
 
-    <script>
-// ============================================
-// AUTO CONFIG - GANTI URL INI
-// ============================================
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZrXUlz4desvL7YT1wL3uGDWQIWgjzcKFRaecB72bSfRZ5MK6E3LKG6MOlq9Ae_53n/exec";
-
-// ============================================
-// GLOBAL VARIABLES
-// ============================================
-let localData = JSON.parse(localStorage.getItem('ojol_local_data') || '[]');
-let invoiceData = { grab: [], jc: [], hd: [] };
-let endingBalanceOCR = { grab: null, jc: null, hd: null };
-let remoteBalances = { grab: 0, jc: 0, hd: 0 };
-let validationStatus = { grab: false, jc: false, hd: false };
-let currentOCRController = null;
-let ocrStartTime = null;
-let ocrTimerInterval = null;
-
-// Platform detection keywords
-const PLATFORM_KEYWORDS = {
-    grab: ['ovo', 'saldo ovo', 'ovo balance', 'ovoid'],
-    jc: ['gopay', 'gojek', 'saldo gopay', 'saldo kamu', 'gopay coins'],
-    hd: ['shopeepay', 'shopee', 'saldo shopeepay', 'shopee pay']
-};
-
-// ============================================
-// INIT
-// ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    const dateInput = document.getElementById('transDate');
-    if (dateInput) {
-        dateInput.valueAsDate = new Date();
-    }
-    updateStats();
-    renderTable();
-    checkSubmitButton();
-});
-
-// ============================================
-// PHONE CODE NORMALIZATION (FLEKSIBEL)
-// ============================================
-function normalizePhoneCode(code) {
-    if (!code) return '';
-    return code
-        .toLowerCase()
-        .replace(/\s+/g, '')           // hapus semua spasi
-        .replace(/[^a-z0-9]/g, '')      // hanya huruf dan angka
-        .replace(/(.)\1+/g, '$1');      // 1bb → 1b, 1BBB → 1b
-}
-
-// ============================================
-// FETCH LAST BALANCE FROM SHEETS
-// ============================================
-async function fetchLastBalanceFromSheets() {
-    const phoneInput = document.getElementById('phoneCode');
-    const rawCode = phoneInput.value;
-    const pCode = normalizePhoneCode(rawCode);
-    
-    // Update input dengan normalized code
-    if (rawCode !== pCode) {
-        phoneInput.value = pCode;
-    }
-    
-    if (!pCode) {
-        console.log('Kode HP kosong');
-        remoteBalances = { grab: 0, jc: 0, hd: 0 };
-        updateAllPlatforms();
-        return;
-    }
-
-    console.log("Mencari saldo terakhir untuk:", pCode);
-    phoneInput.style.background = '#eff6ff';
-    phoneInput.disabled = true;
-
-    try {
-        const fetchUrl = APPS_SCRIPT_URL + '?action=getLastBalance&phoneCode=' + encodeURIComponent(pCode);
-        console.log('Fetching:', fetchUrl);
-        
-        const response = await fetch(fetchUrl);
-        
-        if (!response.ok) {
-            throw new Error('HTTP error! status: ' + response.status);
-        }
-        
-        const result = await response.json();
-        console.log('Response dari GAS:', result);
-
-        if (result.success) {
-            remoteBalances.grab = result.grabEnd || 0;
-            remoteBalances.jc = result.jcEnd || 0;
-            remoteBalances.hd = result.hdEnd || 0;
-            
-            showToast('success', 'Data Ditemukan!', 
-                `Ending balance ${pCode}: Grab Rp ${formatNumber(remoteBalances.grab)}, GoFood Rp ${formatNumber(remoteBalances.jc)}, Shopee Rp ${formatNumber(remoteBalances.hd)}`);
-        } else {
-            remoteBalances = { grab: 0, jc: 0, hd: 0 };
-            showToast('info', 'Kode HP Baru', `Memulai dengan saldo 0 untuk ${pCode}`);
-        }
-        
-        updateAllPlatforms();
-        
-    } catch (e) {
-        console.error("Error fetch:", e);
-        showToast('error', 'Gagal Ambil Data!', 'Menggunakan data local...');
-        
-        remoteBalances.grab = getLastBalanceFromLocal('grab', pCode);
-        remoteBalances.jc = getLastBalanceFromLocal('jc', pCode);
-        remoteBalances.hd = getLastBalanceFromLocal('hd', pCode);
-        
-        updateAllPlatforms();
-    } finally {
-        phoneInput.style.background = '';
-        phoneInput.disabled = false;
-    }
-}
-
-function getLastBalanceFromLocal(platform, phoneCode) {
-    const normalized = normalizePhoneCode(phoneCode);
-    for (let i = localData.length - 1; i >= 0; i--) {
-        const data = localData[i];
-        const dataPhone = normalizePhoneCode(data.phoneCode || '');
-        if (dataPhone === normalized) {
-            return parseInt(data[platform + 'End']) || 0;
-        }
-    }
-    return 0;
-}
-
-function updateAllPlatforms() {
-    ['grab', 'jc', 'hd'].forEach(p => {
-        calcEnding(p);
-    });
-}
-
-// ============================================
-// CALCULATION: Saldo Awal = Last Ending + Top Up
-// ============================================
-function calcEnding(platform) {
-    const startInput = document.getElementById(platform + 'Start');
-    const topUpInput = document.getElementById(platform + 'TopUp');
-    const usageInput = document.getElementById(platform + 'Usage');
-    const endInput = document.getElementById(platform + 'End');
-    const endDisplay = document.getElementById(platform + 'EndDisplay');
-
-    if (!startInput || !usageInput || !endInput) {
-        console.error('Element tidak ditemukan:', platform);
-        return;
-    }
-
-    // Ambil nilai
-    const lastEnding = remoteBalances[platform] || 0;
-    const topUpVal = parseInt(topUpInput?.value) || 0;
-    const usageVal = parseInt(usageInput?.value) || 0;
-
-    // Hitung Saldo Awal = Ending Balance Terakhir + Top Up
-    const startVal = lastEnding + topUpVal;
-    startInput.value = startVal;
-
-    // Hitung Ending Balance = Saldo Awal - Usage
-    const finalEnd = startVal - usageVal;
-    endInput.value = finalEnd;
-
-    if (endDisplay) {
-        endDisplay.innerText = 'Rp ' + finalEnd.toLocaleString('id-ID');
-    }
-    
-    console.log(`${platform}: LastEnd=${lastEnding} + TopUp=${topUpVal} = Start=${startVal} - Usage=${usageVal} = End=${finalEnd}`);
-    
-    // Re-validate jika sudah ada OCR
-    if (endingBalanceOCR[platform] !== null) {
-        validateEndingBalance(platform);
-    }
-}
-
-function updateTotalUsage(platform) {
-    const total = invoiceData[platform].reduce((sum, inv) => sum + inv.amount, 0);
-    const usageInput = document.getElementById(platform + 'Usage');
-    
-    if (usageInput) {
-        usageInput.value = total;
-        calcEnding(platform);
-    }
-}
-
-// ============================================
-// TOAST NOTIFICATION
-// ============================================
-function showToast(type, title, message, duration = 3000) {
-    const toast = document.getElementById('toast');
-    const icon = document.getElementById('toastIcon');
-    const titleEl = document.getElementById('toastTitle');
-    const messageEl = document.getElementById('toastMessage');
-    
-    if (!toast) {
-        alert(title + ': ' + message);
-        return;
-    }
-    
-    const icons = {
-        success: '✓',
-        error: '✕',
-        warning: '⚠',
-        info: 'ℹ'
-    };
-    
-    const colors = {
-        success: '#d4edda',
-        error: '#f8d7da',
-        warning: '#fff3cd',
-        info: '#d1ecf1'
-    };
-    
-    icon.textContent = icons[type] || 'ℹ';
-    icon.className = 'toast-icon ' + type;
-    icon.style.background = colors[type] || '#e2e8f0';
-    titleEl.textContent = title;
-    messageEl.textContent = message;
-    
-    toast.classList.add('active');
-    
-    setTimeout(() => {
-        toast.classList.remove('active');
-    }, duration);
-}
-
-// ============================================
-// OCR - INVOICE USAGE (TETAP KETAT)
-// ============================================
-async function handleMultipleInvoices(platform, input) {
-    const files = Array.from(input.files);
-    if (files.length === 0) return;
-
-    const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-    const section = document.getElementById(platform + 'InvoiceSection');
-    const hint = document.getElementById(platform + 'InvoiceHint');
-    const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
-    
-    currentOCRController = new AbortController();
-    
-    box.classList.add('processing');
-    section.classList.add('processing');
-    if (loadingIndicator) loadingIndicator.classList.add('active');
-    hint.className = 'file-hint processing-text';
-    hint.innerHTML = '<span>⏳</span><span>Sedang memproses ' + files.length + ' file...</span>';
-    
-    showProgressOverlay('Membaca Invoice ' + platform.toUpperCase(), 'Sedang memproses ' + files.length + ' file dengan OCR');
-
-    let validFiles = 0;
-    let invalidFiles = 0;
-
-    try {
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            updateProgress(0, 100, i + 1, files.length, 'Membaca ' + file.name + '...');
-            
-            try {
-                const result = await Tesseract.recognize(file, 'ind+eng', {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            updateProgress(m.progress * 100, 100, i + 1, files.length, 
-                                'OCR ' + file.name + '... ' + Math.round(m.progress * 100) + '%');
-                        }
-                    }
-                });
-
-                const ocrText = result.data.text;
-                const validation = validatePlatform(ocrText, platform);
-                
-                if (!validation.valid && validation.hasWrongWallet) {
-                    invalidFiles++;
-                    showToast('error', 'File Ditolak!', file.name + ' terdeteksi sebagai ' + validation.wrongPlatform.toUpperCase());
-                    continue;
-                }
-                
-                const amount = extractTotal(ocrText, platform);
-                
-                invoiceData[platform].push({
-                    name: file.name,
-                    amount: amount,
-                    text: ocrText,
-                    validated: validation.valid
-                });
-                
-                validFiles++;
-                updateInvoiceList(platform);
-                
-            } catch (e) {
-                console.error('OCR gagal untuk', file.name, e);
-            }
-        }
-        
-        updateTotalUsage(platform);
-        
-        if (invalidFiles > 0 && validFiles === 0) {
-            hint.innerHTML = '<span>❌</span><span>Semua file ditolak!</span>';
-            hint.className = 'file-hint error-text';
-        } else if (invalidFiles > 0) {
-            hint.innerHTML = '<span>⚠️</span><span>' + invalidFiles + ' ditolak, ' + validFiles + ' diterima</span>';
-            hint.className = 'file-hint warning-text';
-        } else {
-            hint.innerHTML = '<span>✅</span><span>' + validFiles + ' invoice berhasil diproses</span>';
-            hint.className = 'file-hint success-text';
-        }
-        
-    } catch (error) {
-        showToast('error', 'Error', error.message);
-    } finally {
-        hideProgressOverlay();
-        box.classList.remove('processing');
-        section.classList.remove('processing');
-        if (loadingIndicator) loadingIndicator.classList.remove('active');
-        input.value = '';
-        updateStats();
-    }
-}
-
-function updateInvoiceList(platform) {
-    const listContainer = document.getElementById(platform + 'InvoiceList');
-    if (!listContainer) return;
-    
-    const invoices = invoiceData[platform];
-    if (invoices.length === 0) {
-        listContainer.innerHTML = '';
-        return;
-    }
-    
-    let html = '';
-    invoices.forEach((inv, index) => {
-        html += '<div class="invoice-item ' + platform + '">' +
-            '<div class="invoice-name">' + inv.name + '</div>' +
-            '<div class="invoice-amount">Rp ' + formatNumber(inv.amount) + '</div>' +
-            '<button class="remove-btn" onclick="removeInvoice(\'' + platform + '\', ' + index + ')">×</button>' +
-            '</div>';
-    });
-    
-    listContainer.innerHTML = html;
-}
-
-function removeInvoice(platform, index) {
-    invoiceData[platform].splice(index, 1);
-    updateInvoiceList(platform);
-    updateTotalUsage(platform);
-    updateStats();
-}
-
-function validatePlatform(text, expectedPlatform) {
-    const textLower = text.toLowerCase();
-    const keywords = PLATFORM_KEYWORDS[expectedPlatform];
-    
-    const hasCorrectWallet = keywords.some(keyword => textLower.includes(keyword));
-    
-    let hasWrongWallet = false;
-    let wrongPlatform = '';
-    
-    for (let [platform, platformKeywords] of Object.entries(PLATFORM_KEYWORDS)) {
-        if (platform !== expectedPlatform) {
-            if (platformKeywords.some(keyword => textLower.includes(keyword))) {
-                hasWrongWallet = true;
-                wrongPlatform = platform;
-                break;
-            }
-        }
-    }
-    
-    return {
-        valid: hasCorrectWallet && !hasWrongWallet,
-        hasCorrectWallet,
-        hasWrongWallet,
-        wrongPlatform,
-        detectedWallet: hasCorrectWallet ? expectedPlatform : (hasWrongWallet ? wrongPlatform : 'unknown')
-    };
-}
-
-function extractTotal(text, platform) {
-    const lines = text.split('\n');
-    let candidates = [];
-    
-    // Keywords untuk mencari total pembayaran akhir (setelah diskon, parkir, layanan)
-    const keywords = {
-        grab: ['total', 'total harga', 'total pembayaran', 'dibayar', 'ovo', 'total tagihan'],
-        jc: ['total dibayar', 'total pembayaran', 'dibayar', 'total', 'gopay', 'total tagihan'],
-        hd: ['total', 'total harga', 'pembayaran', 'dibayar', 'shopeepay', 'total tagihan', 'total pembayaran']
-    };
-    
-    const keys = keywords[platform] || ['total'];
-    
-    // Cari di semua baris
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].toLowerCase();
-        for (let k of keys) {
-            if (line.includes(k) && !line.includes('subtotal') && !line.includes('total diskon')) {
-                // Ambil konteks 3 baris untuk mencari angka
-                const context = lines.slice(Math.max(0, i-1), i+3).join(' ');
-                const matches = context.match(/[\d.,]+/g) || [];
-                for (let m of matches) {
-                    const clean = m.replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    // Filter harga yang masuk akal (1000 - 10 juta)
-                    if (val > 1000 && val < 10000000) candidates.push(val);
-                }
-            }
-        }
-    }
-    
-    // Ambil nilai terbesar (biasanya total akhir setelah semua biaya)
-    candidates.sort((a, b) => b - a);
-    return candidates[0] || 0;
-}
-
-// ============================================
-// OCR - ENDING BALANCE (WAJIB SAMA DENGAN HITUNG)
-// ============================================
-async function doOCREndingBalance(platform, input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-    const resultDiv = document.getElementById(platform + 'OCRResult');
-    const section = document.getElementById(platform + 'BalanceSection');
-    const hint = document.getElementById(platform + 'BalanceHint');
-    const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
-    
-    box.classList.add('processing');
-    section.classList.add('processing');
-    if (loadingIndicator) loadingIndicator.classList.add('active');
-    hint.className = 'file-hint processing-text';
-    hint.innerHTML = '<span>⏳</span><span>Memproses gambar...</span>';
-
-    try {
-        const result = await Tesseract.recognize(file, 'ind+eng', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    hint.innerHTML = '<span>⏳</span><span>Membaca... ' + Math.round(m.progress * 100) + '%</span>';
-                }
-            }
-        });
-
-        const ocrText = result.data.text;
-        const validation = validatePlatform(ocrText, platform);
-        
-        if (!validation.valid && validation.hasWrongWallet) {
-            section.classList.add('error-upload');
-            hint.innerHTML = '<span>❌</span><span>FILE SALAH! Terdeteksi ' + validation.wrongPlatform.toUpperCase()
-                    continue;
-                }
-                
-                const amount = extractTotal(ocrText, platform);
-                
-                invoiceData[platform].push({
-                    name: file.name,
-                    amount: amount,
-                    text: ocrText,
-                    validated: validation.valid
-                });
-                
-                validFiles++;
-                updateInvoiceList(platform);
-                
-            } catch (e) {
-                console.error('OCR gagal untuk', file.name, e);
-            }
-        }
-        
-        updateTotalUsage(platform);
-        
-        if (invalidFiles > 0 && validFiles === 0) {
-            hint.innerHTML = '<span>❌</span><span>Semua file ditolak!</span>';
-            hint.className = 'file-hint error-text';
-        } else if (invalidFiles > 0) {
-            hint.innerHTML = '<span>⚠️</span><span>' + invalidFiles + ' ditolak, ' + validFiles + ' diterima</span>';
-            hint.className = 'file-hint warning-text';
-        } else {
-            hint.innerHTML = '<span>✅</span><span>' + validFiles + ' invoice berhasil diproses</span>';
-            hint.className = 'file-hint success-text';
-        }
-        
-    } catch (error) {
-        showToast('error', 'Error', error.message);
-    } finally {
-        hideProgressOverlay();
-        box.classList.remove('processing');
-        section.classList.remove('processing');
-        if (loadingIndicator) loadingIndicator.classList.remove('active');
-        input.value = '';
-        updateStats();
-    }
-}
-
-function updateInvoiceList(platform) {
-    const listContainer = document.getElementById(platform + 'InvoiceList');
-    if (!listContainer) return;
-    
-    const invoices = invoiceData[platform];
-    if (invoices.length === 0) {
-        listContainer.innerHTML = '';
-        return;
-    }
-    
-    let html = '';
-    invoices.forEach((inv, index) => {
-        html += '<div class="invoice-item ' + platform + '">' +
-            '<div class="invoice-name">' + inv.name + '</div>' +
-            '<div class="invoice-amount">Rp ' + formatNumber(inv.amount) + '</div>' +
-            '<button class="remove-btn" onclick="removeInvoice(\'' + platform + '\', ' + index + ')">×</button>' +
-            '</div>';
-    });
-    
-    listContainer.innerHTML = html;
-}
-
-function removeInvoice(platform, index) {
-    invoiceData[platform].splice(index, 1);
-    updateInvoiceList(platform);
-    updateTotalUsage(platform);
-    updateStats();
-}
-
-function validatePlatform(text, expectedPlatform) {
-    const textLower = text.toLowerCase();
-    const keywords = PLATFORM_KEYWORDS[expectedPlatform];
-    
-    const hasCorrectWallet = keywords.some(keyword => textLower.includes(keyword));
-    
-    let hasWrongWallet = false;
-    let wrongPlatform = '';
-    
-    for (let [platform, platformKeywords] of Object.entries(PLATFORM_KEYWORDS)) {
-        if (platform !== expectedPlatform) {
-            if (platformKeywords.some(keyword => textLower.includes(keyword))) {
-                hasWrongWallet = true;
-                wrongPlatform = platform;
-                break;
-            }
-        }
-    }
-    
-    return {
-        valid: hasCorrectWallet && !hasWrongWallet,
-        hasCorrectWallet,
-        hasWrongWallet,
-        wrongPlatform,
-        detectedWallet: hasCorrectWallet ? expectedPlatform : (hasWrongWallet ? wrongPlatform : 'unknown')
-    };
-}
-
-function extractTotal(text, platform) {
-    const lines = text.split('\n');
-    let candidates = [];
-    
-    const keywords = {
-        grab: ['total harga', 'total', 'dibayar', 'total pembayaran', 'ovo'],
-        jc: ['total dibayar', 'total pembayaran', 'dibayar', 'total', 'gopay'],
-        hd: ['total', 'pembayaran', 'dibayar', 'total harga', 'shopeepay']
-    };
-    
-    const keys = keywords[platform] || ['total'];
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].toLowerCase();
-        for (let k of keys) {
-            if (line.includes(k) && !line.includes('subtotal')) {
-                const context = lines.slice(i, i+3).join(' ');
-                const matches = context.match(/[\d.,]+/g) || [];
-                for (let m of matches) {
-                    const clean = m.replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > 1000 && val < 10000000) candidates.push(val);
-                }
-            }
-        }
-    }
-    
-    candidates.sort((a, b) => b - a);
-    return candidates[0] || 0;
-}
-
-// ============================================
-// ENDING BALANCE OCR
-// ============================================
-async function doOCREndingBalance(platform, input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-    const resultDiv = document.getElementById(platform + 'OCRResult');
-    const section = document.getElementById(platform + 'BalanceSection');
-    const hint = document.getElementById(platform + 'BalanceHint');
-    const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
-    
-    box.classList.add('processing');
-    section.classList.add('processing');
-    if (loadingIndicator) loadingIndicator.classList.add('active');
-    hint.className = 'file-hint processing-text';
-    hint.innerHTML = '<span>⏳</span><span>Memproses gambar...</span>';
-
-    try {
-        const result = await Tesseract.recognize(file, 'ind+eng', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    hint.innerHTML = '<span>⏳</span><span>Membaca... ' + Math.round(m.progress * 100) + '%</span>';
-                }
-            }
-        });
-
-        const ocrText = result.data.text;
-        const validation = validatePlatform(ocrText, platform);
-        
-        if (!validation.valid && validation.hasWrongWallet) {
-            section.classList.add('error-upload');
-            hint.innerHTML = '<span>❌</span><span>FILE SALAH! Terdeteksi ' + validation.wrongPlatform.toUpperCase() + '</span>';
-            hint.className = 'file-hint error-text';
-            
-            resultDiv.innerHTML = '<div class="ocr-result error"><div class="ocr-result-text">❌ VALIDASI GAGAL</div></div>';
-            input.value = '';
-            return;
-        }
-        
-        const balance = extractBalanceFromScreenshot(ocrText, platform);
-        endingBalanceOCR[platform] = balance;
-        
-        resultDiv.innerHTML = '<div class="ocr-result success">' +
-            '<div class="ocr-result-text">✅ BERHASIL</div>' +
-            '<div class="ocr-result-amount">Rp ' + formatNumber(balance) + '</div>' +
-            '</div>';
-        
-        hint.innerHTML = '<span>✅</span><span>Saldo berhasil terbaca</span>';
-        hint.className = 'file-hint success-text';
-        
-        endingBalanceOCR[platform] = amount;
-validateEndingBalance(platform);
-        updateStats();
-        
-    } catch (e) {
-        resultDiv.innerHTML = '<div class="ocr-result error"><div class="ocr-result-text">❌ GAGAL MEMBACA</div></div>';
-        hint.innerHTML = '<span>❌</span><span>Gagal memproses gambar</span>';
-        hint.className = 'file-hint error-text';
-    } finally {
-        box.classList.remove('processing');
-        section.classList.remove('processing');
-        if (loadingIndicator) loadingIndicator.classList.remove('active');
-    }
-}
-
-function extractBalanceFromScreenshot(text, platform) {
-    const lines = text.split('\n');
-    let candidates = [];
-    
-    const keywords = {
-        grab: ['ovo', 'saldo', 'rp', 'balance', 'ovo id', 'ovoid'],
-        jc: ['gopay', 'saldo kamu', 'saldo', 'rp', 'saldo gopay'],
-        hd: ['shopeepay', 'saldo', 'rp', 'shopee pay', 'saldo shopeepay']
-    };
-    
-    const keys = keywords[platform] || ['saldo', 'rp', 'balance'];
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].toLowerCase();
-        for (let k of keys) {
-            if (line.includes(k)) {
-                const context = lines.slice(i, i + 2).join(' ');
-                const matches = context.match(/[\d.,]+/g) || [];
-                for (let m of matches) {
-                    const clean = m.replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > 1000 && val < 100000000) candidates.push(val);
-                }
-            }
-        }
-    }
-    
-    candidates.sort((a, b) => b - a);
-    return candidates[0] || 0;
-}
-
-function validateEndingBalance(platform) {
-    const platformBox = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-    const validationDiv = document.getElementById(platform + 'Validation');
-    
-    const calculatedEnd = parseInt(document.getElementById(platform + 'End').value) || 0;
-    const ocrBalance = endingBalanceOCR[platform];
-    
-    if (ocrBalance === null || !validationDiv) return false;
-    
-    const tolerance = 100;
-    const isValid = Math.abs(calculatedEnd - ocrBalance) <= tolerance;
-    
-    if (isValid) {
-        platformBox.classList.remove('error');
-        platformBox.classList.add('success');
-        validationDiv.className = 'validation-box show success';
-        validationDiv.innerHTML = '✅ VALIDASI BERHASIL<br><small>Hitung: Rp ' + formatNumber(calculatedEnd) + ' ≈ OCR: Rp ' + formatNumber(ocrBalance) + '</small>';
-        return true;
-    } else {
-        platformBox.classList.remove('success');
-        platformBox.classList.add('error');
-        validationDiv.className = 'validation-box show error';
-        validationDiv.innerHTML = '❌ VALIDASI GAGAL!<br><small>Selisih: Rp ' + formatNumber(Math.abs(calculatedEnd - ocrBalance)) + '</small>';
-        setTimeout(() => platformBox.classList.remove('error'), 2000);
-        return false;
-    }
-}
-
-// ============================================
-// PROGRESS OVERLAY
-// ============================================
-function showProgressOverlay(title, subtitle) {
-    const overlay = document.getElementById('progressOverlay');
-    if (!overlay) return;
-    
-    const titleEl = document.querySelector('.progress-title');
-    const subtitleEl = document.querySelector('.progress-subtitle');
-    
-    if (titleEl) titleEl.textContent = title;
-    if (subtitleEl) subtitleEl.textContent = subtitle;
-    
-    document.getElementById('progressBarFill').style.width = '0%';
-    document.getElementById('progressPercentage').textContent = '0%';
-    document.getElementById('progressDetail').textContent = 'Menginisialisasi...';
-    document.getElementById('progressFileCount').textContent = 'File 0/0';
-    document.getElementById('progressTime').textContent = '00:00';
-    
-    overlay.classList.add('active');
-    ocrStartTime = Date.now();
-    ocrTimerInterval = setInterval(updateProgressTime, 1000);
-}
-
-function hideProgressOverlay() {
-    const overlay = document.getElementById('progressOverlay');
-    if (overlay) overlay.classList.remove('active');
-    if (ocrTimerInterval) {
-        clearInterval(ocrTimerInterval);
-        ocrTimerInterval = null;
-    }
-}
-
-function updateProgressTime() {
-    if (!ocrStartTime) return;
-    const elapsed = Math.floor((Date.now() - ocrStartTime) / 1000);
-    const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-    const seconds = (elapsed % 60).toString().padStart(2, '0');
-    const timeEl = document.getElementById('progressTime');
-    if (timeEl) timeEl.textContent = minutes + ':' + seconds;
-}
-
-function updateProgress(current, total, fileIndex, totalFiles, detail) {
-    const percentage = Math.round((current / total) * 100);
-    const overallProgress = ((fileIndex - 1 + (current / 100)) / totalFiles) * 100;
-    
-    const barFill = document.getElementById('progressBarFill');
-    const percentageEl = document.getElementById('progressPercentage');
-    const fileCountEl = document.getElementById('progressFileCount');
-    const detailEl = document.getElementById('progressDetail');
-    
-    if (barFill) barFill.style.width = overallProgress + '%';
-    if (percentageEl) percentageEl.textContent = Math.round(overallProgress) + '%';
-    if (fileCountEl) fileCountEl.textContent = 'File ' + fileIndex + '/' + totalFiles;
-    if (detailEl) detailEl.textContent = detail || 'Memproses file ' + fileIndex + ' dari ' + totalFiles + '...';
-}
-
-function cancelOCR() {
-    if (currentOCRController) {
-        currentOCRController.abort();
-        currentOCRController = null;
-    }
-    hideProgressOverlay();
-    showToast('warning', 'Dibatalkan', 'Proses OCR dihentikan', 3000);
-}
-
-// ============================================
-// STATS & SUBMIT
-// ============================================
-function updateStats() {
-    const totalInv = invoiceData.grab.length + invoiceData.jc.length + invoiceData.hd.length;
-    const totalUse = (parseInt(document.getElementById('grabUsage')?.value) || 0) +
-                    (parseInt(document.getElementById('jcUsage')?.value) || 0) +
-                    (parseInt(document.getElementById('hdUsage')?.value) || 0);
-    
-    let validated = 0;
-    if (endingBalanceOCR.grab !== null) validated++;
-    if (endingBalanceOCR.jc !== null) validated++;
-    if (endingBalanceOCR.hd !== null) validated++;
-    
-    const totalInvEl = document.getElementById('totalInvoices');
-    const totalUseEl = document.getElementById('totalUsage');
-    const validatedEl = document.getElementById('validatedCount');
-    const statsBar = document.getElementById('statsBar');
-    
-    if (totalInvEl) totalInvEl.textContent = totalInv;
-    if (totalUseEl) totalUseEl.textContent = 'Rp ' + formatNumber(totalUse);
-    if (validatedEl) validatedEl.textContent = validated + '/3';
-    if (statsBar && totalInv > 0) statsBar.style.display = 'flex';
-}
-
-async function submitAll() {
-    const btn = document.getElementById('btnSubmit');
-    const resultBox = document.getElementById('resultBox');
-    
-    // Validasi
-    const platforms = ['grab', 'jc', 'hd'];
-    
-    // Cek validasi OCR
-    let allValid = true;
-    let invalidPlatforms = [];
-    
-    for (let platform of platforms) {
-        const ocrBalance = endingBalanceOCR[platform];
-        if (ocrBalance !== null) {
-            const isValid = validateEndingBalance(platform);
-            if (!isValid) {
-                allValid = false;
-                invalidPlatforms.push(platform.toUpperCase());
-            }
-        }
-    }
-    
-    if (!allValid) {
-        alert('❌ TIDAK DAPAT SUBMIT! Validasi ending balance gagal untuk: ' + invalidPlatforms.join(', '));
-        return;
-    }
-    
-    // Normalisasi Kode HP
-    const rawPhoneCode = document.getElementById('phoneCode')?.value || '';
-    const normalizedPhoneCode = rawPhoneCode.toLowerCase().replace(/\s+/g, '');
-
-    if (!normalizedPhoneCode) {
-        alert('❌ Kode HP harus diisi!');
-        return;
-    }
-
-    if (!APPS_SCRIPT_URL) {
-        alert('❌ Belum ada config!');
-        return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span><span>Mengupload...</span>';
-    if (resultBox) resultBox.classList.remove('active');
-
-    const data = {
-        timestamp: new Date().toLocaleString('id-ID'),
-        admin: document.getElementById('adminName')?.value || '',
-        date: document.getElementById('transDate')?.value || '',
-        phoneCode: normalizedPhoneCode,
-        
-        // Struktur tanpa Top Up (sesuai sheet Anda)
-        grabStart: parseInt(document.getElementById('grabStart')?.value) || 0,
-        grabUsage: parseInt(document.getElementById('grabUsage')?.value) || 0,
-        grabEnd: parseInt(document.getElementById('grabEnd')?.value) || 0,
-        
-        jcStart: parseInt(document.getElementById('jcStart')?.value) || 0,
-        jcUsage: parseInt(document.getElementById('jcUsage')?.value) || 0,
-        jcEnd: parseInt(document.getElementById('jcEnd')?.value) || 0,
-        
-        hdStart: parseInt(document.getElementById('hdStart')?.value) || 0,
-        hdUsage: parseInt(document.getElementById('hdUsage')?.value) || 0,
-        hdEnd: parseInt(document.getElementById('hdEnd')?.value) || 0,
-        
-        remarks: document.getElementById('remarks')?.value || '',
-        project: document.getElementById('project')?.value || 'Food',
-        
-        files: {}
-    };
-
-    if (!data.admin || !data.date) {
-        alert('❌ Isi Nama Admin dan Tanggal!');
-        btn.disabled = false;
-        btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
-        return;
-    }
-
-    // Upload files
-    const fileInputs = ['ssGrab', 'ssJc', 'ssHd'];
-    for (let id of fileInputs) {
-        const input = document.getElementById(id);
-        if (input?.files[0]) {
-            try {
-                data.files[id] = await toBase64(input.files[0]);
-            } catch (e) {
-                console.error('Error converting file:', e);
-            }
-        }
-    }
-
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        
-        // Simpan ke local
-        data.driveLinks = { status: 'Uploaded' };
-        localData.unshift(data);
-        localStorage.setItem('ojol_local_data', JSON.stringify(localData));
-        
-        renderTable();
-        clearForm();
-        
-        if (resultBox) {
-            resultBox.classList.add('active');
-            const resultLinks = document.getElementById('resultLinks');
-            if (resultLinks) {
-                resultLinks.innerHTML = '✅ Data tersimpan di Google Sheets<br>✅ Screenshots di Google Drive';
-            }
-        }
-        
-        showToast('success', 'Berhasil!', 'Data telah disimpan');
-        
-    } catch (e) {
-        console.error('Submit error:', e);
-        alert('❌ Error: ' + e.message + '\n\nData disimpan local sebagai backup.');
-        localData.unshift(data);
-        localStorage.setItem('ojol_local_data', JSON.stringify(localData));
-        renderTable();
-    }
-    
-    btn.disabled = false;
-    btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
-}
-
-function toBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve({
-            name: file.name,
-            type: file.type,
-            data: reader.result.split(',')[1]
-        });
-        reader.onerror = reject;
-    });
-}
-
-function clearForm() {
-    ['grab', 'jc', 'hd'].forEach(p => {
-        const usageInput = document.getElementById(p + 'Usage');
-        const endInput = document.getElementById(p + 'End');
-        const endDisplay = document.getElementById(p + 'EndDisplay');
-        const box = document.getElementById('box' + p.charAt(0).toUpperCase() + p.slice(1));
-        const validationDiv = document.getElementById(p + 'Validation');
-        const ocrResult = document.getElementById(p + 'OCRResult');
-        const invoiceList = document.getElementById(p + 'InvoiceList');
-        
-        // Jangan hapus Start (saldo awal), hanya reset Usage dan End
-        if (usageInput) usageInput.value = '';
-        if (endInput) endInput.value = '0';
-        if (endDisplay) endDisplay.textContent = 'Rp 0';
-        if (box) box.classList.remove('success', 'error');
-        if (validationDiv) validationDiv.classList.remove('show');
-        if (ocrResult) ocrResult.innerHTML = '';
-        if (invoiceList) invoiceList.innerHTML = '';
-        
-        // Reset hints
-        const hints = [p + 'InvoiceHint', p + 'BalanceHint'];
-        hints.forEach(hintId => {
-            const hint = document.getElementById(hintId);
-            if (hint) {
-                hint.className = 'file-hint';
-                hint.innerHTML = hintId.includes('Invoice') 
-                    ? '<span>💡</span><span>Upload screenshot invoice/bukti pembayaran</span>'
-                    : '<span>💡</span><span>Upload screenshot saldo akhir</span>';
-            }
-        });
-    });
-    
-    invoiceData = { grab: [], jc: [], hd: [] };
-    endingBalanceOCR = { grab: null, jc: null, hd: null };
-    
-    const remarks = document.getElementById('remarks');
-    const ssGrab = document.getElementById('ssGrab');
-    const ssJc = document.getElementById('ssJc');
-    const ssHd = document.getElementById('ssHd');
-    const resultBox = document.getElementById('resultBox');
-    const statsBar = document.getElementById('statsBar');
-    
-    if (remarks) remarks.value = '';
-    if (ssGrab) ssGrab.value = '';
-    if (ssJc) ssJc.value = '';
-    if (ssHd) ssHd.value = '';
-    if (resultBox) resultBox.classList.remove('active');
-    if (statsBar) statsBar.style.display = 'none';
-    
-    // Reset remote balances tapi jangan hapus phone code dan start balance
-    // Karena user mungkin mau input lagi dengan HP yang sama
-}
-
-function renderTable() {
-    const container = document.getElementById('tableContainer');
-    if (!container) return;
-    
-    if (localData.length === 0) {
-        container.innerHTML = '<div class="empty-state">Belum ada data tersimpan</div>';
-        return;
-    }
-
-    let html = '<table class="data-table"><thead><tr>' +
-        '<th>Timestamp</th><th>Admin</th><th>Date</th><th>HP</th>' +
-        '<th>GR Start</th><th>GR Usage</th><th>GR End</th>' +
-        '<th>JC Start</th><th>JC Usage</th><th>JC End</th>' +
-        '<th>HD Start</th><th>HD Usage</th><th>HD End</th>' +
-        '</tr></thead><tbody>';
-
-    localData.forEach(d => {
-        html += '<tr>' +
-            '<td>' + (d.timestamp || '') + '</td>' +
-            '<td>' + (d.admin || '') + '</td>' +
-            '<td>' + (d.date || '') + '</td>' +
-            '<td>' + (d.phoneCode || '') + '</td>' +
-            '<td>' + formatNumber(d.grabStart) + '</td>' +
-            '<td class="amount-neg">' + formatNumber(d.grabUsage) + '</td>' +
-            '<td class="amount-pos">' + formatNumber(d.grabEnd) + '</td>' +
-            '<td>' + formatNumber(d.jcStart) + '</td>' +
-            '<td class="amount-neg">' + formatNumber(d.jcUsage) + '</td>' +
-            '<td class="amount-pos">' + formatNumber(d.jcEnd) + '</td>' +
-            '<td>' + formatNumber(d.hdStart) + '</td>' +
-            '<td class="amount-neg">' + formatNumber(d.hdUsage) + '</td>' +
-            '<td class="amount-pos">' + formatNumber(d.hdEnd) + '</td>' +
-            '</tr>';
-    });
-
-    html += '</tbody></table>';
-    container.innerHTML = html;
-}
-
-function formatNumber(n) {
-    return parseInt(n || 0).toLocaleString('id-ID');
-}
-
-function exportCSV() {
-    const headers = ['Timestamp', 'Admin', 'Date', 'Kode HP', 'Project', 'Remarks',
-        'Grab Start', 'Grab Usage', 'Grab End',
-        'JC Start', 'JC Usage', 'JC End',
-        'HD Start', 'HD Usage', 'HD End'];
-    
-    let csv = headers.join(',') + '\n';
-    localData.forEach(d => {
-        csv += d.timestamp + ',' + d.admin + ',' + d.date + ',' + d.phoneCode + ',' + d.project + ',"' + (d.remarks || '') + '",' +
-               d.grabStart + ',' + d.grabUsage + ',' + d.grabEnd + ',' +
-               d.jcStart + ',' + d.jcUsage + ',' + d.jcEnd + ',' +
-               d.hdStart + ',' + d.hdUsage + ',' + d.hdEnd + '\n';
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'Laporan_Ojol_' + new Date().toISOString().split('T')[0] + '.csv';
-    a.click();
-}
-
-function copyForSheets() {
-    let text = 'Timestamp\tAdmin\tDate\tKode HP\tProject\tRemarks\t' +
-                'Grab Start\tGrab Usage\tGrab End\t' +
-                'JC Start\tJC Usage\tJC End\t' +
-                'HD Start\tHD Usage\tHD End\n';
-    
-    localData.forEach(d => {
-        text += d.timestamp + '\t' + d.admin + '\t' + d.date + '\t' + d.phoneCode + '\t' + d.project + '\t' + (d.remarks || '') + '\t' +
-                d.grabStart + '\t' + d.grabUsage + '\t' + d.grabEnd + '\t' +
-                d.jcStart + '\t' + d.jcUsage + '\t' + d.jcEnd + '\t' +
-                d.hdStart + '\t' + d.hdUsage + '\t' + d.hdEnd + '\n';
-    });
-    
-    navigator.clipboard.writeText(text).then(() => {
-        alert('✅ Format Google Sheets dicopy! Paste ke Sheets (Ctrl+V)');
-    });
-}
-
-function clearLocal() {
-    if (confirm('Hapus semua data local?')) {
-        localData = [];
-        localStorage.removeItem('ojol_local_data');
-        renderTable();
-        showToast('success', 'Dihapus', 'Data local telah dibersihkan');
-    }
-}
+   <script>
+// ===============================
+// AUTO CONFIG (NO SETUP LAGI)
+// ===============================
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzfAozxCfIn00VwxOB17AtLwhifQ3ugDukiF7IvINSz1vBcuWnroENTujhnDWmy24m/exec";
+
+// ===============================
+// NORMALIZE HP (SUPER FLEXIBLE)
+// ===============================
 function normalizePhoneCode(code) {
     return (code || '')
         .toLowerCase()
-        .replace(/\s+/g, '')     // hapus spasi
-        .replace(/[^a-z0-9]/g, '') // hanya huruf & angka
-        .replace(/(.)\1+/g, '$1'); // 1bb → 1b
+        .replace(/\s+/g, '')
+        .replace(/[^a-z0-9]/g, '')
+        .replace(/(.)\1+/g, '$1');
 }
+
+// ===============================
+// GLOBAL STATE
+// ===============================
+let remoteBalances = { grab: 0, jc: 0, hd: 0 };
+let endingBalanceOCR = { grab: null, jc: null, hd: null };
+
+// ===============================
+// FETCH SALDO OTOMATIS
+// ===============================
+async function fetchLastBalanceFromSheets() {
+    const phoneInput = document.getElementById('phoneCode');
+    const pCode = normalizePhoneCode(phoneInput.value);
+
+    if (!pCode) return;
+
+    try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getLastBalance&phoneCode=${pCode}`);
+        const result = await res.json();
+
+        if (result.success) {
+            remoteBalances = {
+                grab: result.grabEnd || 0,
+                jc: result.jcEnd || 0,
+                hd: result.hdEnd || 0
+            };
+        } else {
+            remoteBalances = { grab: 0, jc: 0, hd: 0 };
+        }
+
+        updateAllPlatforms();
+
+    } catch (e) {
+        alert("Gagal ambil saldo!");
+    }
+}
+
+// ===============================
+// HITUNG SALDO
+// ===============================
+function calcEnding(platform) {
+    const last = remoteBalances[platform] || 0;
+    const topup = parseInt(document.getElementById(platform+'TopUp').value) || 0;
+    const usage = parseInt(document.getElementById(platform+'Usage').value) || 0;
+
+    const start = last + topup;
+    const end = start - usage;
+
+    document.getElementById(platform+'Start').value = start;
+    document.getElementById(platform+'End').value = end;
+    document.getElementById(platform+'EndDisplay').innerText = 'Rp ' + end.toLocaleString();
+
+    validateEndingBalance(platform);
+}
+
+function updateAllPlatforms() {
+    ['grab','jc','hd'].forEach(p => calcEnding(p));
+}
+
+// ===============================
+// VALIDASI KETAT
+// ===============================
 function validateEndingBalance(platform) {
-    const calculated = parseInt(document.getElementById(platform + 'End').value) || 0;
+    const calc = parseInt(document.getElementById(platform+'End').value) || 0;
     const ocr = endingBalanceOCR[platform];
 
-    const box = document.getElementById(platform + 'Validation');
+    const box = document.getElementById(platform+'Validation');
 
     if (ocr === null) {
         box.className = 'validation-box show error';
-        box.innerHTML = '❌ Ending OCR belum diupload!';
+        box.innerHTML = '❌ OCR belum ada';
         return false;
     }
 
-    if (calculated !== ocr) {
+    if (calc !== ocr) {
         box.className = 'validation-box show error';
-        box.innerHTML = `❌ TIDAK MATCH!<br>Hitung: Rp ${calculated.toLocaleString()}<br>OCR: Rp ${ocr.toLocaleString()}`;
+        box.innerHTML = `❌ TIDAK MATCH<br>Hitung: ${calc}<br>OCR: ${ocr}`;
         return false;
     }
 
     box.className = 'validation-box show success';
-    box.innerHTML = `✅ VALID (${calculated.toLocaleString()})`;
+    box.innerHTML = '✅ VALID';
     return true;
 }
-    </script>
+
+// ===============================
+// OCR ENDING (AMBIL ANGKA)
+// ===============================
+async function doOCREndingBalance(platform, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const result = await Tesseract.recognize(file, 'eng');
+    const text = result.data.text;
+
+    const amount = extractAmount(text);
+
+    endingBalanceOCR[platform] = amount;
+
+    validateEndingBalance(platform);
+}
+
+// ===============================
+// EXTRACT ANGKA (FINAL)
+// ===============================
+function extractAmount(text) {
+    const numbers = text.match(/\d[\d.,]*/g);
+    if (!numbers) return 0;
+
+    const cleaned = numbers.map(n => parseInt(n.replace(/[.,]/g,'')) || 0);
+    return Math.max(...cleaned);
+}
+
+// ===============================
+// SUBMIT
+// ===============================
+async function submitAll() {
+    for (let p of ['grab','jc','hd']) {
+        if (!validateEndingBalance(p)) {
+            alert("Data tidak valid!");
+            return;
+        }
+    }
+
+    const payload = {
+        admin: document.getElementById('adminName').value,
+        phoneCode: normalizePhoneCode(document.getElementById('phoneCode').value),
+        date: document.getElementById('transDate').value,
+
+        grabStart: grabStart.value,
+        grabUsage: grabUsage.value,
+        grabEnd: grabEnd.value,
+
+        jcStart: jcStart.value,
+        jcUsage: jcUsage.value,
+        jcEnd: jcEnd.value,
+
+        hdStart: hdStart.value,
+        hdUsage: hdUsage.value,
+        hdEnd: hdEnd.value,
+
+        remarks: remarks.value,
+        project: project.value
+    };
+
+    const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+        alert("BERHASIL!");
+        location.reload();
+    } else {
+        alert("GAGAL!");
+    }
+}
+</script>
 </body>
 </html>
