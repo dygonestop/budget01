@@ -1713,16 +1713,44 @@ let ocrCancelled = false;
 let currentWorker = null;
 let invoiceData = { grab: [], jc: [], hd: [] };
 
+
 // ===============================
 // INITIALIZE
 // ===============================
 document.addEventListener('DOMContentLoaded', function() {
-    // Set default date to today
-    document.getElementById('transDate').valueAsDate = new Date();
+    // Panggil fungsi yang baru kita buat tadi
+    if (typeof loadLocalData === 'function') {
+        loadLocalData();
+    }
     
-    // Initialize local data
-    loadLocalData();
+    // Inisialisasi Tesseract atau library lainnya di sini
+    console.log("Halaman siap.");
 });
+
+// Fungsi untuk memuat data dari LocalStorage saat refresh
+function loadLocalData() {
+    const saved = localStorage.getItem('budgetFormData');
+    if (saved) {
+        const data = JSON.parse(saved);
+        // Isi kembali input-input yang ada
+        if(data.adminName) document.getElementById('adminName').value = data.adminName;
+        if(data.phoneCode) document.getElementById('phoneCode').value = data.phoneCode;
+        if(data.project) document.getElementById('project').value = data.project;
+        // ... Anda bisa menambah input lain jika ingin dipulihkan otomatis
+        console.log("Data lokal dimuat.");
+    }
+}
+
+// Fungsi untuk menyimpan data secara otomatis (agar tidak hilang saat refresh)
+function saveLocalData() {
+    const data = {
+        adminName: document.getElementById('adminName').value,
+        phoneCode: document.getElementById('phoneCode').value,
+        project: document.getElementById('project').value,
+        // Tambahkan fields lain jika perlu
+    };
+    localStorage.setItem('budgetFormData', JSON.stringify(data));
+}
 
 // ===============================
 // NORMALIZE HP (SUPER FLEXIBLE)
