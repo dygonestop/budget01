@@ -332,31 +332,6 @@
             box-shadow: var(--shadow-lg);
         }
 
-        .platform-card.processing {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        .platform-card.error {
-            animation: shake 0.5s ease-in-out;
-            border-color: #ef4444;
-        }
-
-        .platform-card.success {
-            border-color: #22c55e;
-        }
-
-        .platform-card.blocked {
-            border-color: #ef4444;
-            background: #fef2f2;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
         .platform-header {
             display: flex;
             align-items: center;
@@ -424,12 +399,6 @@
             margin-bottom: var(--space-4);
         }
 
-        @media (max-width: 400px) {
-            .balance-inputs {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .balance-total {
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             border-radius: var(--radius-md);
@@ -469,28 +438,6 @@
             position: relative;
         }
 
-        .upload-section:hover {
-            border-color: var(--primary);
-            background: #eff6ff;
-        }
-
-        .upload-section.processing {
-            border-color: var(--primary);
-            background: #eff6ff;
-        }
-
-        .upload-section.error-upload {
-            border-color: #ef4444;
-            background: #fef2f2;
-        }
-
-        .upload-section.blocked {
-            border-color: #ef4444;
-            background: #fee2e2;
-            pointer-events: none;
-            opacity: 0.6;
-        }
-
         .upload-title {
             display: flex;
             align-items: center;
@@ -524,150 +471,12 @@
             font-weight: 500;
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .file-input-wrapper:hover::after {
-            border-color: var(--primary);
-            color: var(--primary);
         }
 
         .file-hint {
             font-size: 0.75rem;
             color: var(--text-muted);
             margin-top: var(--space-2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-1);
-        }
-
-        .file-hint.processing-text {
-            color: var(--primary);
-        }
-
-        .file-hint.error-text {
-            color: #ef4444;
-        }
-
-        .file-hint.success-text {
-            color: #22c55e;
-        }
-
-        .file-hint.warning-text {
-            color: #f59e0b;
-        }
-
-        .file-hint.blocked-text {
-            color: #991b1b;
-            font-weight: 600;
-        }
-
-        /* Invoice List */
-        .invoice-list {
-            margin-top: var(--space-3);
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-2);
-        }
-
-        .invoice-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: var(--space-3);
-            background: white;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .invoice-item.gr {
-            border-left: 3px solid var(--grab);
-        }
-
-        .invoice-item.jc {
-            border-left: 3px solid var(--gofood);
-        }
-
-        .invoice-item.hd {
-            border-left: 3px solid var(--shopee);
-        }
-
-        .invoice-name {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 150px;
-        }
-
-        .invoice-amount {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .remove-btn {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: none;
-            background: #fee2e2;
-            color: #ef4444;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .remove-btn:hover {
-            background: #ef4444;
-            color: white;
-        }
-
-        /* OCR Results */
-        .ocr-result {
-            margin-top: var(--space-3);
-            padding: var(--space-3);
-            border-radius: var(--radius-md);
-            text-align: center;
-        }
-
-        .ocr-result.success {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-        }
-
-        .ocr-result.error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-        }
-
-        .ocr-result-text {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: var(--space-1);
-        }
-
-        .ocr-result.success .ocr-result-text {
-            color: #166534;
-        }
-
-        .ocr-result.error .ocr-result-text {
-            color: #991b1b;
-        }
-
-        .ocr-result-amount {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            font-variant-numeric: tabular-nums;
         }
 
         /* Validation Box */
@@ -695,267 +504,6 @@
             background: #fef2f2;
             color: #991b1b;
             border: 1px solid #fecaca;
-            animation: pulse 2s infinite;
-        }
-
-        .validation-box.blocked {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 2px solid #ef4444;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        /* ============================================
-           LOADING INDICATORS
-           ============================================ */
-        .platform-loading-indicator {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(4px);
-            z-index: 10;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-3);
-        }
-
-        .platform-loading-indicator.active {
-            display: flex;
-        }
-
-        .platform-loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #e2e8f0;
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .platform-loading-text {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .platform-loading-subtext {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* ============================================
-           PROGRESS OVERLAY
-           ============================================ */
-        .progress-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: var(--space-4);
-        }
-
-        .progress-overlay.active {
-            display: flex;
-        }
-
-        .progress-modal {
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: var(--space-8);
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .progress-icon {
-            font-size: 3rem;
-            margin-bottom: var(--space-4);
-        }
-
-        .progress-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: var(--space-2);
-        }
-
-        .progress-subtitle {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: var(--space-6);
-        }
-
-        .progress-detail {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-bottom: var(--space-4);
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 9999px;
-            overflow: hidden;
-            margin-bottom: var(--space-3);
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-            border-radius: 9999px;
-            transition: width 0.3s ease;
-        }
-
-        .progress-percentage {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: var(--space-4);
-        }
-
-        .progress-stats {
-            display: flex;
-            justify-content: center;
-            gap: var(--space-6);
-            margin-bottom: var(--space-6);
-        }
-
-        .progress-stat {
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .btn-cancel {
-            background: #fee2e2;
-            color: #991b1b;
-            border: none;
-            padding: var(--space-3) var(--space-6);
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
-        }
-
-        .btn-cancel:hover {
-            background: #fecaca;
-        }
-
-        /* ============================================
-           TOAST NOTIFICATION
-           ============================================ */
-        .toast {
-            position: fixed;
-            top: var(--space-4);
-            right: var(--space-4);
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: var(--space-4);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            display: none;
-            align-items: flex-start;
-            gap: var(--space-3);
-            max-width: 350px;
-            z-index: 1001;
-            border-left: 4px solid;
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        .toast.active {
-            display: flex;
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .toast-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            flex-shrink: 0;
-        }
-
-        .toast-icon.success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .toast-icon.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .toast-icon.warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .toast-content {
-            flex: 1;
-        }
-
-        .toast-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: var(--space-1);
-        }
-
-        .toast-message {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
         }
 
         /* ============================================
@@ -972,390 +520,20 @@
             width: 100%;
             cursor: pointer;
             transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-2);
             margin-top: var(--space-6);
-            box-shadow: var(--shadow-md);
         }
 
-        .btn-submit:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+        .ocr-result {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 13px;
         }
+        .ocr-result.success { background: #dcfce7; color: #166534; }
 
-        .btn-submit:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .btn-submit.blocked {
-            background: #ef4444;
-            cursor: not-allowed;
-        }
-
-        .export-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-3);
-            margin-top: var(--space-5);
-            justify-content: center;
-        }
-
-        .btn-export {
-            background: white;
-            border: 1.5px solid #e2e8f0;
-            padding: var(--space-3) var(--space-5);
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
-        }
-
-        .btn-export:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: #eff6ff;
-        }
-
-        .btn-export.delete {
-            color: #ef4444;
-            border-color: #fecaca;
-        }
-
-        .btn-export.delete:hover {
-            background: #fee2e2;
-            border-color: #ef4444;
-        }
-
-        /* ============================================
-           STATS BAR
-           ============================================ */
-        .stats-bar {
-            display: none;
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-radius: var(--radius-lg);
-            padding: var(--space-5);
-            margin-bottom: var(--space-6);
-            gap: var(--space-6);
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .stats-bar.active {
-            display: flex;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: var(--space-1);
-        }
-
-        /* ============================================
-           ALERT & RESULT BOXES
-           ============================================ */
-        .alert {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #bbf7d0;
-            border-radius: var(--radius-md);
-            padding: var(--space-4);
-            display: flex;
-            align-items: center;
-            gap: var(--space-3);
-            margin-bottom: var(--space-6);
-            font-size: 0.875rem;
-            color: #166534;
-            font-weight: 500;
-        }
-
-        .result-box {
-            display: none;
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #bbf7d0;
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            margin-top: var(--space-6);
-            text-align: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .result-box.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .result-title {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-2);
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: #166534;
-            margin-bottom: var(--space-3);
-        }
-
-        /* ============================================
-           DATA TABLE
-           ============================================ */
-        .data-table-container {
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            background: white;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8125rem;
-        }
-
-        .data-table th {
-            background: #f8fafc;
-            padding: var(--space-3) var(--space-4);
-            text-align: left;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.6875rem;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--border);
-            white-space: nowrap;
-        }
-
-        .data-table td {
-            padding: var(--space-3) var(--space-4);
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .data-table tr:hover td {
-            background: #f8fafc;
-        }
-
-        .amount-neg {
-            color: #ef4444;
-            font-weight: 500;
-        }
-
-        .amount-pos {
-            color: #22c55e;
-            font-weight: 600;
-        }
-
-        .empty-state {
-            padding: var(--space-10);
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        /* ============================================
-           UTILITY CLASSES
-           ============================================ */
-        .hidden {
-            display: none !important;
-        }
-
-        /* ============================================
-           RESPONSIVE DESIGN
-           ============================================ */
-        @media (max-width: 640px) {
-            body {
-                padding: 0;
-                background: var(--surface);
-            }
-
-            .container {
-                border-radius: 0;
-                box-shadow: none;
-                max-width: 100%;
-            }
-
-            .header {
-                padding: var(--space-6) var(--space-4);
-            }
-
-            .content {
-                padding: var(--space-4);
-            }
-
-            .form-section {
-                padding: var(--space-4);
-            }
-
-            .balance-inputs {
-                grid-template-columns: 1fr;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .badge-container {
-                gap: var(--space-1);
-            }
-
-            .badge {
-                font-size: 0.625rem;
-                padding: var(--space-1) var(--space-2);
-            }
-
-            .stats-bar {
-                padding: var(--space-4);
-                gap: var(--space-4);
-            }
-
-            .stat-value {
-                font-size: 1.25rem;
-            }
-
-            .data-table-container {
-                overflow-x: auto;
-            }
-
-            .data-table {
-                min-width: 800px;
-            }
-
-            .toast {
-                left: var(--space-4);
-                right: var(--space-4);
-                max-width: none;
-            }
-        }
-
-        @media (min-width: 641px) and (max-width: 1024px) {
-            .container {
-                max-width: 95%;
-            }
-        }
-
-        @media (min-width: 1025px) {
-            body {
-                padding: var(--space-8);
-            }
-
-            .container {
-                max-width: 1400px;
-            }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-body: #0f172a;
-                --surface: rgba(30, 41, 59, 0.95);
-                --surface-elevated: #1e293b;
-                --text-primary: #f1f5f9;
-                --text-secondary: #94a3b8;
-                --text-muted: #64748b;
-                --border: rgba(51, 65, 85, 0.6);
-            }
-
-            body {
-                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            }
-
-            .setup-guide {
-                background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-                border-color: #3b82f6;
-            }
-
-            .form-section,
-            .platform-card,
-            .data-table-container {
-                background: var(--surface-elevated);
-            }
-
-            .upload-section,
-            .balance-total {
-                background: rgba(51, 65, 85, 0.5);
-            }
-
-            .form-group input,
-            .form-group select {
-                background: #334155;
-                border-color: #475569;
-                color: var(--text-primary);
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Progress Overlay -->
-    <div id="progressOverlay" class="progress-overlay">
-        <div class="progress-modal">
-            <div class="progress-icon">🔍</div>
-            <div class="progress-title">Membaca Invoice...</div>
-            <div class="progress-subtitle">Mohon tunggu, sedang memproses dengan OCR</div>
-            
-            <div class="progress-detail" id="progressDetail">
-                Menginisialisasi...
-            </div>
-            
-            <div class="progress-bar-container">
-                <div id="progressBarFill" class="progress-bar-fill" style="width: 0%"></div>
-            </div>
-            
-            <div class="progress-percentage" id="progressPercentage">0%</div>
-            
-            <div class="progress-stats">
-                <div class="progress-stat">
-                    <span>📄</span>
-                    <span id="progressFileCount">File 0/0</span>
-                </div>
-                <div class="progress-stat">
-                    <span>⏱️</span>
-                    <span id="progressTime">00:00</span>
-                </div>
-            </div>
-            
-            <button class="btn-cancel" onclick="cancelOCR()">
-                <span>✕</span>
-                <span>Batalkan</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">
-        <div class="toast-icon" id="toastIcon">✓</div>
-        <div class="toast-content">
-            <div class="toast-title" id="toastTitle">Berhasil!</div>
-            <div class="toast-message" id="toastMessage">Data telah diproses</div>
-        </div>
-    </div>
 
     <div class="container">
         <div class="header">
@@ -1370,29 +548,7 @@
         </div>
 
         <div class="content">
-            <!-- Main Form - Langsung tampil, tidak perlu setup -->
             <div id="mainForm">
-                <div class="alert" id="statusAlert">
-                    <span style="font-size: 20px;">✓</span>
-                    <span>Terhubung ke Google Sheets & Drive (Gratis)</span>
-                </div>
-
-                <!-- Stats Summary -->
-                <div class="stats-bar" id="statsBar" style="display: none;">
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalInvoices">0</div>
-                        <div class="stat-label">Total Invoice</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalUsage">0</div>
-                        <div class="stat-label">Total Usage</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="validatedCount">0/3</div>
-                        <div class="stat-label">Tervalidasi</div>
-                    </div>
-                </div>
-
                 <div class="form-section">
                     <div class="section-title">
                         <span style="font-size: 24px;">👤</span>
@@ -1424,31 +580,19 @@
                     </div>
                     
                     <div class="platforms-container">
-                        <!-- GRAB (OVO) -->
                         <div class="platform-card gr" id="boxGrab">
-                            <!-- Platform Loading Indicator -->
-                            <div id="grabLoadingIndicator" class="platform-loading-indicator">
-                                <div class="platform-loading-spinner"></div>
-                                <div class="platform-loading-text">Memproses...</div>
-                                <div class="platform-loading-subtext">M membaca invoice</div>
-                            </div>
-
                             <div class="platform-header gr">
                                 <div class="platform-icon gr">🟣</div>
-                                <div>
-                                    <div>GRAB</div>
-                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">OVO Only</div>
-                                </div>
+                                <div><div>GRAB</div><div style="font-size: 11px; opacity: 0.8;">OVO Only</div></div>
                                 <span class="wallet-tag">Wajib OVO</span>
                             </div>
-                            
                             <div class="balance-inputs">
                                 <div class="form-group">
-                                    <label style="color: var(--grab); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="grabTopUp" placeholder="0" oninput="calcEnding('grab')" value="0">
+                                    <label>Top Up</label>
+                                    <input type="number" id="grabTopUp" oninput="calcEnding('grab')" value="0">
                                 </div>
                                 <div class="form-group">
-                                    <label>Saldo Awal (Auto)</label>
+                                    <label>Saldo Awal</label>
                                     <input type="number" id="grabStart" readonly style="background: #f1f5f9;">
                                 </div>
                                 <div class="form-group">
@@ -1456,153 +600,81 @@
                                     <input type="number" id="grabUsage" readonly style="background: #f1f5f9;">
                                 </div>
                             </div>
-                            
                             <div class="balance-total gr">
-                                <div class="label">Ending Balance (Auto Calculate)</div>
+                                <div class="label">Ending Balance</div>
                                 <div class="value" id="grabEndDisplay">Rp 0</div>
                                 <input type="hidden" id="grabEnd" value="0">
                             </div>
-
-                            <!-- Invoice Upload -->
-                            <div class="upload-section" id="grabInvoiceSection">
-                                <div class="upload-title">
-                                    <span>📄</span>
-                                    <span>Upload Invoice OVO</span>
-                                </div>
+                            <div class="upload-section">
+                                <div class="upload-title">📄 Upload Invoice</div>
                                 <div class="file-input-wrapper">
-                                    <input type="file" id="grabInvoice" accept="image/*" multiple 
-                                           onchange="handleMultipleInvoices('grab', this)"
-                                           data-platform="grab">
+                                    <input type="file" accept="image/*" multiple onchange="handleMultipleInvoices('grab', this)">
                                 </div>
-                                <div class="file-hint" id="grabInvoiceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi OVO</span>
-                                </div>
-                                <div id="grabInvoiceList" class="invoice-list"></div>
                             </div>
-
-                            <!-- Ending Balance Upload -->
-                            <div class="upload-section" id="grabBalanceSection">
-                                <div class="upload-title">
-                                    <span>📸</span>
-                                    <span>Upload Ending Balance OVO</span>
-                                </div>
+                            <div class="upload-section">
+                                <div class="upload-title">📸 Upload Ending SS</div>
                                 <div class="file-input-wrapper">
-                                    <input type="file" id="ssGrab" accept="image/*" 
-                                           onchange="doOCREndingBalance('grab', this)"
-                                           data-platform="grab">
-                                </div>
-                                <div class="file-hint" id="grabBalanceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot saldo akhir dari aplikasi OVO</span>
+                                    <input type="file" accept="image/*" onchange="doOCREndingBalance('grab', this)">
                                 </div>
                                 <div id="grabOCRResult"></div>
                             </div>
-
                             <div id="grabValidation" class="validation-box"></div>
                         </div>
 
-                        <!-- JC (GoPay) -->
                         <div class="platform-card jc" id="boxJc">
-                            <div id="jcLoadingIndicator" class="platform-loading-indicator">
-                                <div class="platform-loading-spinner"></div>
-                                <div class="platform-loading-text">Memproses...</div>
-                                <div class="platform-loading-subtext">M membaca invoice</div>
-                            </div>
-
                             <div class="platform-header jc">
                                 <div class="platform-icon jc">🟢</div>
-                                <div>
-                                    <div>GOFOOD</div>
-                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">GoPay Only</div>
-                                </div>
+                                <div><div>GOFOOD</div><div style="font-size: 11px; opacity: 0.8;">GoPay Only</div></div>
                                 <span class="wallet-tag">Wajib GoPay</span>
                             </div>
-                            
                             <div class="balance-inputs">
                                 <div class="form-group">
-                                    <label style="color: var(--gofood); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="jcTopUp" placeholder="0" oninput="calcEnding('jc')" value="0">
+                                    <label>Top Up</label>
+                                    <input type="number" id="jcTopUp" oninput="calcEnding('jc')" value="0">
                                 </div>
                                 <div class="form-group">
-                                    <label>Saldo Awal (Auto)</label>
+                                    <label>Saldo Awal</label>
                                     <input type="number" id="jcStart" readonly style="background: #f1f5f9;">
                                 </div>
                                 <div class="form-group">
                                     <label>Usage</label>
                                     <input type="number" id="jcUsage" readonly style="background: #f1f5f9;">
                                 </div>
-                            </div>              
-            
+                            </div>
                             <div class="balance-total jc">
-                                <div class="label">Ending Balance (Auto Calculate)</div>
+                                <div class="label">Ending Balance</div>
                                 <div class="value" id="jcEndDisplay">Rp 0</div>
                                 <input type="hidden" id="jcEnd" value="0">
                             </div>
-
-                            <!-- Invoice Upload -->
-                            <div class="upload-section" id="jcInvoiceSection">
-                                <div class="upload-title">
-                                    <span>📄</span>
-                                    <span>Upload Invoice GoPay</span>
-                                </div>
+                            <div class="upload-section">
+                                <div class="upload-title">📄 Upload Invoice</div>
                                 <div class="file-input-wrapper">
-                                    <input type="file" id="jcInvoice" accept="image/*" multiple 
-                                           onchange="handleMultipleInvoices('jc', this)"
-                                           data-platform="jc">
+                                    <input type="file" accept="image/*" multiple onchange="handleMultipleInvoices('jc', this)">
                                 </div>
-                                <div class="file-hint" id="jcInvoiceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi GoPay</span>
-                                </div>
-                                <div id="jcInvoiceList" class="invoice-list"></div>
                             </div>
-
-                            <!-- Ending Balance Upload -->
-                            <div class="upload-section" id="jcBalanceSection">
-                                <div class="upload-title">
-                                    <span>📸</span>
-                                    <span>Upload Ending Balance GoPay</span>
-                                </div>
+                            <div class="upload-section">
+                                <div class="upload-title">📸 Upload Ending SS</div>
                                 <div class="file-input-wrapper">
-                                    <input type="file" id="ssJc" accept="image/*" 
-                                           onchange="doOCREndingBalance('jc', this)"
-                                           data-platform="jc">
-                                </div>
-                                <div class="file-hint" id="jcBalanceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot saldo akhir dari aplikasi GoPay</span>
+                                    <input type="file" accept="image/*" onchange="doOCREndingBalance('jc', this)">
                                 </div>
                                 <div id="jcOCRResult"></div>
                             </div>
-
                             <div id="jcValidation" class="validation-box"></div>
                         </div>
 
-                        <!-- HD (ShopeePay) -->
                         <div class="platform-card hd" id="boxHd">
-                            <div id="hdLoadingIndicator" class="platform-loading-indicator">
-                                <div class="platform-loading-spinner"></div>
-                                <div class="platform-loading-text">Memproses...</div>
-                                <div class="platform-loading-subtext">M membaca invoice</div>
-                            </div>
-
                             <div class="platform-header hd">
                                 <div class="platform-icon hd">🟠</div>
-                                <div>
-                                    <div>SHOPEEFOOD</div>
-                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">ShopeePay Only</div>
-                                </div>
+                                <div><div>SHOPEEFOOD</div><div style="font-size: 11px; opacity: 0.8;">ShopeePay Only</div></div>
                                 <span class="wallet-tag">Wajib ShopeePay</span>
                             </div>
-                            
                             <div class="balance-inputs">
                                 <div class="form-group">
-                                    <label style="color: var(--shopee); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="hdTopUp" placeholder="0" oninput="calcEnding('hd')" value="0">
+                                    <label>Top Up</label>
+                                    <input type="number" id="hdTopUp" oninput="calcEnding('hd')" value="0">
                                 </div>
                                 <div class="form-group">
-                                    <label>Saldo Awal (Auto)</label>
+                                    <label>Saldo Awal</label>
                                     <input type="number" id="hdStart" readonly style="background: #f1f5f9;">
                                 </div>
                                 <div class="form-group">
@@ -1610,248 +682,139 @@
                                     <input type="number" id="hdUsage" readonly style="background: #f1f5f9;">
                                 </div>
                             </div>
-                            
                             <div class="balance-total hd">
-                                <div class="label">Ending Balance (Auto Calculate)</div>
+                                <div class="label">Ending Balance</div>
                                 <div class="value" id="hdEndDisplay">Rp 0</div>
                                 <input type="hidden" id="hdEnd" value="0">
                             </div>
-
-                            <!-- Invoice Upload -->
-                            <div class="upload-section" id="hdInvoiceSection">
-                                <div class="upload-title">
-                                    <span>📄</span>
-                                    <span>Upload Invoice ShopeePay</span>
-                                </div>
+                            <div class="upload-section">
+                                <div class="upload-title">📄 Upload Invoice</div>
                                 <div class="file-input-wrapper">
-                                    <input type="file" id="hdInvoice" accept="image/*" multiple 
-                                           onchange="handleMultipleInvoices('hd', this)"
-                                           data-platform="hd">
+                                    <input type="file" accept="image/*" multiple onchange="handleMultipleInvoices('hd', this)">
                                 </div>
-                                <div class="file-hint" id="hdInvoiceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi ShopeePay</span>
-                                </div>
-                                <div id="hdInvoiceList" class="invoice-list"></div>
                             </div>
-
-                            <!-- Ending Balance Upload -->
-                            <div class="upload-section" id="hdBalanceSection">
-                                <div class="upload-title">
-                                    <span>📸</span>
-                                    <span>Upload Ending Balance ShopeePay</span>
-                                </div>
+                            <div class="upload-section">
+                                <div class="upload-title">📸 Upload Ending SS</div>
                                 <div class="file-input-wrapper">
-                                    <input type="file" id="ssHd" accept="image/*" 
-                                           onchange="doOCREndingBalance('hd', this)"
-                                           data-platform="hd">
-                                </div>
-                                <div class="file-hint" id="hdBalanceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot saldo akhir dari aplikasi ShopeePay</span>
+                                    <input type="file" accept="image/*" onchange="doOCREndingBalance('hd', this)">
                                 </div>
                                 <div id="hdOCRResult"></div>
                             </div>
-
                             <div id="hdValidation" class="validation-box"></div>
                         </div>
                     </div>
 
                     <div class="form-group" style="margin-top: 25px;">
                         <label>Remarks / Catatan</label>
-                        <input type="text" id="remarks" placeholder="Tambahkan keterangan jika diperlukan...">
+                        <input type="text" id="remarks" placeholder="Catatan...">
                     </div>
 
-                    <div class="result-box" id="resultBox">
-                        <div class="result-title">
-                            <span>✅</span>
-                            <span>Berhasil Disimpan!</span>
-                        </div>
-                        <div id="resultLinks" style="color: #155724; line-height: 1.8;"></div>
-                    </div>
-
-                    <button class="btn-submit" id="btnSubmit" onclick="submitAll()">
-                        <span>🚀</span>
-                        <span>Submit ke Google Sheets & Drive</span>
-                    </button>
-                </div>
-
-                <!-- Local Data Preview -->
-                <div class="form-section">
-                    <div class="section-title">
-                        <span style="font-size: 24px;">📋</span>
-                        <span>Data Tersimpan (Local Backup)</span>
-                    </div>
-                    <div class="data-table-container">
-                        <div id="tableContainer">
-                            <div class="empty-state">Belum ada data tersimpan</div>
-                        </div>
-                    </div>
-                    
-                    <div class="export-section">
-                        <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
-                        <button class="btn-export" onclick="copyForSheets()">📋 Copy Format Sheets</button>
-                        <button class="btn-export delete" onclick="clearLocal()">🗑️ Clear Local Data</button>
-                    </div>
+                    <button class="btn-submit" id="btnSubmit" onclick="submitAll()">🚀 Submit Data</button>
                 </div>
             </div>
         </div>
     </div>
 
-   <script>
-// ===============================
-// AUTO CONFIG (NO SETUP LAGI)
-// ===============================
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxj-pgMJSmM1WAGzaBG6NEnD39aC9iOGAyuYLxihQ_j-ljhvK5Fl8eCxJEAd25TjYBW/exec";
+<script>
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyIYx1CiOf3Dt2n6nOV7ki_-MAwUcaKmJdW6Hf6C9LHFFLiyUqtAuGtFBHhmkeVZ7vj/exec";
 
-// ===============================
-// NORMALIZE HP (SUPER FLEXIBLE)
-// ===============================
-function normalizePhoneCode(code) {
-    return (code || '')
-        .toLowerCase()
-        .replace(/\s+/g, '')
-        .replace(/[^a-z0-9]/g, '')
-        .replace(/(.)\1+/g, '$1');
-}
-
-// ===============================
-// GLOBAL STATE
-// ===============================
 let remoteBalances = { grab: 0, jc: 0, hd: 0 };
 let endingBalanceOCR = { grab: null, jc: null, hd: null };
 
-// ===============================
-// FETCH SALDO OTOMATIS
-// ===============================
+function normalizePhoneCode(code) {
+    return (code || '').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+}
+
 async function fetchLastBalanceFromSheets() {
-    const phoneInput = document.getElementById('phoneCode');
-    const pCode = normalizePhoneCode(phoneInput.value);
-
+    const pCode = normalizePhoneCode(document.getElementById('phoneCode').value);
     if (!pCode) return;
-
     try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getLastBalance&phoneCode=${pCode}`);
         const result = await res.json();
-
         if (result.success) {
-            remoteBalances = {
-                grab: result.grabEnd || 0,
-                jc: result.jcEnd || 0,
-                hd: result.hdEnd || 0
-            };
+            remoteBalances = { grab: result.grabEnd || 0, jc: result.jcEnd || 0, hd: result.hdEnd || 0 };
         } else {
             remoteBalances = { grab: 0, jc: 0, hd: 0 };
         }
-
         updateAllPlatforms();
-
-    } catch (e) {
-        alert("Gagal ambil saldo!");
-    }
+    } catch (e) { console.error("Fetch error"); }
 }
 
-// ===============================
-// HITUNG SALDO
-// ===============================
 function calcEnding(platform) {
     const last = remoteBalances[platform] || 0;
     const topup = parseInt(document.getElementById(platform+'TopUp').value) || 0;
     const usage = parseInt(document.getElementById(platform+'Usage').value) || 0;
-
     const start = last + topup;
     const end = start - usage;
-
     document.getElementById(platform+'Start').value = start;
     document.getElementById(platform+'End').value = end;
     document.getElementById(platform+'EndDisplay').innerText = 'Rp ' + end.toLocaleString();
-
     validateEndingBalance(platform);
 }
 
-function updateAllPlatforms() {
-    ['grab','jc','hd'].forEach(p => calcEnding(p));
-}
+function updateAllPlatforms() { ['grab','jc','hd'].forEach(p => calcEnding(p)); }
 
-// ===============================
-// VALIDASI KETAT
-// ===============================
 function validateEndingBalance(platform) {
     const calc = parseInt(document.getElementById(platform+'End').value) || 0;
     const ocr = endingBalanceOCR[platform];
-
     const box = document.getElementById(platform+'Validation');
-
     if (ocr === null) {
         box.className = 'validation-box show error';
         box.innerHTML = '❌ OCR belum ada';
         return false;
     }
-
     if (calc !== ocr) {
         box.className = 'validation-box show error';
-        box.innerHTML = `❌ TIDAK MATCH<br>Hitung: ${calc}<br>OCR: ${ocr}`;
+        box.innerHTML = `❌ TIDAK MATCH<br>Hitung: ${calc} vs OCR: ${ocr}`;
         return false;
     }
-
     box.className = 'validation-box show success';
     box.innerHTML = '✅ VALID';
     return true;
 }
 
-// ===============================
-// OCR ENDING (AMBIL ANGKA)
-// ===============================
+async function handleMultipleInvoices(platform, input) {
+    const files = Array.from(input.files);
+    if (files.length === 0) return;
+    let total = 0;
+    document.getElementById('btnSubmit').disabled = true;
+    document.getElementById('btnSubmit').innerText = "Sedang Membaca Invoice...";
+    for (let file of files) {
+        try {
+            const result = await Tesseract.recognize(file, 'eng');
+            total += extractAmount(result.data.text);
+        } catch (e) { console.error(e); }
+    }
+    document.getElementById(platform + 'Usage').value = total;
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('btnSubmit').innerText = "🚀 Submit Data";
+    calcEnding(platform);
+}
+
 async function doOCREndingBalance(platform, input) {
     const file = input.files[0];
     if (!file) return;
-
     try {
         const result = await Tesseract.recognize(file, 'eng');
-        const text = result.data.text;
-
-        const amount = extractAmount(text);
-
-        if (!amount || amount <= 0) {
-            alert("OCR gagal baca saldo!");
-            return;
-        }
-
+        const amount = extractAmount(result.data.text);
         endingBalanceOCR[platform] = amount;
-
-        // tampilkan ke UI (biar keliatan)
         document.getElementById(platform + 'OCRResult').innerHTML = `
-            <div class="ocr-result success">
-                <div class="ocr-result-text">OCR Terdeteksi</div>
-                <div class="ocr-result-amount">Rp ${amount.toLocaleString()}</div>
-            </div>
-        `;
-
+            <div class="ocr-result success">OCR: Rp ${amount.toLocaleString()}</div>`;
         validateEndingBalance(platform);
-
-    } catch (e) {
-        alert("OCR error!");
-        console.error(e);
-    }
+    } catch (e) { alert("OCR Gagal!"); }
 }
-// ===============================
-// EXTRACT ANGKA (FINAL)
-// ===============================
+
 function extractAmount(text) {
     const numbers = text.match(/\d[\d.,]*/g);
     if (!numbers) return 0;
-
     const cleaned = numbers.map(n => parseInt(n.replace(/[.,]/g,'')) || 0);
     return Math.max(...cleaned);
 }
 
-// ===============================
-// SUBMIT
-// ===============================
 async function submitAll() {
     for (let p of ['grab','jc','hd']) {
         if (!validateEndingBalance(p)) {
-            alert("Data tidak valid!");
+            alert("Selesaikan upload " + p.toUpperCase() + " dan pastikan VALID!");
             return;
         }
     }
@@ -1860,55 +823,28 @@ async function submitAll() {
         admin: document.getElementById('adminName').value,
         phoneCode: normalizePhoneCode(document.getElementById('phoneCode').value),
         date: document.getElementById('transDate').value,
-
-        grabStart: grabStart.value,
-        grabUsage: grabUsage.value,
-        grabEnd: grabEnd.value,
-
-        jcStart: jcStart.value,
-        jcUsage: jcUsage.value,
-        jcEnd: jcEnd.value,
-
-        hdStart: hdStart.value,
-        hdUsage: hdUsage.value,
-        hdEnd: hdEnd.value,
-
-        remarks: remarks.value,
-        project: project.value
+        grabStart: document.getElementById('grabStart').value,
+        grabUsage: document.getElementById('grabUsage').value,
+        grabEnd: document.getElementById('grabEnd').value,
+        jcStart: document.getElementById('jcStart').value,
+        jcUsage: document.getElementById('jcUsage').value,
+        jcEnd: document.getElementById('jcEnd').value,
+        hdStart: document.getElementById('hdStart').value,
+        hdUsage: document.getElementById('hdUsage').value,
+        hdEnd: document.getElementById('hdEnd').value,
+        remarks: document.getElementById('remarks').value,
+        project: document.getElementById('project').value
     };
 
-    const res = await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-    });
-
-    const result = await res.json();
-
-    if (result.success) {
-        alert("BERHASIL!");
-        location.reload();
-    } else {
-        alert("GAGAL!");
-    }
-}
-async function handleMultipleInvoices(platform, input) {
-    const files = Array.from(input.files);
-    if (files.length === 0) return;
-
-    let total = 0;
-
-    for (let file of files) {
-        const result = await Tesseract.recognize(file, 'eng');
-        const text = result.data.text;
-
-        const amount = extractAmount(text);
-
-        total += amount;
-    }
-
-    document.getElementById(platform + 'Usage').value = total;
-
-    calcEnding(platform);
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.success) { alert("BERHASIL DISIMPAN!"); location.reload(); }
+        else { alert("GAGAL SIMPAN!"); }
+    } catch (e) { alert("Error koneksi!"); }
 }
 </script>
 </body>
