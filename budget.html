@@ -1698,110 +1698,79 @@
         </div>
     </div>
 
-   <script>
+<script>
 // ===============================
-// AUTO CONFIG (NO SETUP LAGI)
+// CONFIG & STATE
 // ===============================
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzfAozxCfIn00VwxOB17AtLwhifQ3ugDukiF7IvINSz1vBcuWnroENTujhnDWmy24m/exec";
 
-// ===============================
-// GLOBAL STATE
-// ===============================
 let remoteBalances = { grab: 0, jc: 0, hd: 0 };
 let endingBalanceOCR = { grab: null, jc: null, hd: null };
 let ocrCancelled = false;
-let currentWorker = null;
 let invoiceData = { grab: [], jc: [], hd: [] };
 
-
 // ===============================
-// INITIALIZE
+// INITIALIZE & LOCAL STORAGE
 // ===============================
 document.addEventListener('DOMContentLoaded', function() {
-    // Panggil fungsi yang baru kita buat tadi
-    if (typeof loadLocalData === 'function') {
-        loadLocalData();
-    }
-    
-    // Inisialisasi Tesseract atau library lainnya di sini
-    console.log("Halaman siap.");
+    loadLocalData();
+    console.log("Sistem Siap.");
 });
 
-// Fungsi untuk memuat data dari LocalStorage saat refresh
 function loadLocalData() {
-    const saved = localStorage.getItem('budgetFormData');
-    if (saved) {
-        const data = JSON.parse(saved);
-        // Isi kembali input-input yang ada
-        if(data.adminName) document.getElementById('adminName').value = data.adminName;
-        if(data.phoneCode) document.getElementById('phoneCode').value = data.phoneCode;
-        if(data.project) document.getElementById('project').value = data.project;
-        // ... Anda bisa menambah input lain jika ingin dipulihkan otomatis
-        console.log("Data lokal dimuat.");
-    }
+    try {
+        const saved = localStorage.getItem('budgetFormData');
+        if (saved) {
+            const data = JSON.parse(saved);
+            if(data.adminName) document.getElementById('adminName').value = data.adminName;
+            if(data.phoneCode) document.getElementById('phoneCode').value = data.phoneCode;
+            if(data.project) document.getElementById('project').value = data.project;
+        }
+    } catch(e) { console.error("Gagal muat data lokal", e); }
 }
 
-// Fungsi untuk menyimpan data secara otomatis (agar tidak hilang saat refresh)
 function saveLocalData() {
     const data = {
         adminName: document.getElementById('adminName').value,
         phoneCode: document.getElementById('phoneCode').value,
         project: document.getElementById('project').value,
-        // Tambahkan fields lain jika perlu
     };
     localStorage.setItem('budgetFormData', JSON.stringify(data));
 }
 
 // ===============================
-// NORMALIZE HP (SUPER FLEXIBLE)
+// UTILS & NORMALIZATION
 // ===============================
 function normalizePhoneCode(code) {
     if (!code) return "";
-    return code
-        .toString()
-        .toLowerCase()      // Menyamakan 1B menjadi 1b
-        .replace(/\s+/g, '') // Menyamakan "1 b" menjadi "1b" (hapus spasi)
-        .trim();
+    return code.toString().toLowerCase().replace(/\s+/g, '').trim();
 }
 
-// ===============================
-// FETCH SALDO OTOMATIS
-// ===============================
-async function fetchLastBalanceFromSheets() {
-    const phoneInput = document.getElementById('phoneCode');
-    const pCode = normalizePhoneCode(phoneInput.value);
+// Fungsi Ekstrak Angka yang Lebih Kuat
+function extractAmount(text) {
+    if (!text) return 0;
+    // Bersihkan karakter non-angka kecuali koma dan titik
+    let cleanText = text.replace(/[^0-9,. ]/g, ' ');
+    // Cari deret angka yang panjangnya minimal 3 digit (menghindari angka kecil/sampah OCR)
+    const matches = cleanText.match(/\d[0-9.,]*/g);
+    
+    if (matches) {
+        const numbers = matches.map(n => {
+            // Hapus titik dan koma untuk mendapatkan angka murni
+            let val = parseInt(n.replace(/[.,]/g, ''));
+            return isNaN(val) ? 0 : val;
+        }).filter(v => v > 100); // Filter hanya nominal diatas 100 rupiah
 
-    if (!pCode) return;
-
-    try {
-        showLoading(true, 'Mengambil data saldo...');
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=getLastBalance&phoneCode=${pCode}`);
-        const result = await res.json();
-
-        if (result.success) {
-            remoteBalances = {
-                grab: result.grabEnd || 0,
-                jc: result.jcEnd || 0,
-                hd: result.hdEnd || 0
-            };
-            showToast('success', 'Data ditemukan', 'Saldo terakhir berhasil dimuat');
-        } else {
-            remoteBalances = { grab: 0, jc: 0, hd: 0 };
-            showToast('info', 'Data baru', 'Kode HP belum ada di database');
+        if (numbers.length > 0) {
+            // Biasanya saldo atau total adalah angka paling besar di invoice
+            return Math.max(...numbers);
         }
-
-        updateAllPlatforms();
-
-    } catch (e) {
-        console.error(e);
-        showToast('error', 'Gagal ambil saldo', 'Periksa koneksi internet');
-    } finally {
-        showLoading(false);
     }
+    return 0;
 }
 
 // ===============================
-// HITUNG SALDO
+// CORE LOGICS (CALC & VALIDATE)
 // ===============================
 function calcEnding(platform) {
     const last = remoteBalances[platform] || 0;
@@ -1813,495 +1782,177 @@ function calcEnding(platform) {
 
     document.getElementById(platform+'Start').value = start;
     document.getElementById(platform+'End').value = end;
-    document.getElementById(platform+'EndDisplay').innerText = 'Rp ' + end.toLocaleString('id-ID');
+    
+    const display = document.getElementById(platform+'EndDisplay');
+    if(display) display.innerText = 'Rp ' + end.toLocaleString('id-ID');
 
     validateEndingBalance(platform);
-    updateStats();
 }
 
-function updateAllPlatforms() {
-    ['grab','jc','hd'].forEach(p => calcEnding(p));
-}
-
-// ===============================
-// VALIDASI KETAT
-// ===============================
 function validateEndingBalance(platform) {
-    const calc = parseInt(document.getElementById(platform + 'End').value) || 0;
     const usage = parseInt(document.getElementById(platform + 'Usage').value) || 0;
+    const calc = parseInt(document.getElementById(platform + 'End').value) || 0;
     const ocr = endingBalanceOCR[platform];
     const box = document.getElementById(platform + 'Validation');
 
-    // 1. CEK KONDISI KOSONG:
-    // Jika user tidak mengisi penggunaan (Usage) dan tidak upload SS, 
-    // kita anggap platform ini dilewati (tidak wajib validasi).
+    if (!box) return false;
+
     if (usage === 0 && ocr === null) {
-        box.className = 'validation-box'; // Sembunyikan kotak validasi
+        box.className = 'validation-box';
         box.innerHTML = '';
-        return "empty"; // Kita tandai sebagai kosong, bukan false
+        return "empty";
     }
 
-    // 2. CEK JIKA SS BELUM DIUPLOAD (tapi ada angka pemakaian)
     if (ocr === null) {
         box.className = 'validation-box show error';
-        box.innerHTML = '❌ Upload screenshot saldo akhir untuk validasi';
+        box.innerHTML = '❌ Belum Upload SS Saldo';
         return false;
     }
 
-    // 3. CEK KECOCOKAN SALDO
-    if (calc !== ocr) {
+    if (Math.abs(calc - ocr) > 10) { // Toleransi selisih 10 rupiah
         box.className = 'validation-box show error';
-        box.innerHTML = `❌ TIDAK MATCH<br>Hitung: Rp ${calc.toLocaleString('id-ID')}<br>OCR: Rp ${ocr.toLocaleString('id-ID')}<br>Selisih: Rp ${Math.abs(calc - ocr).toLocaleString('id-ID')}`;
+        box.innerHTML = `❌ TIDAK MATCH<br>Hitung: ${calc}<br>OCR: ${ocr}`;
         return false;
     }
 
-    // 4. JIKA VALID
     box.className = 'validation-box show success';
-    box.innerHTML = '✅ VALID - Saldo cocok';
+    box.innerHTML = '✅ VALID';
     return true;
 }
+
 // ===============================
-// OCR ENDING BALANCE (SINGLE FILE)
+// OCR PROCESSORS
 // ===============================
 async function doOCREndingBalance(platform, input) {
     const file = input.files[0];
     if (!file) return;
 
-    // Show platform loading
     showPlatformLoading(platform, true);
-    
     try {
-        const result = await Tesseract.recognize(file, 'eng', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    console.log(`OCR Progress: ${(m.progress * 100).toFixed(0)}%`);
-                }
-            }
-        });
-        
-        const text = result.data.text;
-        console.log('OCR Text:', text);
+        const result = await Tesseract.recognize(file, 'eng');
+        const amount = extractAmount(result.data.text);
 
-        const amount = extractAmount(text);
-
-        if (!amount || amount <= 0) {
-            showToast('error', 'OCR Gagal', 'Tidak dapat membaca nominal saldo. Coba screenshot yang lebih jelas.');
-            document.getElementById(platform + 'OCRResult').innerHTML = `
-                <div class="ocr-result error">
-                    <div class="ocr-result-text">❌ Gagal membaca saldo</div>
-                    <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">Text: ${text.substring(0, 100)}...</div>
-                </div>
-            `;
-            return;
+        if (amount > 0) {
+            endingBalanceOCR[platform] = amount;
+            document.getElementById(platform + 'OCRResult').innerHTML = `✅ Terdeteksi: Rp ${amount.toLocaleString('id-ID')}`;
+            validateEndingBalance(platform);
+            showToast('success', 'Berhasil', 'Saldo terbaca');
+        } else {
+            showToast('error', 'Gagal', 'Angka tidak terbaca');
         }
-
-        endingBalanceOCR[platform] = amount;
-
-        // tampilkan ke UI
-        document.getElementById(platform + 'OCRResult').innerHTML = `
-            <div class="ocr-result success">
-                <div class="ocr-result-text">✅ Saldo Terdeteksi</div>
-                <div class="ocr-result-amount">Rp ${amount.toLocaleString('id-ID')}</div>
-                <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">OCR: "${text.substring(0, 50)}..."</div>
-            </div>
-        `;
-
-        validateEndingBalance(platform);
-        showToast('success', 'OCR Berhasil', `Saldo terbaca: Rp ${amount.toLocaleString('id-ID')}`);
-
     } catch (e) {
-        console.error('OCR Error:', e);
-        showToast('error', 'OCR Error', 'Gagal memproses gambar. Coba lagi.');
-        document.getElementById(platform + 'OCRResult').innerHTML = `
-            <div class="ocr-result error">
-                <div class="ocr-result-text">❌ Error: ${e.message}</div>
-            </div>
-        `;
+        showToast('error', 'OCR Error', 'Gagal memproses gambar');
     } finally {
         showPlatformLoading(platform, false);
-        // Clear input untuk bisa upload file yang sama lagi
         input.value = '';
     }
 }
 
-// ===============================
-// HANDLE MULTIPLE INVOICES
-// ===============================
 async function handleMultipleInvoices(platform, input) {
     const files = Array.from(input.files);
     if (files.length === 0) return;
 
-    ocrCancelled = false;
     let total = 0;
-    let processedCount = 0;
+    showLoading(true, 'Memproses Invoice...');
     
-    // Show progress overlay
-    showProgressOverlay(true, files.length);
-    
-    // Clear previous invoices for this platform
-    invoiceData[platform] = [];
-    
-    for (let i = 0; i < files.length; i++) {
-        if (ocrCancelled) break;
-        
-        const file = files[i];
-        updateProgress(i + 1, files.length, file.name);
-        
+    for (let file of files) {
         try {
-            const result = await Tesseract.recognize(file, 'eng', {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        updateProgressDetail(`Membaca ${file.name}: ${(m.progress * 100).toFixed(0)}%`);
-                    }
-                }
-            });
-            
-            const text = result.data.text;
-            const amount = extractAmount(text);
-            
+            const result = await Tesseract.recognize(file, 'eng');
+            const amount = extractAmount(result.data.text);
             if (amount > 0) {
                 total += amount;
-                invoiceData[platform].push({
-                    name: file.name,
-                    amount: amount,
-                    text: text.substring(0, 100)
-                });
+                invoiceData[platform].push({ name: file.name, amount: amount });
             }
-            
-            processedCount++;
-            
-        } catch (e) {
-            console.error('OCR Error for file:', file.name, e);
-            showToast('error', 'OCR Error', `Gagal membaca ${file.name}`);
-        }
+        } catch (e) { console.error("Gagal baca file", file.name); }
     }
-    
-    hideProgressOverlay();
-    
-    // Update usage
+
     document.getElementById(platform + 'Usage').value = total;
-    
-    // Update invoice list UI
     updateInvoiceList(platform);
-    
-    // Recalculate
     calcEnding(platform);
-    
-    showToast('success', 'Invoice Diproses', `${processedCount} file, total: Rp ${total.toLocaleString('id-ID')}`);
-    
-    // Clear input untuk bisa upload file yang sama lagi
+    showLoading(false);
     input.value = '';
 }
 
-// ===============================
-// UPDATE INVOICE LIST UI
-// ===============================
 function updateInvoiceList(platform) {
-    const listContainer = document.getElementById(platform + 'InvoiceList');
-    const invoices = invoiceData[platform];
-    
-    if (invoices.length === 0) {
-        listContainer.innerHTML = '';
-        return;
-    }
-    
-    let html = '';
-    invoices.forEach((inv, idx) => {
-        html += `
-            <div class="invoice-item ${platform}">
-                <span class="invoice-name" title="${inv.name}">${idx + 1}. ${inv.name}</span>
-                <span class="invoice-amount">Rp ${inv.amount.toLocaleString('id-ID')}</span>
-                <button class="remove-btn" onclick="removeInvoice('${platform}', ${idx})" title="Hapus">×</button>
-            </div>
-        `;
-    });
-    
-    listContainer.innerHTML = html;
-}
-
-// ===============================
-// REMOVE INVOICE
-// ===============================
-function removeInvoice(platform, index) {
-    const inv = invoiceData[platform][index];
-    invoiceData[platform].splice(index, 1);
-    
-    // Recalculate total
-    const newTotal = invoiceData[platform].reduce((sum, item) => sum + item.amount, 0);
-    document.getElementById(platform + 'Usage').value = newTotal;
-    
-    updateInvoiceList(platform);
-    calcEnding(platform);
-    
-    showToast('info', 'Invoice Dihapus', `${inv.name} telah dihapus`);
-}
-
-// ===============================
-// EXTRACT ANGKA DARI TEXT
-// ===============================
-function extractAmount(text) {
-    if (!text) return 0;
-    
-    // Pattern untuk mencari angka dengan format Indonesia (titik ribuan, koma desimal)
-    // atau format internasional (koma ribuan, titik desimal)
-    const patterns = [
-        /Rp\.?\s*([\d.,]+)/i,  // Rp 10.000 atau Rp. 10.000
-        /IDR\s*([\d.,]+)/i,     // IDR 10.000
-        /saldo[^\d]*([\d.,]+)/i, // "saldo 10.000"
-        /total[^\d]*([\d.,]+)/i, // "total 10.000"
-        /([\d]{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?)/, // 10.000 atau 10,000.00
-        /([\d.,]+)/  // any number
-    ];
-    
-    for (let pattern of patterns) {
-        const match = text.match(pattern);
-        if (match) {
-            let numStr = match[1].trim();
-            
-            // Handle format Indonesia: 10.000,50 -> 10000.50
-            // Handle format US: 10,000.50 -> 10000.50
-            
-            // Remove spaces
-            numStr = numStr.replace(/\s/g, '');
-            
-            // Detect format
-            const hasComma = numStr.includes(',');
-            const hasDot = numStr.includes('.');
-            const lastComma = numStr.lastIndexOf(',');
-            const lastDot = numStr.lastIndexOf('.');
-            
-            let cleanNum;
-            
-            if (hasComma && hasDot) {
-                // Both present - last one is decimal separator
-                if (lastComma > lastDot) {
-                    // Indonesian: 10.000,50
-                    cleanNum = numStr.replace(/\./g, '').replace(',', '.');
-                } else {
-                    // US: 10,000.50
-                    cleanNum = numStr.replace(/,/g, '');
-                }
-            } else if (hasComma && !hasDot) {
-                // Could be 10,000 (US) or 10,50 (Indonesian decimal)
-                // If comma is followed by 2 digits at end, it's decimal
-                if (numStr.match(',\d{2}$')) {
-                    cleanNum = numStr.replace(',', '.');
-                } else {
-                    cleanNum = numStr.replace(/,/g, '');
-                }
-            } else if (hasDot && !hasComma) {
-                // Could be 10.000 (Indonesian) or 10.50 (US decimal)
-                // If dot is followed by 2 digits at end, it's decimal
-                if (numStr.match('\.\d{2}$')) {
-                    cleanNum = numStr;
-                } else {
-                    cleanNum = numStr.replace(/\./g, '');
-                }
-            } else {
-                cleanNum = numStr;
-            }
-            
-            const num = parseFloat(cleanNum);
-            if (!isNaN(num) && num > 0) {
-                // If number seems too small (likely decimal error), multiply by 1000
-                if (num < 100 && text.includes('000')) {
-                    return Math.round(num * 1000);
-                }
-                return Math.round(num);
-            }
-        }
-    }
-    
-    // Fallback: extract all numbers and take largest
-    const numbers = text.match(/\d[\d.,]*/g);
-    if (numbers) {
-        const cleaned = numbers.map(n => {
-            const clean = n.replace(/[.,]/g, '');
-            return parseInt(clean) || 0;
-        }).filter(n => n > 0);
-        
-        if (cleaned.length > 0) {
-            return Math.max(...cleaned);
-        }
-    }
-    
-    return 0;
+    const list = document.getElementById(platform + 'InvoiceList');
+    if(!list) return;
+    list.innerHTML = invoiceData[platform].map((inv, i) => 
+        `<div>${i+1}. ${inv.name} - Rp ${inv.amount.toLocaleString('id-ID')}</div>`
+    ).join('');
 }
 
 // ===============================
 // UI HELPERS
 // ===============================
 function showPlatformLoading(platform, show) {
-    const indicator = document.getElementById(platform + 'LoadingIndicator');
-    if (indicator) {
-        indicator.classList.toggle('active', show);
-    }
+    const el = document.getElementById(platform + 'LoadingIndicator');
+    if(el) el.style.display = show ? 'block' : 'none';
 }
 
-function showProgressOverlay(show, totalFiles) {
-    const overlay = document.getElementById('progressOverlay');
-    if (show) {
-        overlay.classList.add('active');
-        document.getElementById('progressFileCount').textContent = `File 0/${totalFiles}`;
-        document.getElementById('progressPercentage').textContent = '0%';
-        document.getElementById('progressBarFill').style.width = '0%';
-        document.getElementById('progressDetail').textContent = 'Memulai...';
-    } else {
-        overlay.classList.remove('active');
-    }
+function showLoading(show, text) {
+    document.body.style.cursor = show ? 'wait' : 'default';
 }
 
-function hideProgressOverlay() {
-    document.getElementById('progressOverlay').classList.remove('active');
-}
-
-function updateProgress(current, total, filename) {
-    const percentage = Math.round((current / total) * 100);
-    document.getElementById('progressFileCount').textContent = `File ${current}/${total}`;
-    document.getElementById('progressPercentage').textContent = percentage + '%';
-    document.getElementById('progressBarFill').style.width = percentage + '%';
-    document.getElementById('progressDetail').textContent = filename;
-}
-
-function updateProgressDetail(text) {
-    document.getElementById('progressDetail').textContent = text;
-}
-
-function cancelOCR() {
-    ocrCancelled = true;
-    hideProgressOverlay();
-    showToast('info', 'Dibatalkan', 'Pemrosesan invoice dihentikan');
-}
-
-function showLoading(show, text = 'Loading...') {
-    // Simple loading indicator - bisa dikembangkan lebih lanjut
-    if (show) {
-        document.body.style.cursor = 'wait';
-    } else {
-        document.body.style.cursor = 'default';
-    }
-}
-
-function showToast(type, title, message) {
-    const toast = document.getElementById('toast');
-    const icon = document.getElementById('toastIcon');
-    const titleEl = document.getElementById('toastTitle');
-    const msgEl = document.getElementById('toastMessage');
-    
-    // Set icon based on type
-    const icons = {
-        success: '✓',
-        error: '✕',
-        warning: '⚠',
-        info: 'ℹ'
-    };
-    
-    const colors = {
-        success: '#166534',
-        error: '#991b1b',
-        warning: '#92400e',
-        info: '#1e40af'
-    };
-    
-    icon.textContent = icons[type] || 'ℹ';
-    icon.style.background = type === 'success' ? '#dcfce7' : type === 'error' ? '#fee2e2' : type === 'warning' ? '#fef3c7' : '#dbeafe';
-    icon.style.color = colors[type] || '#1e40af';
-    
-    titleEl.textContent = title;
-    msgEl.textContent = message;
-    
-    toast.classList.add('active');
-    
-    // Auto hide after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove('active');
-    }, 3000);
-}
-
-function updateStats() {
-    const totalInv = invoiceData.grab.length + invoiceData.jc.length + invoiceData.hd.length;
-    const totalUse = (parseInt(document.getElementById('grabUsage').value) || 0) + 
-                     (parseInt(document.getElementById('jcUsage').value) || 0) + 
-                     (parseInt(document.getElementById('hdUsage').value) || 0);
-    
-    let validated = 0;
-    ['grab', 'jc', 'hd'].forEach(p => {
-        if (endingBalanceOCR[p] !== null && validateEndingBalance(p)) validated++;
-    });
-    
-    document.getElementById('totalInvoices').textContent = totalInv;
-    document.getElementById('totalUsage').textContent = 'Rp ' + totalUse.toLocaleString('id-ID');
-    document.getElementById('validatedCount').textContent = validated + '/3';
-    
-    if (totalInv > 0 || totalUse > 0) {
-        document.getElementById('statsBar').classList.add('active');
-    }
+function showToast(type, title, msg) {
+    alert(`${title}: ${msg}`); // Gunakan alert sederhana dulu untuk memastikan fungsi dipanggil
 }
 
 // ===============================
-// SUBMIT
+// ACTION FUNCTIONS
 // ===============================
+async function fetchLastBalanceFromSheets() {
+    const pCode = normalizePhoneCode(document.getElementById('phoneCode').value);
+    if (!pCode) return;
+    try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?action=getLastBalance&phoneCode=${pCode}`);
+        const result = await res.json();
+        if (result.success) {
+            remoteBalances = { grab: result.grabEnd || 0, jc: result.jcEnd || 0, hd: result.hdEnd || 0 };
+            ['grab','jc','hd'].forEach(p => calcEnding(p));
+        }
+    } catch (e) { console.error("Gagal ambil saldo", e); }
+}
+
 async function submitAll() {
-    // Jalankan validasi untuk ketiga platform
     const results = {
         grab: validateEndingBalance('grab'),
         jc: validateEndingBalance('jc'),
         hd: validateEndingBalance('hd')
     };
 
-    // Cek apakah ada yang error (salah input atau lupa upload SS padahal ada angka)
     if (results.grab === false || results.jc === false || results.hd === false) {
-        alert("Ada data yang tidak valid atau screenshot belum diupload!");
+        alert("Ada data yang tidak valid atau SS belum diupload!");
         return;
     }
 
-    // Cek apakah semuanya kosong
     if (results.grab === "empty" && results.jc === "empty" && results.hd === "empty") {
-        alert("Minimal harus ada satu data (Grab, JC, atau HD) yang diisi!");
+        alert("Isi minimal satu laporan!");
         return;
     }
 
-    // Jika lolos semua pengecekan, siapkan data
     const payload = {
         admin: document.getElementById('adminName').value,
         phoneCode: normalizePhoneCode(document.getElementById('phoneCode').value),
         date: document.getElementById('transDate').value,
         project: document.getElementById('project').value,
         remarks: document.getElementById('remarks').value,
-        // Data Grab
         grabStart: document.getElementById('grabStart').value,
         grabUsage: document.getElementById('grabUsage').value,
         grabEnd: document.getElementById('grabEnd').value,
-        // Data JC
         jcStart: document.getElementById('jcStart').value,
         jcUsage: document.getElementById('jcUsage').value,
         jcEnd: document.getElementById('jcEnd').value,
-        // Data HD
         hdStart: document.getElementById('hdStart').value,
         hdUsage: document.getElementById('hdUsage').value,
         hdEnd: document.getElementById('hdEnd').value
     };
 
-    // Tampilkan status loading pada tombol (opsional)
-    console.log("Mengirim data...", payload);
-
     try {
-        const res = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        });
+        const res = await fetch(APPS_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
         const result = await res.json();
-        
-        if (result.success) { 
-            alert("BERHASIL DISIMPAN!"); 
-            location.reload(); 
-        } else { 
-            alert("GAGAL SIMPAN: " + (result.message || "Terjadi kesalahan pada server")); 
-        }
-    } catch (e) { 
-        alert("Error koneksi! Pastikan APPS_SCRIPT_URL sudah benar."); 
-        console.error(e);
-    }
+        if (result.success) { alert("BERHASIL!"); location.reload(); }
+        else { alert("GAGAL!"); }
+    } catch (e) { alert("Koneksi Error"); }
 }
 </script>
 </body>
