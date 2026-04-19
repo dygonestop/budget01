@@ -1728,11 +1728,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // NORMALIZE HP (SUPER FLEXIBLE)
 // ===============================
 function normalizePhoneCode(code) {
-    return (code || '')
-        .toLowerCase()
-        .replace(/\s+/g, '')
-        .replace(/[^a-z0-9]/g, '')
-        .replace(/(.)\1+/g, '$1');
+    if (!code) return "";
+    return code
+        .toString()
+        .toLowerCase()      // Menyamakan 1B menjadi 1b
+        .replace(/\s+/g, '') // Menyamakan "1 b" menjadi "1b" (hapus spasi)
+        .trim();
 }
 
 // ===============================
@@ -1798,28 +1799,39 @@ function updateAllPlatforms() {
 // VALIDASI KETAT
 // ===============================
 function validateEndingBalance(platform) {
-    const calc = parseInt(document.getElementById(platform+'End').value) || 0;
+    const calc = parseInt(document.getElementById(platform + 'End').value) || 0;
+    const usage = parseInt(document.getElementById(platform + 'Usage').value) || 0;
     const ocr = endingBalanceOCR[platform];
+    const box = document.getElementById(platform + 'Validation');
 
-    const box = document.getElementById(platform+'Validation');
+    // 1. CEK KONDISI KOSONG:
+    // Jika user tidak mengisi penggunaan (Usage) dan tidak upload SS, 
+    // kita anggap platform ini dilewati (tidak wajib validasi).
+    if (usage === 0 && ocr === null) {
+        box.className = 'validation-box'; // Sembunyikan kotak validasi
+        box.innerHTML = '';
+        return "empty"; // Kita tandai sebagai kosong, bukan false
+    }
 
+    // 2. CEK JIKA SS BELUM DIUPLOAD (tapi ada angka pemakaian)
     if (ocr === null) {
         box.className = 'validation-box show error';
         box.innerHTML = '❌ Upload screenshot saldo akhir untuk validasi';
         return false;
     }
 
+    // 3. CEK KECOCOKAN SALDO
     if (calc !== ocr) {
         box.className = 'validation-box show error';
         box.innerHTML = `❌ TIDAK MATCH<br>Hitung: Rp ${calc.toLocaleString('id-ID')}<br>OCR: Rp ${ocr.toLocaleString('id-ID')}<br>Selisih: Rp ${Math.abs(calc - ocr).toLocaleString('id-ID')}`;
         return false;
     }
 
+    // 4. JIKA VALID
     box.className = 'validation-box show success';
     box.innerHTML = '✅ VALID - Saldo cocok';
     return true;
 }
-
 // ===============================
 // OCR ENDING BALANCE (SINGLE FILE)
 // ===============================
@@ -2202,29 +2214,48 @@ function updateStats() {
 // SUBMIT
 // ===============================
 async function submitAll() {
-    // Cek validasi sebelum kirim
-    for (let p of ['grab','jc','hd']) {
-        if (!validateEndingBalance(p)) {
-            alert(`Data ${p.toUpperCase()} belum valid atau SS belum diupload!`);
-            return;
-        }
+    // Jalankan validasi untuk ketiga platform
+    const results = {
+        grab: validateEndingBalance('grab'),
+        jc: validateEndingBalance('jc'),
+        hd: validateEndingBalance('hd')
+    };
+
+    // Cek apakah ada yang error (salah input atau lupa upload SS padahal ada angka)
+    if (results.grab === false || results.jc === false || results.hd === false) {
+        alert("Ada data yang tidak valid atau screenshot belum diupload!");
+        return;
     }
+
+    // Cek apakah semuanya kosong
+    if (results.grab === "empty" && results.jc === "empty" && results.hd === "empty") {
+        alert("Minimal harus ada satu data (Grab, JC, atau HD) yang diisi!");
+        return;
+    }
+
+    // Jika lolos semua pengecekan, siapkan data
     const payload = {
         admin: document.getElementById('adminName').value,
         phoneCode: normalizePhoneCode(document.getElementById('phoneCode').value),
         date: document.getElementById('transDate').value,
+        project: document.getElementById('project').value,
+        remarks: document.getElementById('remarks').value,
+        // Data Grab
         grabStart: document.getElementById('grabStart').value,
         grabUsage: document.getElementById('grabUsage').value,
         grabEnd: document.getElementById('grabEnd').value,
+        // Data JC
         jcStart: document.getElementById('jcStart').value,
         jcUsage: document.getElementById('jcUsage').value,
         jcEnd: document.getElementById('jcEnd').value,
+        // Data HD
         hdStart: document.getElementById('hdStart').value,
         hdUsage: document.getElementById('hdUsage').value,
-        hdEnd: document.getElementById('hdEnd').value,
-        remarks: document.getElementById('remarks').value,
-        project: document.getElementById('project').value
+        hdEnd: document.getElementById('hdEnd').value
     };
+
+    // Tampilkan status loading pada tombol (opsional)
+    console.log("Mengirim data...", payload);
 
     try {
         const res = await fetch(APPS_SCRIPT_URL, {
@@ -2232,9 +2263,17 @@ async function submitAll() {
             body: JSON.stringify(payload)
         });
         const result = await res.json();
-        if (result.success) { alert("BERHASIL DISIMPAN!"); location.reload(); }
-        else { alert("GAGAL SIMPAN!"); }
-    } catch (e) { alert("Error koneksi!"); }
+        
+        if (result.success) { 
+            alert("BERHASIL DISIMPAN!"); 
+            location.reload(); 
+        } else { 
+            alert("GAGAL SIMPAN: " + (result.message || "Terjadi kesalahan pada server")); 
+        }
+    } catch (e) { 
+        alert("Error koneksi! Pastikan APPS_SCRIPT_URL sudah benar."); 
+        console.error(e);
+    }
 }
 </script>
 </body>
