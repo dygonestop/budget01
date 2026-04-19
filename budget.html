@@ -716,8 +716,9 @@
     </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyIYx1CiOf3Dt2n6nOV7ki_-MAwUcaKmJdW6Hf6C9LHFFLiyUqtAuGtFBHhmkeVZ7vj/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxj-pgMJSmM1WAGzaBG6NEnD39aC9iOGAyuYLxihQ_j-ljhvK5Fl8eCxJEAd25TjYBW/exec";
 
+// Pastikan variabel ini terdefinisi dengan benar di awal
 let remoteBalances = { grab: 0, jc: 0, hd: 0 };
 let endingBalanceOCR = { grab: null, jc: null, hd: null };
 
@@ -728,89 +729,116 @@ function normalizePhoneCode(code) {
 async function fetchLastBalanceFromSheets() {
     const pCode = normalizePhoneCode(document.getElementById('phoneCode').value);
     if (!pCode) return;
+    
     try {
         const res = await fetch(`${APPS_SCRIPT_URL}?action=getLastBalance&phoneCode=${pCode}`);
         const result = await res.json();
+        
         if (result.success) {
-            remoteBalances = { grab: result.grabEnd || 0, jc: result.jcEnd || 0, hd: result.hdEnd || 0 };
+            // Update saldo awal dari database
+            remoteBalances = { 
+                grab: result.grabEnd || 0, 
+                jc: result.jcEnd || 0, 
+                hd: result.hdEnd || 0 
+            };
         } else {
             remoteBalances = { grab: 0, jc: 0, hd: 0 };
         }
         updateAllPlatforms();
-    } catch (e) { console.error("Fetch error"); }
+    } catch (e) { 
+        console.error("Gagal mengambil saldo terakhir"); 
+    }
 }
 
 function calcEnding(platform) {
     const last = remoteBalances[platform] || 0;
     const topup = parseInt(document.getElementById(platform+'TopUp').value) || 0;
     const usage = parseInt(document.getElementById(platform+'Usage').value) || 0;
+    
     const start = last + topup;
     const end = start - usage;
+    
     document.getElementById(platform+'Start').value = start;
     document.getElementById(platform+'End').value = end;
     document.getElementById(platform+'EndDisplay').innerText = 'Rp ' + end.toLocaleString();
+    
+    // Validasi dijalankan, tapi tidak boleh menghentikan proses input/upload
     validateEndingBalance(platform);
 }
 
-function updateAllPlatforms() { ['grab','jc','hd'].forEach(p => calcEnding(p)); }
+function updateAllPlatforms() { 
+    ['grab','jc','hd'].forEach(p => calcEnding(p)); 
+}
 
 function validateEndingBalance(platform) {
     const calc = parseInt(document.getElementById(platform+'End').value) || 0;
     const ocr = endingBalanceOCR[platform];
     const box = document.getElementById(platform+'Validation');
+    
     if (ocr === null) {
         box.className = 'validation-box show error';
-        box.innerHTML = '❌ OCR belum ada';
+        box.innerHTML = '⚠️ Silahkan upload SS Ending Balance untuk verifikasi';
         return false;
     }
+    
     if (calc !== ocr) {
         box.className = 'validation-box show error';
-        box.innerHTML = `❌ TIDAK MATCH<br>Hitung: ${calc} vs OCR: ${ocr}`;
+        box.innerHTML = `❌ TIDAK MATCH<br>Hitung: ${calc.toLocaleString()} vs OCR: ${ocr.toLocaleString()}`;
         return false;
     }
+    
     box.className = 'validation-box show success';
-    box.innerHTML = '✅ VALID';
+    box.innerHTML = '✅ VALID: Angka sesuai dengan Screenshot';
     return true;
 }
 
-async function handleMultipleInvoices(platform, input) {
-    const files = Array.from(input.files);
-    if (files.length === 0) return;
-    let total = 0;
-    document.getElementById('btnSubmit').disabled = true;
-    document.getElementById('btnSubmit').innerText = "Sedang Membaca Invoice...";
-    for (let file of files) {
-        try {
-            const result = await Tesseract.recognize(file, 'eng');
-            total += extractAmount(result.data.text);
-        } catch (e) { console.error(e); }
-    }
-    document.getElementById(platform + 'Usage').value = total;
-    document.getElementById('btnSubmit').disabled = false;
-    document.getElementById('btnSubmit').innerText = "🚀 Submit Data";
-    calcEnding(platform);
-}
-
+// Fungsi OCR yang diperbaiki agar tidak bentrok
 async function doOCREndingBalance(platform, input) {
     const file = input.files[0];
     if (!file) return;
+    
+    const resultDiv = document.getElementById(platform + 'OCRResult');
+    resultDiv.innerHTML = "⌛ Sedang membaca gambar...";
+    
     try {
         const result = await Tesseract.recognize(file, 'eng');
         const amount = extractAmount(result.data.text);
+        
+        // Simpan hasil OCR ke variabel global
         endingBalanceOCR[platform] = amount;
-        document.getElementById(platform + 'OCRResult').innerHTML = `
-            <div class="ocr-result success">OCR: Rp ${amount.toLocaleString()}</div>`;
+        
+        resultDiv.innerHTML = `<div class="ocr-result success">Terdeteksi: Rp ${amount.toLocaleString()}</div>`;
+        
+        // Jalankan validasi ulang setelah OCR didapat
         validateEndingBalance(platform);
-    } catch (e) { alert("OCR Gagal!"); }
+    } catch (e) { 
+        resultDiv.innerHTML = "❌ Gagal membaca gambar";
+        console.error(e);
+    }
 }
 
+// Ekstraksi angka dari teks OCR
 function extractAmount(text) {
+    // Menghapus karakter non-angka kecuali titik/koma yang sering muncul di nominal
     const numbers = text.match(/\d[\d.,]*/g);
     if (!numbers) return 0;
-    const cleaned = numbers.map(n => parseInt(n.replace(/[.,]/g,'')) || 0);
-    return Math.max(...cleaned);
+    
+    const cleaned = numbers.map(n => {
+        let clean = n.replace(/[.,]/g,''); // Hapus separator
+        return parseInt(clean) || 0;
+    });
+    
+    return Math.max(...cleaned); // Ambil angka terbesar (biasanya saldo akhir)
 }
 
+async function submitAll() {
+    // Cek validasi sebelum kirim
+    for (let p of ['grab','jc','hd']) {
+        if (!validateEndingBalance(p)) {
+            alert(`Data ${p.toUpperCase()} belum valid atau SS belum diupload!`);
+            return;
+        }
+    }
 async function submitAll() {
     for (let p of ['grab','jc','hd']) {
         if (!validateEndingBalance(p)) {
