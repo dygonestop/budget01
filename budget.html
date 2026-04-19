@@ -839,14 +839,6 @@ async function submitAll() {
             return;
         }
     }
-async function submitAll() {
-    for (let p of ['grab','jc','hd']) {
-        if (!validateEndingBalance(p)) {
-            alert("Selesaikan upload " + p.toUpperCase() + " dan pastikan VALID!");
-            return;
-        }
-    }
-
     const payload = {
         admin: document.getElementById('adminName').value,
         phoneCode: normalizePhoneCode(document.getElementById('phoneCode').value),
