@@ -3,2806 +3,1239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Keuangan Ojek Online - Smart Validation</title>
+    <title>OJOL Finance Tracker - OCR Integrated</title>
     <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
-<style>
-/* Animasi Getar Merah untuk Input Kosong */
-@keyframes shakeError {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-5px); }
-    40%, 80% { transform: translateX(5px); }
-}
-
-.input-error-shake {
-    border-color: #ef4444 !important;
-    background-color: #fef2f2 !important;
-    animation: shakeError 0.4s ease-in-out;
-}
-
-/* Memaksa tampilan Kode HP kecil di layar */
-#phoneCode {
-    text-transform: lowercase;
-}
-        /* ============================================
-           CSS VARIABLES & RESET
-           ============================================ */
-        :root {
-            /* Brand Colors */
-            --grab: #00B14F;
-            --gofood: #EE2737;
-            --shopee: #EE4D2D;
-            
-            /* Neutral Palette */
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --bg-body: #f8fafc;
-            --surface: rgba(255, 255, 255, 0.95);
-            --surface-elevated: #ffffff;
-            
-            /* Text Colors */
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            
-            /* Borders & Shadows */
-            --border: rgba(226, 232, 240, 0.6);
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
-            
-            /* Radius */
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
-            
-            /* Spacing Scale */
-            --space-1: 0.25rem;
-            --space-2: 0.5rem;
-            --space-3: 0.75rem;
-            --space-4: 1rem;
-            --space-5: 1.25rem;
-            --space-6: 1.5rem;
-            --space-8: 2rem;
-            --space-10: 2.5rem;
-            
-            /* Typography */
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            font-size: 16px;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: var(--font-sans);
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            color: var(--text-primary);
-            line-height: 1.6;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
-            padding: var(--space-4);
+            color: #333;
+            padding: 20px;
         }
 
-        /* ============================================
-           LAYOUT CONTAINER - DESKTOP OPTIMIZED
-           ============================================ */
         .container {
-            width: 98%;
-            max-width: 1600px;
+            max-width: 1200px;
             margin: 0 auto;
-            background: var(--surface);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-glass);
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             overflow: hidden;
         }
 
-        /* Platform Grid - 3 columns on desktop */
-        .platforms-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            align-items: start;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 1200px) {
-            .platforms-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .platforms-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Pastikan input tidak terlalu besar */
-        input[type="number"], input[type="text"] {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* ============================================
-           HEADER SECTION
-           ============================================ */
         .header {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            padding: var(--space-8) var(--space-6);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
             text-align: center;
-            border-bottom: 1px solid var(--border);
             position: relative;
+            overflow: hidden;
         }
 
         .header::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--grab), var(--gofood), var(--shopee));
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.3;
         }
 
         .header h1 {
-            font-size: clamp(1.25rem, 3vw, 1.75rem);
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.025em;
-            margin-bottom: var(--space-2);
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .header p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            font-weight: 400;
+            opacity: 0.9;
+            font-size: 1.1em;
+            position: relative;
         }
 
-        .badge-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: var(--space-2);
-            margin-top: var(--space-4);
+        .gas-status {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
         }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-1);
-            padding: var(--space-1) var(--space-3);
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .badge.free {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .badge.gr {
-            background: #f0fdf4;
-            color: var(--grab);
-            border: 1px solid rgba(0, 177, 79, 0.2);
-        }
-
-        .badge.jc {
-            background: #fef2f2;
-            color: var(--gofood);
-            border: 1px solid rgba(238, 39, 55, 0.2);
-        }
-
-        .badge.hd {
-            background: #fff7ed;
-            color: var(--shopee);
-            border: 1px solid rgba(238, 77, 45, 0.2);
-        }
-
-        /* ============================================
-           CONTENT AREA
-           ============================================ */
         .content {
-            padding: var(--space-6);
+            padding: 30px;
         }
 
-        /* ============================================
-           SETUP GUIDE - HIDDEN (AUTO CONFIG)
-           ============================================ */
-        .setup-guide {
-            display: none !important;
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
         }
 
-        /* ============================================
-           FORM SECTIONS
-           ============================================ */
-        .form-section {
-            background: var(--surface-elevated);
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            margin-bottom: var(--space-6);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm);
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .section-title {
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #667eea;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: var(--space-3);
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: var(--space-5);
-            padding-bottom: var(--space-3);
-            border-bottom: 2px solid var(--border);
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-4);
+            gap: 10px;
         }
 
         .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-2);
+            margin-bottom: 18px;
         }
 
         .form-group label {
-            font-size: 0.75rem;
+            display: block;
             font-weight: 600;
-            color: var(--text-muted);
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 0.9em;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.5px;
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: var(--space-3) var(--space-4);
-            border: 1.5px solid #e2e8f0;
-            border-radius: var(--radius-md);
-            font-size: 0.9375rem;
-            font-family: inherit;
-            background: white;
-            transition: all 0.2s ease;
-            color: var(--text-primary);
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #f7fafc;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .form-group input::placeholder {
-            color: var(--text-muted);
-        }
-
-        /* ============================================
-           PLATFORM CARDS
-           ============================================ */
-        .platform-card {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: var(--space-5);
-            border: 1px solid var(--border);
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            min-width: 0;
-        }
-
-        .platform-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-        }
-
-        .platform-card.gr::before {
-            background: var(--grab);
-        }
-
-        .platform-card.jc::before {
-            background: var(--gofood);
-        }
-
-        .platform-card.hd::before {
-            background: var(--shopee);
-        }
-
-        .platform-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .platform-card.processing {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        .platform-card.error {
-            animation: shake 0.5s ease-in-out;
-            border-color: #ef4444;
-        }
-
-        .platform-card.success {
-            border-color: #22c55e;
-        }
-
-        .platform-card.blocked {
-            border-color: #ef4444;
-            background: #fef2f2;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .platform-header {
-            display: flex;
-            align-items: center;
-            gap: var(--space-3);
-            margin-bottom: var(--space-5);
-        }
-
-        .platform-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: white;
-            box-shadow: var(--shadow-md);
-        }
-
-        .platform-icon.gr {
-            background: linear-gradient(135deg, var(--grab), #00d68f);
-        }
-
-        .platform-icon.jc {
-            background: linear-gradient(135deg, var(--gofood), #ff6b7a);
-        }
-
-        .platform-icon.hd {
-            background: linear-gradient(135deg, var(--shopee), #ff8a65);
-        }
-
-        .platform-header > div {
-            flex: 1;
-        }
-
-        .platform-header > div > div:first-child {
-            font-weight: 700;
-            font-size: 1rem;
-            color: var(--text-primary);
-        }
-
-        .platform-header > div > div:last-child {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-top: var(--space-1);
-        }
-
-        .wallet-tag {
-            font-size: 0.625rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: var(--space-1) var(--space-2);
-            border-radius: var(--radius-sm);
-            background: #f1f5f9;
-            color: var(--text-muted);
-        }
-
-        /* Balance Inputs */
-        .balance-inputs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--space-3);
-            margin-bottom: var(--space-4);
-        }
-
-        @media (max-width: 400px) {
-            .balance-inputs {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .balance-total {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: var(--radius-md);
-            padding: var(--space-4);
-            text-align: center;
-            border: 1px solid var(--border);
-        }
-
-        .balance-total .label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-bottom: var(--space-2);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .balance-total .value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* ============================================
-           UPLOAD SECTIONS
-           ============================================ */
-        .upload-section {
-            border: 2px dashed #cbd5e1;
-            padding: var(--space-4);
-            border-radius: var(--radius-md);
-            text-align: center;
-            background: #f8fafc;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: var(--space-4);
-            position: relative;
-        }
-
-        .upload-section:hover {
-            border-color: var(--primary);
-            background: #eff6ff;
-        }
-
-        .upload-section.processing {
-            border-color: var(--primary);
-            background: #eff6ff;
-        }
-
-        .upload-section.error-upload {
-            border-color: #ef4444;
-            background: #fef2f2;
-        }
-
-        .upload-section.blocked {
-            border-color: #ef4444;
-            background: #fee2e2;
-            pointer-events: none;
-            opacity: 0.6;
-        }
-
-        .upload-title {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-2);
-            font-size: 0.875rem;
+        .form-group input[readonly] {
+            background: #edf2f7;
+            color: #4a5568;
             font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: var(--space-3);
         }
 
-        .file-input-wrapper {
+        .upload-zone {
+            border: 3px dashed #cbd5e0;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f7fafc;
             position: relative;
             overflow: hidden;
-            display: inline-block;
         }
 
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            left: -9999px;
+        .upload-zone:hover {
+            border-color: #667eea;
+            background: #edf2f7;
         }
 
-        .file-input-wrapper::after {
-            content: 'Pilih File';
-            display: inline-block;
-            padding: var(--space-2) var(--space-4);
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .upload-zone.active {
+            border-color: #48bb78;
+            background: #f0fff4;
         }
 
-        .file-input-wrapper:hover::after {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .file-hint {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: var(--space-2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-1);
-        }
-
-        .file-hint.processing-text {
-            color: var(--primary);
-        }
-
-        .file-hint.error-text {
-            color: #ef4444;
-        }
-
-        .file-hint.success-text {
-            color: #22c55e;
-        }
-
-        .file-hint.warning-text {
-            color: #f59e0b;
-        }
-
-        .file-hint.blocked-text {
-            color: #991b1b;
-            font-weight: 600;
-        }
-
-        /* Invoice List */
-        .invoice-list {
-            margin-top: var(--space-3);
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-2);
-        }
-
-        .invoice-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: var(--space-3);
-            background: white;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .invoice-item.gr {
-            border-left: 3px solid var(--grab);
-        }
-
-        .invoice-item.jc {
-            border-left: 3px solid var(--gofood);
-        }
-
-        .invoice-item.hd {
-            border-left: 3px solid var(--shopee);
-        }
-
-        .invoice-name {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 150px;
-        }
-
-        .invoice-amount {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .remove-btn {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: none;
-            background: #fee2e2;
-            color: #ef4444;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .remove-btn:hover {
-            background: #ef4444;
-            color: white;
-        }
-
-        /* OCR Results */
-        .ocr-result {
-            margin-top: var(--space-3);
-            padding: var(--space-3);
-            border-radius: var(--radius-md);
-            text-align: center;
-        }
-
-        .ocr-result.success {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-        }
-
-        .ocr-result.error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-        }
-
-        .ocr-result-text {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: var(--space-1);
-        }
-
-        .ocr-result.success .ocr-result-text {
-            color: #166534;
-        }
-
-        .ocr-result.error .ocr-result-text {
-            color: #991b1b;
-        }
-
-        .ocr-result-amount {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* Validation Box */
-        .validation-box {
-            margin-top: var(--space-3);
-            padding: var(--space-3);
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 600;
-            text-align: center;
-            display: none;
-        }
-
-        .validation-box.show {
+        .upload-zone .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
             display: block;
         }
 
-        .validation-box.success {
-            background: #f0fdf4;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-        }
-
-        .validation-box.error {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-            animation: pulse 2s infinite;
-        }
-
-        .validation-box.blocked {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 2px solid #ef4444;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        /* ============================================
-           LOADING INDICATORS
-           ============================================ */
-        .platform-loading-indicator {
-            display: none;
+        .upload-zone input[type="file"] {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(4px);
-            z-index: 10;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-3);
-        }
-
-        .platform-loading-indicator.active {
-            display: flex;
-        }
-
-        .platform-loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #e2e8f0;
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .platform-loading-text {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .platform-loading-subtext {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* ============================================
-           PROGRESS OVERLAY
-           ============================================ */
-        .progress-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: var(--space-4);
-        }
-
-        .progress-overlay.active {
-            display: flex;
-        }
-
-        .progress-modal {
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: var(--space-8);
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .progress-icon {
-            font-size: 3rem;
-            margin-bottom: var(--space-4);
-        }
-
-        .progress-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: var(--space-2);
-        }
-
-        .progress-subtitle {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: var(--space-6);
-        }
-
-        .progress-detail {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-bottom: var(--space-4);
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 9999px;
-            overflow: hidden;
-            margin-bottom: var(--space-3);
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-            border-radius: 9999px;
-            transition: width 0.3s ease;
-        }
-
-        .progress-percentage {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: var(--space-4);
-        }
-
-        .progress-stats {
-            display: flex;
-            justify-content: center;
-            gap: var(--space-6);
-            margin-bottom: var(--space-6);
-        }
-
-        .progress-stat {
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .btn-cancel {
-            background: #fee2e2;
-            color: #991b1b;
-            border: none;
-            padding: var(--space-3) var(--space-6);
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 600;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
         }
 
-        .btn-cancel:hover {
-            background: #fecaca;
-        }
-
-        /* ============================================
-           TOAST NOTIFICATION
-           ============================================ */
-        .toast {
-            position: fixed;
-            top: var(--space-4);
-            right: var(--space-4);
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: var(--space-4);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        .preview-img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             display: none;
-            align-items: flex-start;
-            gap: var(--space-3);
-            max-width: 350px;
-            z-index: 1001;
-            border-left: 4px solid;
-            animation: slideInRight 0.3s ease-out;
         }
 
-        .toast.active {
-            display: flex;
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .toast-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            flex-shrink: 0;
-        }
-
-        .toast-icon.success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .toast-icon.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .toast-icon.warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .toast-content {
-            flex: 1;
-        }
-
-        .toast-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: var(--space-1);
-        }
-
-        .toast-message {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        /* ============================================
-           BUTTONS & ACTIONS
-           ============================================ */
-        .btn-submit {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white;
-            border: none;
-            padding: var(--space-4) var(--space-6);
-            border-radius: var(--radius-lg);
-            font-size: 1rem;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-2);
-            margin-top: var(--space-6);
-            box-shadow: var(--shadow-md);
-        }
-
-        .btn-submit:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .btn-submit.blocked {
-            background: #ef4444;
-            cursor: not-allowed;
-        }
-
-        .export-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-3);
-            margin-top: var(--space-5);
-            justify-content: center;
-        }
-
-        .btn-export {
-            background: white;
-            border: 1.5px solid #e2e8f0;
-            padding: var(--space-3) var(--space-5);
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-2);
-        }
-
-        .btn-export:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: #eff6ff;
-        }
-
-        .btn-export.delete {
-            color: #ef4444;
-            border-color: #fecaca;
-        }
-
-        .btn-export.delete:hover {
-            background: #fee2e2;
-            border-color: #ef4444;
-        }
-
-        /* ============================================
-           STATS BAR
-           ============================================ */
-        .stats-bar {
+        .ocr-panel {
+            background: #ebf8ff;
+            border-left: 4px solid #4299e1;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
             display: none;
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-radius: var(--radius-lg);
-            padding: var(--space-5);
-            margin-bottom: var(--space-6);
-            gap: var(--space-6);
-            justify-content: center;
-            flex-wrap: wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
         }
 
-        .stats-bar.active {
-            display: flex;
-        }
+        .ocr-panel.show { display: block; animation: slideIn 0.3s ease; }
 
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: var(--space-1);
-        }
-
-        /* ============================================
-           ALERT & RESULT BOXES
-           ============================================ */
-        .alert {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #bbf7d0;
-            border-radius: var(--radius-md);
-            padding: var(--space-4);
-            display: flex;
-            align-items: center;
-            gap: var(--space-3);
-            margin-bottom: var(--space-6);
-            font-size: 0.875rem;
-            color: #166534;
-            font-weight: 500;
-        }
-
-        .result-box {
-            display: none;
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #bbf7d0;
-            border-radius: var(--radius-lg);
-            padding: var(--space-6);
-            margin-top: var(--space-6);
-            text-align: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .result-box.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
+        @keyframes slideIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .result-title {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-2);
-            font-size: 1.125rem;
+        .detected-value {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
             font-weight: 700;
-            color: #166534;
-            margin-bottom: var(--space-3);
+            font-size: 1.1em;
         }
 
-        /* ============================================
-           DATA TABLE
-           ============================================ */
-        .data-table-container {
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            background: white;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8125rem;
-        }
-
-        .data-table th {
-            background: #f8fafc;
-            padding: var(--space-3) var(--space-4);
-            text-align: left;
-            color: var(--text-muted);
-            font-weight: 600;
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
             text-transform: uppercase;
-            font-size: 0.6875rem;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--border);
-            white-space: nowrap;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .data-table td {
-            padding: var(--space-3) var(--space-4);
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .data-table tr:last-child td {
-            border-bottom: none;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
         }
 
-        .data-table tr:hover td {
-            background: #f8fafc;
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
         }
 
-        .amount-neg {
-            color: #ef4444;
-            font-weight: 500;
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.6);
         }
 
-        .amount-pos {
-            color: #22c55e;
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 25px;
+            background: #edf2f7;
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .platform-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
             font-weight: 600;
         }
 
-        .empty-state {
-            padding: var(--space-10);
+        .badge-grab { background: #e6fffa; color: #234e52; }
+        .badge-jc { background: #ffe6e6; color: #742a2a; }
+        .badge-hd { background: #fff5e6; color: #744210; }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(26, 26, 46, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-overlay.show { display: flex; }
+
+        .spinner {
+            width: 60px; height: 60px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .toast.show { transform: translateX(0); }
+        .toast-success { background: linear-gradient(135deg, #48bb78, #38a169); }
+        .toast-error { background: linear-gradient(135deg, #f56565, #e53e3e); }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
             text-align: center;
-            color: var(--text-muted);
-            font-size: 0.875rem;
         }
 
-        /* ============================================
-           UTILITY CLASSES
-           ============================================ */
-        .hidden {
-            display: none !important;
+        .summary-card h4 {
+            font-size: 0.85em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
-        /* ============================================
-           RESPONSIVE DESIGN
-           ============================================ */
-        @media (max-width: 640px) {
-            body {
-                padding: 0;
-                background: var(--surface);
-            }
-
-            .container {
-                border-radius: 0;
-                box-shadow: none;
-                max-width: 100%;
-            }
-
-            .header {
-                padding: var(--space-6) var(--space-4);
-            }
-
-            .content {
-                padding: var(--space-4);
-            }
-
-            .form-section {
-                padding: var(--space-4);
-            }
-
-            .balance-inputs {
-                grid-template-columns: 1fr;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .badge-container {
-                gap: var(--space-1);
-            }
-
-            .badge {
-                font-size: 0.625rem;
-                padding: var(--space-1) var(--space-2);
-            }
-
-            .stats-bar {
-                padding: var(--space-4);
-                gap: var(--space-4);
-            }
-
-            .stat-value {
-                font-size: 1.25rem;
-            }
-
-            .data-table-container {
-                overflow-x: auto;
-            }
-
-            .data-table {
-                min-width: 800px;
-            }
-
-            .toast {
-                left: var(--space-4);
-                right: var(--space-4);
-                max-width: none;
-            }
+        .summary-card .amount {
+            font-size: 1.5em;
+            font-weight: 700;
         }
 
-        @media (min-width: 641px) and (max-width: 1024px) {
-            .container {
-                max-width: 95%;
-            }
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .summary-cards { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+            .header h1 { font-size: 1.6em; }
         }
 
-        @media (min-width: 1025px) {
-            body {
-                padding: var(--space-8);
-            }
-
-            .container {
-                max-width: 1400px;
-            }
+        .info-text {
+            background: #fffaf0;
+            border: 1px solid #fbd38d;
+            color: #744210;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
         }
 
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-body: #0f172a;
-                --surface: rgba(30, 41, 59, 0.95);
-                --surface-elevated: #1e293b;
-                --text-primary: #f1f5f9;
-                --text-secondary: #94a3b8;
-                --text-muted: #64748b;
-                --border: rgba(51, 65, 85, 0.6);
-            }
-
-            body {
-                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            }
-
-            .setup-guide {
-                background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-                border-color: #3b82f6;
-            }
-
-            .form-section,
-            .platform-card,
-            .data-table-container {
-                background: var(--surface-elevated);
-            }
-
-            .upload-section,
-            .balance-total {
-                background: rgba(51, 65, 85, 0.5);
-            }
-
-            .form-group input,
-            .form-group select {
-                background: #334155;
-                border-color: #475569;
-                color: var(--text-primary);
-            }
+        .link-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 5px;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
-    <!-- Progress Overlay -->
-    <div id="progressOverlay" class="progress-overlay">
-        <div class="progress-modal">
-            <div class="progress-icon">🔍</div>
-            <div class="progress-title">Membaca Invoice...</div>
-            <div class="progress-subtitle">Mohon tunggu, sedang memproses dengan OCR</div>
-            
-            <div class="progress-detail" id="progressDetail">
-                Menginisialisasi...
-            </div>
-            
-            <div class="progress-bar-container">
-                <div id="progressBarFill" class="progress-bar-fill" style="width: 0%"></div>
-            </div>
-            
-            <div class="progress-percentage" id="progressPercentage">0%</div>
-            
-            <div class="progress-stats">
-                <div class="progress-stat">
-                    <span>📄</span>
-                    <span id="progressFileCount">File 0/0</span>
-                </div>
-                <div class="progress-stat">
-                    <span>⏱️</span>
-                    <span id="progressTime">00:00</span>
-                </div>
-            </div>
-            
-            <button class="btn-cancel" onclick="cancelOCR()">
-                <span>✕</span>
-                <span>Batalkan</span>
-            </button>
-        </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p id="loadingText">Memproses OCR...</p>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">
-        <div class="toast-icon" id="toastIcon">✓</div>
-        <div class="toast-content">
-            <div class="toast-title" id="toastTitle">Berhasil!</div>
-            <div class="toast-message" id="toastMessage">Data telah diproses</div>
-        </div>
-    </div>
+    <div class="toast" id="toast"></div>
 
     <div class="container">
         <div class="header">
-            <h1>📊 Laporan Keuangan Ojek Online</h1>
-            <p>Smart Validation System | Multi-Invoice OCR | Auto Balance Check</p>
-            <div class="badge-container">
-                <span class="badge free">✓ FREE</span>
-                <span class="badge gr">🟣 GRAB - OVO</span>
-                <span class="badge jc">🟢 GOFOOD - GOPAY</span>
-                <span class="badge hd">🟠 SHOPEEFOOD - SHOPEEPAY</span>
-            </div>
+            <h1>🚀 OJOL Finance Tracker</h1>
+            <p>OCR Integrated • Auto Sync Google Sheets</p>
+            <div class="gas-status" id="gasStatus">⚡ Menghubungkan ke GAS...</div>
         </div>
 
         <div class="content">
-            <!-- Main Form - Langsung tampil, tidak perlu setup -->
-            <div id="mainForm">
-                <div class="alert" id="statusAlert">
-                    <span style="font-size: 20px;">✓</span>
-                    <span>Terhubung ke Google Sheets & Drive (Gratis)</span>
-                </div>
-
-                <!-- Stats Summary -->
-                <div class="stats-bar" id="statsBar" style="display: none;">
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalInvoices">0</div>
-                        <div class="stat-label">Total Invoice</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalUsage">0</div>
-                        <div class="stat-label">Total Usage</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="validatedCount">0/3</div>
-                        <div class="stat-label">Tervalidasi</div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <div class="section-title">
-                        <span style="font-size: 24px;">👤</span>
-                        <span>Informasi Admin</span>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Nama Admin *</label>
-                            <input type="text" id="adminName" placeholder="Contoh: Admin" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Kode Handphone *</label>
-                            <input type="text" id="phoneCode" placeholder="Contoh: 1b" required 
-                                   onchange="fetchLastBalanceFromSheets()">
-                        </div>
-                        <div class="form-group">
-                            <label>Tanggal Transaksi *</label>
-                            <input type="date" id="transDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Project</label>
-                            <input type="text" id="project" value="Food">
-                        </div>
-                    </div>
-
-                    <div class="section-title" style="margin-top: 30px;">
-                        <span style="font-size: 24px;">💰</span>
-                        <span>Input Data Platform - Validasi Ketat</span>
-                    </div>
-                    
-                    <div class="platforms-container">
-                        <!-- GRAB (OVO) -->
-                        <div class="platform-card gr" id="boxGrab">
-                            <!-- Platform Loading Indicator -->
-                            <div id="grabLoadingIndicator" class="platform-loading-indicator">
-                                <div class="platform-loading-spinner"></div>
-                                <div class="platform-loading-text">Memproses...</div>
-                                <div class="platform-loading-subtext">M membaca invoice</div>
-                            </div>
-
-                            <div class="platform-header gr">
-                                <div class="platform-icon gr">🟣</div>
-                                <div>
-                                    <div>GRAB</div>
-                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">OVO Only</div>
-                                </div>
-                                <span class="wallet-tag">Wajib OVO</span>
-                            </div>
-                            
-                            <div class="balance-inputs">
-                                <div class="form-group">
-                                    <label style="color: var(--grab); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="grabTopUp" placeholder="0" oninput="calcEnding('grab')" value="0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Saldo Awal (Auto)</label>
-                                    <input type="number" id="grabStart" readonly style="background: #f1f5f9;">
-                                </div>
-                                <div class="form-group">
-                                    <label>Usage</label>
-                                    <input type="number" id="grabUsage" readonly style="background: #f1f5f9;">
-                                </div>
-                            </div>
-                            
-                            <div class="balance-total gr">
-                                <div class="label">Ending Balance (Auto Calculate)</div>
-                                <div class="value" id="grabEndDisplay">Rp 0</div>
-                                <input type="hidden" id="grabEnd" value="0">
-                            </div>
-
-                            <!-- Invoice Upload -->
-                            <div class="upload-section" id="grabInvoiceSection">
-                                <div class="upload-title">
-                                    <span>📄</span>
-                                    <span>Upload Invoice OVO</span>
-                                </div>
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="grabInvoice" accept="image/*" multiple 
-                                           onchange="handleMultipleInvoices('grab', this)"
-                                           data-platform="grab">
-                                </div>
-                                <div class="file-hint" id="grabInvoiceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi OVO</span>
-                                </div>
-                                <div id="grabInvoiceList" class="invoice-list"></div>
-                            </div>
-
-                            <!-- Ending Balance Upload -->
-                            <div class="upload-section" id="grabBalanceSection">
-                                <div class="upload-title">
-                                    <span>📸</span>
-                                    <span>Upload Ending Balance OVO</span>
-                                </div>
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="ssGrab" accept="image/*" 
-                                           onchange="doOCREndingBalance('grab', this)"
-                                           data-platform="grab">
-                                </div>
-                                <div class="file-hint" id="grabBalanceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot saldo akhir dari aplikasi OVO</span>
-                                </div>
-                                <div id="grabOCRResult"></div>
-                            </div>
-
-                            <div id="grabValidation" class="validation-box"></div>
-                        </div>
-
-                        <!-- JC (GoPay) -->
-                        <div class="platform-card jc" id="boxJc">
-                            <div id="jcLoadingIndicator" class="platform-loading-indicator">
-                                <div class="platform-loading-spinner"></div>
-                                <div class="platform-loading-text">Memproses...</div>
-                                <div class="platform-loading-subtext">M membaca invoice</div>
-                            </div>
-
-                            <div class="platform-header jc">
-                                <div class="platform-icon jc">🟢</div>
-                                <div>
-                                    <div>GOFOOD</div>
-                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">GoPay Only</div>
-                                </div>
-                                <span class="wallet-tag">Wajib GoPay</span>
-                            </div>
-                            
-                            <div class="balance-inputs">
-                                <div class="form-group">
-                                    <label style="color: var(--gofood); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="jcTopUp" placeholder="0" oninput="calcEnding('jc')" value="0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Saldo Awal (Auto)</label>
-                                    <input type="number" id="jcStart" readonly style="background: #f1f5f9;">
-                                </div>
-                                <div class="form-group">
-                                    <label>Usage</label>
-                                    <input type="number" id="jcUsage" readonly style="background: #f1f5f9;">
-                                </div>
-                            </div>              
             
-                            <div class="balance-total jc">
-                                <div class="label">Ending Balance (Auto Calculate)</div>
-                                <div class="value" id="jcEndDisplay">Rp 0</div>
-                                <input type="hidden" id="jcEnd" value="0">
-                            </div>
+            <!-- Global Settings -->
+            <div class="card" style="margin-bottom: 25px;">
+                <div class="card-title">⚙️ Konfigurasi GAS</div>
+                <div class="form-group">
+                    <label>URL Web App Google Apps Script</label>
+                    <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/XXXX/exec" 
+                           value="https://script.google.com/macros/s/AKfycbwz0xpih8DP6viEfpN0x3DdVhjcBfoCdgTme3t3YMsppNDzSurFP9dj8Rq7Lh0LDu7G/exec">
+                    <small style="color: #718096; margin-top: 5px; display: block;">
+                        * Deploy GAS sebagai Web App (Execute as: Me, Access: Anyone)
+                    </small>
+                </div>
+                <button class="btn btn-primary" onclick="testConnection()" style="margin-top: 10px;">
+                    🔄 Test Koneksi
+                </button>
+            </div>
 
-                            <!-- Invoice Upload -->
-                            <div class="upload-section" id="jcInvoiceSection">
-                                <div class="upload-title">
-                                    <span>📄</span>
-                                    <span>Upload Invoice GoPay</span>
-                                </div>
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="jcInvoice" accept="image/*" multiple 
-                                           onchange="handleMultipleInvoices('jc', this)"
-                                           data-platform="jc">
-                                </div>
-                                <div class="file-hint" id="jcInvoiceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi GoPay</span>
-                                </div>
-                                <div id="jcInvoiceList" class="invoice-list"></div>
-                            </div>
-
-                            <!-- Ending Balance Upload -->
-                            <div class="upload-section" id="jcBalanceSection">
-                                <div class="upload-title">
-                                    <span>📸</span>
-                                    <span>Upload Ending Balance GoPay</span>
-                                </div>
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="ssJc" accept="image/*" 
-                                           onchange="doOCREndingBalance('jc', this)"
-                                           data-platform="jc">
-                                </div>
-                                <div class="file-hint" id="jcBalanceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot saldo akhir dari aplikasi GoPay</span>
-                                </div>
-                                <div id="jcOCRResult"></div>
-                            </div>
-
-                            <div id="jcValidation" class="validation-box"></div>
-                        </div>
-
-                        <!-- HD (ShopeePay) -->
-                        <div class="platform-card hd" id="boxHd">
-                            <div id="hdLoadingIndicator" class="platform-loading-indicator">
-                                <div class="platform-loading-spinner"></div>
-                                <div class="platform-loading-text">Memproses...</div>
-                                <div class="platform-loading-subtext">M membaca invoice</div>
-                            </div>
-
-                            <div class="platform-header hd">
-                                <div class="platform-icon hd">🟠</div>
-                                <div>
-                                    <div>SHOPEEFOOD</div>
-                                    <div style="font-size: 11px; opacity: 0.8; font-weight: 600;">ShopeePay Only</div>
-                                </div>
-                                <span class="wallet-tag">Wajib ShopeePay</span>
-                            </div>
-                            
-                            <div class="balance-inputs">
-                                <div class="form-group">
-                                    <label style="color: var(--shopee); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="hdTopUp" placeholder="0" oninput="calcEnding('hd')" value="0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Saldo Awal (Auto)</label>
-                                    <input type="number" id="hdStart" readonly style="background: #f1f5f9;">
-                                </div>
-                                <div class="form-group">
-                                    <label>Usage</label>
-                                    <input type="number" id="hdUsage" readonly style="background: #f1f5f9;">
-                                </div>
-                            </div>
-                            
-                            <div class="balance-total hd">
-                                <div class="label">Ending Balance (Auto Calculate)</div>
-                                <div class="value" id="hdEndDisplay">Rp 0</div>
-                                <input type="hidden" id="hdEnd" value="0">
-                            </div>
-
-                            <!-- Invoice Upload -->
-                            <div class="upload-section" id="hdInvoiceSection">
-                                <div class="upload-title">
-                                    <span>📄</span>
-                                    <span>Upload Invoice ShopeePay</span>
-                                </div>
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="hdInvoice" accept="image/*" multiple 
-                                           onchange="handleMultipleInvoices('hd', this)"
-                                           data-platform="hd">
-                                </div>
-                                <div class="file-hint" id="hdInvoiceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot invoice/bukti pembayaran dari aplikasi ShopeePay</span>
-                                </div>
-                                <div id="hdInvoiceList" class="invoice-list"></div>
-                            </div>
-
-                            <!-- Ending Balance Upload -->
-                            <div class="upload-section" id="hdBalanceSection">
-                                <div class="upload-title">
-                                    <span>📸</span>
-                                    <span>Upload Ending Balance ShopeePay</span>
-                                </div>
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="ssHd" accept="image/*" 
-                                           onchange="doOCREndingBalance('hd', this)"
-                                           data-platform="hd">
-                                </div>
-                                <div class="file-hint" id="hdBalanceHint">
-                                    <span>💡</span>
-                                    <span>Upload screenshot saldo akhir dari aplikasi ShopeePay</span>
-                                </div>
-                                <div id="hdOCRResult"></div>
-                            </div>
-
-                            <div id="hdValidation" class="validation-box"></div>
-                        </div>
+            <!-- Input Manual -->
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">👤 Data Admin</div>
+                    <div class="form-group">
+                        <label>Nama Admin</label>
+                        <input type="text" id="adminName" placeholder="Contoh: Edho">
                     </div>
-
-                    <div class="form-group" style="margin-top: 25px;">
-                        <label>Remarks / Catatan</label>
-                        <input type="text" id="remarks" placeholder="Tambahkan keterangan jika diperlukan...">
+                    <div class="form-group">
+                        <label>Kode Handphone</label>
+                        <input type="text" id="phoneCode" placeholder="Contoh: 1b" onchange="fetchLastBalance()">
                     </div>
-
-                    <div class="result-box" id="resultBox">
-                        <div class="result-title">
-                            <span>✅</span>
-                            <span>Berhasil Disimpan!</span>
-                        </div>
-                        <div id="resultLinks" style="color: #155724; line-height: 1.8;"></div>
+                    <div class="form-group">
+                        <label>Tanggal Project</label>
+                        <input type="date" id="projectDate">
                     </div>
-
-                    <button class="btn-submit" id="btnSubmit" onclick="submitAll()">
-                        <span>🚀</span>
-                        <span>Submit ke Google Sheets & Drive</span>
-                    </button>
                 </div>
 
-                <!-- Local Data Preview -->
-                <div class="form-section">
-                    <div class="section-title">
-                        <span style="font-size: 24px;">📋</span>
-                        <span>Data Tersimpan (Local Backup)</span>
-                    </div>
-                    <div class="data-table-container">
-                        <div id="tableContainer">
-                            <div class="empty-state">Belum ada data tersimpan</div>
-                        </div>
+                <div class="card">
+                    <div class="card-title">💰 Saldo & Top Up</div>
+                    <div class="form-group">
+                        <label>Top Up (Rp)</label>
+                        <input type="number" id="topUpAmount" placeholder="0" onchange="calculateBalances()">
                     </div>
                     
-                    <div class="export-section">
-                        <button class="btn-export" onclick="exportCSV()">📥 Export CSV</button>
-                        <button class="btn-export" onclick="copyForSheets()">📋 Copy Format Sheets</button>
-                        <button class="btn-export delete" onclick="clearLocal()">🗑️ Clear Local Data</button>
+                    <div class="summary-cards" style="margin-top: 10px;">
+                        <div class="summary-card">
+                            <h4>Grab Start</h4>
+                            <div class="amount" id="grabStart">0</div>
+                        </div>
+                        <div class="summary-card" style="background: linear-gradient(135deg, #f56565, #e53e3e);">
+                            <h4>JC Start</h4>
+                            <div class="amount" id="jcStart">0</div>
+                        </div>
+                        <div class="summary-card" style="background: linear-gradient(135deg, #ed8936, #dd6b20);">
+                            <h4>HD Start</h4>
+                            <div class="amount" id="hdStart">0</div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('invoice')">📄 Invoice</button>
+                <button class="tab" onclick="switchTab('ending')">💳 Ending Balance</button>
+                <button class="tab" onclick="switchTab('project')">⚡ Project Lain</button>
+                <button class="tab" onclick="switchTab('preview')">📊 Preview Data</button>
+            </div>
+
+            <!-- TAB 1: Invoice -->
+            <div id="invoice-tab" class="tab-content active">
+                <div class="info-text">
+                    Upload screenshot invoice GrabFood/GoFood/ShopeeFood. OCR akan otomatis membaca total bayar.
+                </div>
+                
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="platform-badge badge-grab">🟢 GRAB (OVO)</span>
+                        </div>
+                        <div class="upload-zone" id="zoneGrab" onclick="document.getElementById('fileGrab').click()">
+                            <input type="file" id="fileGrab" accept="image/*" onchange="handleFile(this, 'grab')">
+                            <span class="icon">📤</span>
+                            <p><strong>Upload Invoice Grab</strong></p>
+                            <p style="color: #a0aec0; font-size: 0.9em;">Klik atau drag file ke sini</p>
+                            <img id="previewGrab" class="preview-img">
+                        </div>
+                        <div class="ocr-panel" id="ocrGrab">
+                            <div>Hasil OCR:</div>
+                            <pre id="textGrab" style="margin-top: 8px; white-space: pre-wrap;"></pre>
+                            <div class="detected-value">Total: Rp <span id="valGrab">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="platform-badge badge-jc">🔴 JC (GoPay)</span>
+                        </div>
+                        <div class="upload-zone" id="zoneJc" onclick="document.getElementById('fileJc').click()">
+                            <input type="file" id="fileJc" accept="image/*" onchange="handleFile(this, 'jc')">
+                            <span class="icon">📤</span>
+                            <p><strong>Upload Invoice JC</strong></p>
+                            <p style="color: #a0aec0; font-size: 0.9em;">Klik atau drag file ke sini</p>
+                            <img id="previewJc" class="preview-img">
+                        </div>
+                        <div class="ocr-panel" id="ocrJc">
+                            <div>Hasil OCR:</div>
+                            <pre id="textJc" style="margin-top: 8px; white-space: pre-wrap;"></pre>
+                            <div class="detected-value">Total: Rp <span id="valJc">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="platform-badge badge-hd">🟠 HD (ShopeePay)</span>
+                        </div>
+                        <div class="upload-zone" id="zoneHd" onclick="document.getElementById('fileHd').click()">
+                            <input type="file" id="fileHd" accept="image/*" onchange="handleFile(this, 'hd')">
+                            <span class="icon">📤</span>
+                            <p><strong>Upload Invoice HD</strong></p>
+                            <p style="color: #a0aec0; font-size: 0.9em;">Klik atau drag file ke sini</p>
+                            <img id="previewHd" class="preview-img">
+                        </div>
+                        <div class="ocr-panel" id="ocrHd">
+                            <div>Hasil OCR:</div>
+                            <pre id="textHd" style="margin-top: 8px; white-space: pre-wrap;"></pre>
+                            <div class="detected-value">Total: Rp <span id="valHd">0</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn btn-success" onclick="submitInvoice()" style="font-size: 1.1em; padding: 16px 40px;">
+                        🚀 Kirim Invoice ke Google Sheets
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: Ending Balance -->
+            <div id="ending-tab" class="tab-content">
+                <div class="info-text">
+                    Upload screenshot saldo akhir dari masing-masing e-wallet. Data ini akan digunakan untuk perhitungan saldo awal transaksi berikutnya.
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="platform-badge badge-grab">🟢 GRAB Ending (OVO)</span>
+                        </div>
+                        <div class="upload-zone" id="zoneEndGrab" onclick="document.getElementById('fileEndGrab').click()">
+                            <input type="file" id="fileEndGrab" accept="image/*" onchange="handleEnding(this, 'grab')">
+                            <span class="icon">💳</span>
+                            <p><strong>Upload Saldo OVO</strong></p>
+                            <img id="previewEndGrab" class="preview-img">
+                        </div>
+                        <div class="ocr-panel" id="ocrEndGrab">
+                            <div class="detected-value">Saldo: Rp <span id="valEndGrab">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="platform-badge badge-jc">🔴 JC Ending (GoPay)</span>
+                        </div>
+                        <div class="upload-zone" id="zoneEndJc" onclick="document.getElementById('fileEndJc').click()">
+                            <input type="file" id="fileEndJc" accept="image/*" onchange="handleEnding(this, 'jc')">
+                            <span class="icon">💳</span>
+                            <p><strong>Upload Saldo GoPay</strong></p>
+                            <img id="previewEndJc" class="preview-img">
+                        </div>
+                        <div class="ocr-panel" id="ocrEndJc">
+                            <div class="detected-value">Saldo: Rp <span id="valEndJc">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">
+                            <span class="platform-badge badge-hd">🟠 HD Ending (ShopeePay)</span>
+                        </div>
+                        <div class="upload-zone" id="zoneEndHd" onclick="document.getElementById('fileEndHd').click()">
+                            <input type="file" id="fileEndHd" accept="image/*" onchange="handleEnding(this, 'hd')">
+                            <span class="icon">💳</span>
+                            <p><strong>Upload Saldo ShopeePay</strong></p>
+                            <img id="previewEndHd" class="preview-img">
+                        </div>
+                        <div class="ocr-panel" id="ocrEndHd">
+                            <div class="detected-value">Saldo: Rp <span id="valEndHd">0</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn btn-success" onclick="submitEnding()" style="font-size: 1.1em; padding: 16px 40px;">
+                        💾 Simpan Ending Balance
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 3: Project Lain -->
+            <div id="project-tab" class="tab-content">
+                <div class="info-text">
+                    Upload bukti pembelian pulsa atau struk bensin. Masukkan ke Total Usage sesuai platform yang digunakan.
+                </div>
+
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-title">⚡ Input Project Pulsa / Bensin</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Jenis Project</label>
+                            <select id="projectType" onchange="togglePlatform()">
+                                <option value="pulsa">📱 Pulsa</option>
+                                <option value="bensin">⛽ Bensin</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="platformGroup">
+                            <label>Platform Pembayaran</label>
+                            <select id="projectPlatform">
+                                <option value="GR">GR - OVO</option>
+                                <option value="JC">JC - GoPay</option>
+                                <option value="HD">HD - ShopeePay</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Nominal (Rp)</label>
+                        <input type="number" id="projectAmount" placeholder="Contoh: 21500">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Keterangan</label>
+                        <input type="text" id="projectRemarks" placeholder="Contoh: Pulsa Telkomsel 20k / Pertamina 1.63L">
+                    </div>
+
+                    <div class="upload-zone" style="margin-top: 15px;" onclick="document.getElementById('fileProject').click()">
+                        <input type="file" id="fileProject" accept="image/*" onchange="handleProjectFile(this)">
+                        <span class="icon">📎</span>
+                        <p><strong>Upload Bukti (Optional)</strong></p>
+                        <img id="previewProject" class="preview-img">
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button class="btn btn-success" onclick="submitProject()" style="font-size: 1.1em; padding: 16px 40px;">
+                        🚀 Kirim Project ke Sheets
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 4: Preview -->
+            <div id="preview-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-title">📊 Data yang Akan Dikirim</div>
+                    <div id="previewContent" style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                            <thead>
+                                <tr style="background: #4a5568; color: white;">
+                                    <th style="padding: 10px;">Field</th>
+                                    <th style="padding: 10px;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="previewTableBody">
+                                <tr><td colspan="2" style="text-align: center; padding: 20px; color: #718096;">Belum ada data</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-// ============================================
-// AUTO CONFIG - GANTI URL INI
-// ============================================
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVxgoTu0_Tch6PQOX-fjyJhAn_fif4XR9RxzwLzN-4idknfAN2_hM2NBZeAj2xr_ut/exec";
-
-// ============================================
-// GLOBAL VARIABLES
-// ============================================
-let localData = JSON.parse(localStorage.getItem('ojol_local_data') || '[]');
-let invoiceData = { grab: [], jc: [], hd: [] };
-let endingBalanceOCR = { grab: null, jc: null, hd: null };
-let remoteBalances = { grab: 0, jc: 0, hd: 0 };
-let validationStatus = { grab: false, jc: false, hd: false };
-let currentOCRController = null;
-let ocrStartTime = null;
-let ocrTimerInterval = null;
-
-// Platform detection keywords
-const PLATFORM_KEYWORDS = {
-    grab: ['ovo', 'saldo ovo', 'ovo balance', 'ovoid'],
-    jc: ['gopay', 'gojek', 'saldo gopay', 'saldo kamu', 'gopay coins'],
-    hd: ['shopeepay', 'shopee', 'saldo shopeepay', 'shopee pay']
-};
-
-// ============================================
-// INIT
-// ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    const dateInput = document.getElementById('transDate');
-    if (dateInput) {
-        dateInput.valueAsDate = new Date();
-    }
-    updateStats();
-    renderTable();
-    checkSubmitButton();
-});
-
-// ============================================
-// PHONE CODE NORMALIZATION (FLEKSIBEL)
-// ============================================
-function normalizePhoneCode(code) {
-    if (!code) return '';
-    return code
-        .toLowerCase()
-        .replace(/\s+/g, '')           // hapus semua spasi
-        .replace(/[^a-z0-9]/g, '')      // hanya huruf dan angka
-        .replace(/(.)\1+/g, '$1');      // 1bb → 1b, 1BBB → 1b
-}
-
-// ============================================
-// FETCH LAST BALANCE FROM SHEETS
-// ============================================
-async function fetchLastBalanceFromSheets() {
-    const phoneInput = document.getElementById('phoneCode');
-    const rawCode = phoneInput.value;
-    const pCode = normalizePhoneCode(rawCode);
-    
-    // Update input dengan normalized code
-    if (rawCode !== pCode) {
-        phoneInput.value = pCode;
-    }
-    
-    if (!pCode) {
-        console.log('Kode HP kosong');
-        remoteBalances = { grab: 0, jc: 0, hd: 0 };
-        updateAllPlatforms();
-        return;
-    }
-
-    console.log("Mencari saldo terakhir untuk:", pCode);
-    phoneInput.style.background = '#eff6ff';
-    phoneInput.disabled = true;
-
-    try {
-        const fetchUrl = APPS_SCRIPT_URL + '?action=getLastBalance&phoneCode=' + encodeURIComponent(pCode);
-        console.log('Fetching:', fetchUrl);
+        // ==========================================
+        // CONFIG & STATE
+        // ==========================================
         
-        const response = await fetch(fetchUrl);
+        const state = {
+            grab: { file: null, base64: null, nominal: 0, ocrText: '' },
+            jc: { file: null, base64: null, nominal: 0, ocrText: '' },
+            hd: { file: null, base64: null, nominal: 0, ocrText: '' },
+            ending: { grab: 0, jc: 0, hd: 0 },
+            project: { file: null, base64: null }
+        };
+
+        let lastBalance = { grabEnd: 0, jcEnd: 0, hdEnd: 0 };
+
+        // ==========================================
+        // INIT
+        // ==========================================
         
-        if (!response.ok) {
-            throw new Error('HTTP error! status: ' + response.status);
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('projectDate').value = new Date().toISOString().split('T')[0];
+            testConnection();
+        });
+
+        // ==========================================
+        // GAS CONNECTION
+        // ==========================================
+        
+        function getGasUrl() {
+            return document.getElementById('gasUrl').value.trim();
         }
-        
-        const result = await response.json();
-        console.log('Response dari GAS:', result);
 
-        if (result.success) {
-            remoteBalances.grab = result.grabEnd || 0;
-            remoteBalances.jc = result.jcEnd || 0;
-            remoteBalances.hd = result.hdEnd || 0;
+        async function testConnection() {
+            const url = getGasUrl();
+            const statusEl = document.getElementById('gasStatus');
             
-            showToast('success', 'Data Ditemukan!', 
-                `Ending balance ${pCode}: Grab Rp ${formatNumber(remoteBalances.grab)}, GoFood Rp ${formatNumber(remoteBalances.jc)}, Shopee Rp ${formatNumber(remoteBalances.hd)}`);
-        } else {
-            remoteBalances = { grab: 0, jc: 0, hd: 0 };
-            showToast('info', 'Kode HP Baru', `Memulai dengan saldo 0 untuk ${pCode}`);
+            if (!url || !url.includes('script.google.com')) {
+                statusEl.textContent = '❌ URL GAS tidak valid';
+                statusEl.style.background = 'rgba(245, 101, 101, 0.3)';
+                return;
+            }
+
+            try {
+                const response = await fetch(url + '?action=status', {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'Active') {
+                    statusEl.textContent = '✅ Terhubung ke GAS';
+                    statusEl.style.background = 'rgba(72, 187, 120, 0.3)';
+                } else {
+                    throw new Error('Invalid response');
+                }
+            } catch (e) {
+                statusEl.textContent = '⚠️ CORS Error - Pastikan deploy GAS dengan "Access: Anyone"';
+                statusEl.style.background = 'rgba(237, 137, 54, 0.3)';
+                showToast('GAS Error: ' + e.message, 'error');
+            }
         }
-        
-        updateAllPlatforms();
-        
-    } catch (e) {
-        console.error("Error fetch:", e);
-        showToast('error', 'Gagal Ambil Data!', 'Menggunakan data local...');
-        
-        remoteBalances.grab = getLastBalanceFromLocal('grab', pCode);
-        remoteBalances.jc = getLastBalanceFromLocal('jc', pCode);
-        remoteBalances.hd = getLastBalanceFromLocal('hd', pCode);
-        
-        updateAllPlatforms();
-    } finally {
-        phoneInput.style.background = '';
-        phoneInput.disabled = false;
-    }
-}
 
-function getLastBalanceFromLocal(platform, phoneCode) {
-    const normalized = normalizePhoneCode(phoneCode);
-    for (let i = localData.length - 1; i >= 0; i--) {
-        const data = localData[i];
-        const dataPhone = normalizePhoneCode(data.phoneCode || '');
-        if (dataPhone === normalized) {
-            return parseInt(data[platform + 'End']) || 0;
+        async function fetchLastBalance() {
+            const phoneCode = document.getElementById('phoneCode').value.trim().toLowerCase();
+            if (!phoneCode) return;
+
+            const url = getGasUrl();
+            if (!url) return;
+
+            try {
+                const response = await fetch(url + '?action=getLastBalance&phoneCode=' + encodeURIComponent(phoneCode), {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    lastBalance = {
+                        grabEnd: data.grabEnd || 0,
+                        jcEnd: data.jcEnd || 0,
+                        hdEnd: data.hdEnd || 0
+                    };
+                    calculateBalances();
+                    showToast(`Saldo terakhir ditemukan: GR=${lastBalance.grabEnd}, JC=${lastBalance.jcEnd}, HD=${lastBalance.hdEnd}`, 'success');
+                }
+            } catch (e) {
+                console.error('Fetch balance error:', e);
+            }
         }
-    }
-    return 0;
-}
 
-function updateAllPlatforms() {
-    ['grab', 'jc', 'hd'].forEach(p => {
-        calcEnding(p);
-    });
-}
+        // ==========================================
+        // CALCULATIONS
+        // ==========================================
+        
+        function calculateBalances() {
+            const topUp = parseInt(document.getElementById('topUpAmount').value) || 0;
+            
+            // Jika ada last balance, saldo awal = ending balance sebelumnya + top up
+            // Jika tidak ada, saldo awal = top up (inisialisasi)
+            const grabStart = lastBalance.grabEnd + (lastBalance.grabEnd > 0 ? topUp : topUp);
+            const jcStart = lastBalance.jcEnd + (lastBalance.jcEnd > 0 ? topUp : topUp);
+            const hdStart = lastBalance.hdEnd + (lastBalance.hdEnd > 0 ? topUp : topUp);
 
-// ============================================
-// CALCULATION: Saldo Awal = Last Ending + Top Up
-// ============================================
-function calcEnding(platform) {
-    const startInput = document.getElementById(platform + 'Start');
-    const topUpInput = document.getElementById(platform + 'TopUp');
-    const usageInput = document.getElementById(platform + 'Usage');
-    const endInput = document.getElementById(platform + 'End');
-    const endDisplay = document.getElementById(platform + 'EndDisplay');
+            // Tampilkan (jika 0 dan ada top up, tampilkan top up sebagai inisialisasi)
+            document.getElementById('grabStart').textContent = (grabStart || topUp).toLocaleString('id-ID');
+            document.getElementById('jcStart').textContent = (jcStart || topUp).toLocaleString('id-ID');
+            document.getElementById('hdStart').textContent = (hdStart || topUp).toLocaleString('id-ID');
+        }
 
-    if (!startInput || !usageInput || !endInput) {
-        console.error('Element tidak ditemukan:', platform);
-        return;
-    }
+        // ==========================================
+        // OCR HANDLERS
+        // ==========================================
+        
+        async function handleFile(input, type) {
+            const file = input.files[0];
+            if (!file) return;
 
-    // Ambil nilai
-    const lastEnding = remoteBalances[platform] || 0;
-    const topUpVal = parseInt(topUpInput?.value) || 0;
-    const usageVal = parseInt(usageInput?.value) || 0;
+            // Preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('preview' + type.charAt(0).toUpperCase() + type.slice(1)).src = e.target.result;
+                document.getElementById('preview' + type.charAt(0).toUpperCase() + type.slice(1)).style.display = 'block';
+                document.getElementById('zone' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active');
+            };
+            reader.readAsDataURL(file);
 
-    // Hitung Saldo Awal = Ending Balance Terakhir + Top Up
-    const startVal = lastEnding + topUpVal;
-    startInput.value = startVal;
+            // Convert to base64 for upload
+            const base64 = await fileToBase64(file);
+            state[type].file = file;
+            state[type].base64 = base64;
 
-    // Hitung Ending Balance = Saldo Awal - Usage
-    const finalEnd = startVal - usageVal;
-    endInput.value = finalEnd;
-
-    if (endDisplay) {
-        endDisplay.innerText = 'Rp ' + finalEnd.toLocaleString('id-ID');
-    }
-    
-    console.log(`${platform}: LastEnd=${lastEnding} + TopUp=${topUpVal} = Start=${startVal} - Usage=${usageVal} = End=${finalEnd}`);
-    
-    // Re-validate jika sudah ada OCR
-    if (endingBalanceOCR[platform] !== null) {
-        validateEndingBalance(platform);
-    }
-}
-
-function updateTotalUsage(platform) {
-    const total = invoiceData[platform].reduce((sum, inv) => sum + inv.amount, 0);
-    const usageInput = document.getElementById(platform + 'Usage');
-    
-    if (usageInput) {
-        usageInput.value = total;
-        calcEnding(platform);
-    }
-}
-
-// ============================================
-// TOAST NOTIFICATION
-// ============================================
-function showToast(type, title, message, duration = 3000) {
-    const toast = document.getElementById('toast');
-    const icon = document.getElementById('toastIcon');
-    const titleEl = document.getElementById('toastTitle');
-    const messageEl = document.getElementById('toastMessage');
-    
-    if (!toast) {
-        alert(title + ': ' + message);
-        return;
-    }
-    
-    const icons = {
-        success: '✓',
-        error: '✕',
-        warning: '⚠',
-        info: 'ℹ'
-    };
-    
-    const colors = {
-        success: '#d4edda',
-        error: '#f8d7da',
-        warning: '#fff3cd',
-        info: '#d1ecf1'
-    };
-    
-    icon.textContent = icons[type] || 'ℹ';
-    icon.className = 'toast-icon ' + type;
-    icon.style.background = colors[type] || '#e2e8f0';
-    titleEl.textContent = title;
-    messageEl.textContent = message;
-    
-    toast.classList.add('active');
-    
-    setTimeout(() => {
-        toast.classList.remove('active');
-    }, duration);
-}
-
-// ============================================
-// OCR - INVOICE USAGE (TETAP KETAT)
-// ============================================
-async function handleMultipleInvoices(platform, input) {
-    const files = Array.from(input.files);
-    if (files.length === 0) return;
-
-    const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-    const section = document.getElementById(platform + 'InvoiceSection');
-    const hint = document.getElementById(platform + 'InvoiceHint');
-    const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
-    
-    currentOCRController = new AbortController();
-    
-    box.classList.add('processing');
-    section.classList.add('processing');
-    if (loadingIndicator) loadingIndicator.classList.add('active');
-    hint.className = 'file-hint processing-text';
-    hint.innerHTML = '<span>⏳</span><span>Sedang memproses ' + files.length + ' file...</span>';
-    
-    showProgressOverlay('Membaca Invoice ' + platform.toUpperCase(), 'Sedang memproses ' + files.length + ' file dengan OCR');
-
-    let validFiles = 0;
-    let invalidFiles = 0;
-
-    try {
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            updateProgress(0, 100, i + 1, files.length, 'Membaca ' + file.name + '...');
+            // OCR
+            showLoading('Membaca invoice ' + type.toUpperCase() + '...');
             
             try {
-                const result = await Tesseract.recognize(file, 'ind+eng', {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            updateProgress(m.progress * 100, 100, i + 1, files.length, 
-                                'OCR ' + file.name + '... ' + Math.round(m.progress * 100) + '%');
-                        }
-                    }
-                });
+                const result = await Tesseract.recognize(file, 'ind+eng');
+                const text = result.data.text;
+                state[type].ocrText = text;
 
-                const ocrText = result.data.text;
-                const validation = validatePlatform(ocrText, platform);
-                
-                if (!validation.valid && validation.hasWrongWallet) {
-                    invalidFiles++;
-                    showToast('error', 'File Ditolak!', file.name + ' terdeteksi sebagai ' + validation.wrongPlatform.toUpperCase());
-                    continue;
-                }
-                
-                const amount = extractTotal(ocrText, platform);
-                
-                invoiceData[platform].push({
-                    name: file.name,
-                    amount: amount,
-                    text: ocrText,
-                    validated: validation.valid
-                });
-                
-                validFiles++;
-                updateInvoiceList(platform);
-                
+                // Extract nominal
+                const nominal = extractInvoiceNominal(text, type);
+                state[type].nominal = nominal;
+
+                // Display
+                document.getElementById('text' + type.charAt(0).toUpperCase() + type.slice(1)).textContent = text;
+                document.getElementById('val' + type.charAt(0).toUpperCase() + type.slice(1)).textContent = nominal.toLocaleString('id-ID');
+                document.getElementById('ocr' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('show');
+
+                showToast(`OCR ${type.toUpperCase()} berhasil! Terdeteksi: Rp ${nominal.toLocaleString('id-ID')}`, 'success');
             } catch (e) {
-                console.error('OCR gagal untuk', file.name, e);
+                showToast('OCR Error: ' + e.message, 'error');
+            } finally {
+                hideLoading();
             }
         }
-        
-        updateTotalUsage(platform);
-        
-        if (invalidFiles > 0 && validFiles === 0) {
-            hint.innerHTML = '<span>❌</span><span>Semua file ditolak!</span>';
-            hint.className = 'file-hint error-text';
-        } else if (invalidFiles > 0) {
-            hint.innerHTML = '<span>⚠️</span><span>' + invalidFiles + ' ditolak, ' + validFiles + ' diterima</span>';
-            hint.className = 'file-hint warning-text';
-        } else {
-            hint.innerHTML = '<span>✅</span><span>' + validFiles + ' invoice berhasil diproses</span>';
-            hint.className = 'file-hint success-text';
-        }
-        
-    } catch (error) {
-        showToast('error', 'Error', error.message);
-    } finally {
-        hideProgressOverlay();
-        box.classList.remove('processing');
-        section.classList.remove('processing');
-        if (loadingIndicator) loadingIndicator.classList.remove('active');
-        input.value = '';
-        updateStats();
-    }
-}
 
-function updateInvoiceList(platform) {
-    const listContainer = document.getElementById(platform + 'InvoiceList');
-    if (!listContainer) return;
-    
-    const invoices = invoiceData[platform];
-    if (invoices.length === 0) {
-        listContainer.innerHTML = '';
-        return;
-    }
-    
-    let html = '';
-    invoices.forEach((inv, index) => {
-        html += '<div class="invoice-item ' + platform + '">' +
-            '<div class="invoice-name">' + inv.name + '</div>' +
-            '<div class="invoice-amount">Rp ' + formatNumber(inv.amount) + '</div>' +
-            '<button class="remove-btn" onclick="removeInvoice(\'' + platform + '\', ' + index + ')">×</button>' +
-            '</div>';
-    });
-    
-    listContainer.innerHTML = html;
-}
+        async function handleEnding(input, type) {
+            const file = input.files[0];
+            if (!file) return;
 
-function removeInvoice(platform, index) {
-    invoiceData[platform].splice(index, 1);
-    updateInvoiceList(platform);
-    updateTotalUsage(platform);
-    updateStats();
-}
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewEnd' + type.charAt(0).toUpperCase() + type.slice(1)).src = e.target.result;
+                document.getElementById('previewEnd' + type.charAt(0).toUpperCase() + type.slice(1)).style.display = 'block';
+                document.getElementById('zoneEnd' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active');
+            };
+            reader.readAsDataURL(file);
 
-function validatePlatform(text, expectedPlatform) {
-    const textLower = text.toLowerCase();
-    const keywords = PLATFORM_KEYWORDS[expectedPlatform];
-    
-    const hasCorrectWallet = keywords.some(keyword => textLower.includes(keyword));
-    
-    let hasWrongWallet = false;
-    let wrongPlatform = '';
-    
-    for (let [platform, platformKeywords] of Object.entries(PLATFORM_KEYWORDS)) {
-        if (platform !== expectedPlatform) {
-            if (platformKeywords.some(keyword => textLower.includes(keyword))) {
-                hasWrongWallet = true;
-                wrongPlatform = platform;
-                break;
-            }
-        }
-    }
-    
-    return {
-        valid: hasCorrectWallet && !hasWrongWallet,
-        hasCorrectWallet,
-        hasWrongWallet,
-        wrongPlatform,
-        detectedWallet: hasCorrectWallet ? expectedPlatform : (hasWrongWallet ? wrongPlatform : 'unknown')
-    };
-}
+            showLoading('Membaca saldo ' + type.toUpperCase() + '...');
 
-function extractTotal(text, platform) {
-    const lines = text.split('\n');
-    let candidates = [];
-    
-    // Keywords untuk mencari total pembayaran akhir (setelah diskon, parkir, layanan)
-    const keywords = {
-        grab: ['total', 'total harga', 'total pembayaran', 'dibayar', 'ovo', 'total tagihan'],
-        jc: ['total dibayar', 'total pembayaran', 'dibayar', 'total', 'gopay', 'total tagihan'],
-        hd: ['total', 'total harga', 'pembayaran', 'dibayar', 'shopeepay', 'total tagihan', 'total pembayaran']
-    };
-    
-    const keys = keywords[platform] || ['total'];
-    
-    // Cari di semua baris
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].toLowerCase();
-        for (let k of keys) {
-            if (line.includes(k) && !line.includes('subtotal') && !line.includes('total diskon')) {
-                // Ambil konteks 3 baris untuk mencari angka
-                const context = lines.slice(Math.max(0, i-1), i+3).join(' ');
-                const matches = context.match(/[\d.,]+/g) || [];
-                for (let m of matches) {
-                    const clean = m.replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    // Filter harga yang masuk akal (1000 - 10 juta)
-                    if (val > 1000 && val < 10000000) candidates.push(val);
-                }
-            }
-        }
-    }
-    
-    // Ambil nilai terbesar (biasanya total akhir setelah semua biaya)
-    candidates.sort((a, b) => b - a);
-    return candidates[0] || 0;
-}
-
-// ============================================
-// OCR - ENDING BALANCE (WAJIB SAMA DENGAN HITUNG)
-// ============================================
-async function doOCREndingBalance(platform, input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-    const resultDiv = document.getElementById(platform + 'OCRResult');
-    const section = document.getElementById(platform + 'BalanceSection');
-    const hint = document.getElementById(platform + 'BalanceHint');
-    const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
-    
-    box.classList.add('processing');
-    section.classList.add('processing');
-    if (loadingIndicator) loadingIndicator.classList.add('active');
-    hint.className = 'file-hint processing-text';
-    hint.innerHTML = '<span>⏳</span><span>Memproses gambar...</span>';
-
-    try {
-        const result = await Tesseract.recognize(file, 'ind+eng', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    hint.innerHTML = '<span>⏳</span><span>Membaca... ' + Math.round(m.progress * 100) + '%</span>';
-                }
-            }
-        });
-
-        const ocrText = result.data.text;
-        const validation = validatePlatform(ocrText, platform);
-        
-        if (!validation.valid && validation.hasWrongWallet) {
-            section.classList.add('error-upload');
-            hint.innerHTML = '<span>❌</span><span>FILE SALAH! Terdeteksi ' + validation.wrongPlatform.toUpperCase()
-                    continue;
-                }
-                
-                const amount = extractTotal(ocrText, platform);
-                
-                invoiceData[platform].push({
-                    name: file.name,
-                    amount: amount,
-                    text: ocrText,
-                    validated: validation.valid
-                });
-                
-                validFiles++;
-                updateInvoiceList(platform);
-                
-            } catch (e) {
-                console.error('OCR gagal untuk', file.name, e);
-            }
-        }
-        
-        updateTotalUsage(platform);
-        
-        if (invalidFiles > 0 && validFiles === 0) {
-            hint.innerHTML = '<span>❌</span><span>Semua file ditolak!</span>';
-            hint.className = 'file-hint error-text';
-        } else if (invalidFiles > 0) {
-            hint.innerHTML = '<span>⚠️</span><span>' + invalidFiles + ' ditolak, ' + validFiles + ' diterima</span>';
-            hint.className = 'file-hint warning-text';
-        } else {
-            hint.innerHTML = '<span>✅</span><span>' + validFiles + ' invoice berhasil diproses</span>';
-            hint.className = 'file-hint success-text';
-        }
-        
-    } catch (error) {
-        showToast('error', 'Error', error.message);
-    } finally {
-        hideProgressOverlay();
-        box.classList.remove('processing');
-        section.classList.remove('processing');
-        if (loadingIndicator) loadingIndicator.classList.remove('active');
-        input.value = '';
-        updateStats();
-    }
-}
-
-function updateInvoiceList(platform) {
-    const listContainer = document.getElementById(platform + 'InvoiceList');
-    if (!listContainer) return;
-    
-    const invoices = invoiceData[platform];
-    if (invoices.length === 0) {
-        listContainer.innerHTML = '';
-        return;
-    }
-    
-    let html = '';
-    invoices.forEach((inv, index) => {
-        html += '<div class="invoice-item ' + platform + '">' +
-            '<div class="invoice-name">' + inv.name + '</div>' +
-            '<div class="invoice-amount">Rp ' + formatNumber(inv.amount) + '</div>' +
-            '<button class="remove-btn" onclick="removeInvoice(\'' + platform + '\', ' + index + ')">×</button>' +
-            '</div>';
-    });
-    
-    listContainer.innerHTML = html;
-}
-
-function removeInvoice(platform, index) {
-    invoiceData[platform].splice(index, 1);
-    updateInvoiceList(platform);
-    updateTotalUsage(platform);
-    updateStats();
-}
-
-function validatePlatform(text, expectedPlatform) {
-    const textLower = text.toLowerCase();
-    const keywords = PLATFORM_KEYWORDS[expectedPlatform];
-    
-    const hasCorrectWallet = keywords.some(keyword => textLower.includes(keyword));
-    
-    let hasWrongWallet = false;
-    let wrongPlatform = '';
-    
-    for (let [platform, platformKeywords] of Object.entries(PLATFORM_KEYWORDS)) {
-        if (platform !== expectedPlatform) {
-            if (platformKeywords.some(keyword => textLower.includes(keyword))) {
-                hasWrongWallet = true;
-                wrongPlatform = platform;
-                break;
-            }
-        }
-    }
-    
-    return {
-        valid: hasCorrectWallet && !hasWrongWallet,
-        hasCorrectWallet,
-        hasWrongWallet,
-        wrongPlatform,
-        detectedWallet: hasCorrectWallet ? expectedPlatform : (hasWrongWallet ? wrongPlatform : 'unknown')
-    };
-}
-
-function extractTotal(text, platform) {
-    const lines = text.split('\n');
-    let candidates = [];
-    
-    const keywords = {
-        grab: ['total harga', 'total', 'dibayar', 'total pembayaran', 'ovo'],
-        jc: ['total dibayar', 'total pembayaran', 'dibayar', 'total', 'gopay'],
-        hd: ['total', 'pembayaran', 'dibayar', 'total harga', 'shopeepay']
-    };
-    
-    const keys = keywords[platform] || ['total'];
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].toLowerCase();
-        for (let k of keys) {
-            if (line.includes(k) && !line.includes('subtotal')) {
-                const context = lines.slice(i, i+3).join(' ');
-                const matches = context.match(/[\d.,]+/g) || [];
-                for (let m of matches) {
-                    const clean = m.replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > 1000 && val < 10000000) candidates.push(val);
-                }
-            }
-        }
-    }
-    
-    candidates.sort((a, b) => b - a);
-    return candidates[0] || 0;
-}
-
-// ============================================
-// ENDING BALANCE OCR
-// ============================================
-async function doOCREndingBalance(platform, input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const box = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-    const resultDiv = document.getElementById(platform + 'OCRResult');
-    const section = document.getElementById(platform + 'BalanceSection');
-    const hint = document.getElementById(platform + 'BalanceHint');
-    const loadingIndicator = document.getElementById(platform + 'LoadingIndicator');
-    
-    box.classList.add('processing');
-    section.classList.add('processing');
-    if (loadingIndicator) loadingIndicator.classList.add('active');
-    hint.className = 'file-hint processing-text';
-    hint.innerHTML = '<span>⏳</span><span>Memproses gambar...</span>';
-
-    try {
-        const result = await Tesseract.recognize(file, 'ind+eng', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    hint.innerHTML = '<span>⏳</span><span>Membaca... ' + Math.round(m.progress * 100) + '%</span>';
-                }
-            }
-        });
-
-        const ocrText = result.data.text;
-        const validation = validatePlatform(ocrText, platform);
-        
-        if (!validation.valid && validation.hasWrongWallet) {
-            section.classList.add('error-upload');
-            hint.innerHTML = '<span>❌</span><span>FILE SALAH! Terdeteksi ' + validation.wrongPlatform.toUpperCase() + '</span>';
-            hint.className = 'file-hint error-text';
-            
-            resultDiv.innerHTML = '<div class="ocr-result error"><div class="ocr-result-text">❌ VALIDASI GAGAL</div></div>';
-            input.value = '';
-            return;
-        }
-        
-        const balance = extractBalanceFromScreenshot(ocrText, platform);
-        endingBalanceOCR[platform] = balance;
-        
-        resultDiv.innerHTML = '<div class="ocr-result success">' +
-            '<div class="ocr-result-text">✅ BERHASIL</div>' +
-            '<div class="ocr-result-amount">Rp ' + formatNumber(balance) + '</div>' +
-            '</div>';
-        
-        hint.innerHTML = '<span>✅</span><span>Saldo berhasil terbaca</span>';
-        hint.className = 'file-hint success-text';
-        
-        endingBalanceOCR[platform] = amount;
-validateEndingBalance(platform);
-        updateStats();
-        
-    } catch (e) {
-        resultDiv.innerHTML = '<div class="ocr-result error"><div class="ocr-result-text">❌ GAGAL MEMBACA</div></div>';
-        hint.innerHTML = '<span>❌</span><span>Gagal memproses gambar</span>';
-        hint.className = 'file-hint error-text';
-    } finally {
-        box.classList.remove('processing');
-        section.classList.remove('processing');
-        if (loadingIndicator) loadingIndicator.classList.remove('active');
-    }
-}
-
-function extractBalanceFromScreenshot(text, platform) {
-    const lines = text.split('\n');
-    let candidates = [];
-    
-    const keywords = {
-        grab: ['ovo', 'saldo', 'rp', 'balance', 'ovo id', 'ovoid'],
-        jc: ['gopay', 'saldo kamu', 'saldo', 'rp', 'saldo gopay'],
-        hd: ['shopeepay', 'saldo', 'rp', 'shopee pay', 'saldo shopeepay']
-    };
-    
-    const keys = keywords[platform] || ['saldo', 'rp', 'balance'];
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].toLowerCase();
-        for (let k of keys) {
-            if (line.includes(k)) {
-                const context = lines.slice(i, i + 2).join(' ');
-                const matches = context.match(/[\d.,]+/g) || [];
-                for (let m of matches) {
-                    const clean = m.replace(/[.,]/g, '');
-                    const val = parseInt(clean);
-                    if (val > 1000 && val < 100000000) candidates.push(val);
-                }
-            }
-        }
-    }
-    
-    candidates.sort((a, b) => b - a);
-    return candidates[0] || 0;
-}
-
-function validateEndingBalance(platform) {
-    const platformBox = document.getElementById('box' + platform.charAt(0).toUpperCase() + platform.slice(1));
-    const validationDiv = document.getElementById(platform + 'Validation');
-    
-    const calculatedEnd = parseInt(document.getElementById(platform + 'End').value) || 0;
-    const ocrBalance = endingBalanceOCR[platform];
-    
-    if (ocrBalance === null || !validationDiv) return false;
-    
-    const tolerance = 100;
-    const isValid = Math.abs(calculatedEnd - ocrBalance) <= tolerance;
-    
-    if (isValid) {
-        platformBox.classList.remove('error');
-        platformBox.classList.add('success');
-        validationDiv.className = 'validation-box show success';
-        validationDiv.innerHTML = '✅ VALIDASI BERHASIL<br><small>Hitung: Rp ' + formatNumber(calculatedEnd) + ' ≈ OCR: Rp ' + formatNumber(ocrBalance) + '</small>';
-        return true;
-    } else {
-        platformBox.classList.remove('success');
-        platformBox.classList.add('error');
-        validationDiv.className = 'validation-box show error';
-        validationDiv.innerHTML = '❌ VALIDASI GAGAL!<br><small>Selisih: Rp ' + formatNumber(Math.abs(calculatedEnd - ocrBalance)) + '</small>';
-        setTimeout(() => platformBox.classList.remove('error'), 2000);
-        return false;
-    }
-}
-
-// ============================================
-// PROGRESS OVERLAY
-// ============================================
-function showProgressOverlay(title, subtitle) {
-    const overlay = document.getElementById('progressOverlay');
-    if (!overlay) return;
-    
-    const titleEl = document.querySelector('.progress-title');
-    const subtitleEl = document.querySelector('.progress-subtitle');
-    
-    if (titleEl) titleEl.textContent = title;
-    if (subtitleEl) subtitleEl.textContent = subtitle;
-    
-    document.getElementById('progressBarFill').style.width = '0%';
-    document.getElementById('progressPercentage').textContent = '0%';
-    document.getElementById('progressDetail').textContent = 'Menginisialisasi...';
-    document.getElementById('progressFileCount').textContent = 'File 0/0';
-    document.getElementById('progressTime').textContent = '00:00';
-    
-    overlay.classList.add('active');
-    ocrStartTime = Date.now();
-    ocrTimerInterval = setInterval(updateProgressTime, 1000);
-}
-
-function hideProgressOverlay() {
-    const overlay = document.getElementById('progressOverlay');
-    if (overlay) overlay.classList.remove('active');
-    if (ocrTimerInterval) {
-        clearInterval(ocrTimerInterval);
-        ocrTimerInterval = null;
-    }
-}
-
-function updateProgressTime() {
-    if (!ocrStartTime) return;
-    const elapsed = Math.floor((Date.now() - ocrStartTime) / 1000);
-    const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-    const seconds = (elapsed % 60).toString().padStart(2, '0');
-    const timeEl = document.getElementById('progressTime');
-    if (timeEl) timeEl.textContent = minutes + ':' + seconds;
-}
-
-function updateProgress(current, total, fileIndex, totalFiles, detail) {
-    const percentage = Math.round((current / total) * 100);
-    const overallProgress = ((fileIndex - 1 + (current / 100)) / totalFiles) * 100;
-    
-    const barFill = document.getElementById('progressBarFill');
-    const percentageEl = document.getElementById('progressPercentage');
-    const fileCountEl = document.getElementById('progressFileCount');
-    const detailEl = document.getElementById('progressDetail');
-    
-    if (barFill) barFill.style.width = overallProgress + '%';
-    if (percentageEl) percentageEl.textContent = Math.round(overallProgress) + '%';
-    if (fileCountEl) fileCountEl.textContent = 'File ' + fileIndex + '/' + totalFiles;
-    if (detailEl) detailEl.textContent = detail || 'Memproses file ' + fileIndex + ' dari ' + totalFiles + '...';
-}
-
-function cancelOCR() {
-    if (currentOCRController) {
-        currentOCRController.abort();
-        currentOCRController = null;
-    }
-    hideProgressOverlay();
-    showToast('warning', 'Dibatalkan', 'Proses OCR dihentikan', 3000);
-}
-
-// ============================================
-// STATS & SUBMIT
-// ============================================
-function updateStats() {
-    const totalInv = invoiceData.grab.length + invoiceData.jc.length + invoiceData.hd.length;
-    const totalUse = (parseInt(document.getElementById('grabUsage')?.value) || 0) +
-                    (parseInt(document.getElementById('jcUsage')?.value) || 0) +
-                    (parseInt(document.getElementById('hdUsage')?.value) || 0);
-    
-    let validated = 0;
-    if (endingBalanceOCR.grab !== null) validated++;
-    if (endingBalanceOCR.jc !== null) validated++;
-    if (endingBalanceOCR.hd !== null) validated++;
-    
-    const totalInvEl = document.getElementById('totalInvoices');
-    const totalUseEl = document.getElementById('totalUsage');
-    const validatedEl = document.getElementById('validatedCount');
-    const statsBar = document.getElementById('statsBar');
-    
-    if (totalInvEl) totalInvEl.textContent = totalInv;
-    if (totalUseEl) totalUseEl.textContent = 'Rp ' + formatNumber(totalUse);
-    if (validatedEl) validatedEl.textContent = validated + '/3';
-    if (statsBar && totalInv > 0) statsBar.style.display = 'flex';
-}
-
-async function submitAll() {
-    const btn = document.getElementById('btnSubmit');
-    const resultBox = document.getElementById('resultBox');
-    
-    // Validasi
-    const platforms = ['grab', 'jc', 'hd'];
-    
-    // Cek validasi OCR
-    let allValid = true;
-    let invalidPlatforms = [];
-    
-    for (let platform of platforms) {
-        const ocrBalance = endingBalanceOCR[platform];
-        if (ocrBalance !== null) {
-            const isValid = validateEndingBalance(platform);
-            if (!isValid) {
-                allValid = false;
-                invalidPlatforms.push(platform.toUpperCase());
-            }
-        }
-    }
-    
-    if (!allValid) {
-        alert('❌ TIDAK DAPAT SUBMIT! Validasi ending balance gagal untuk: ' + invalidPlatforms.join(', '));
-        return;
-    }
-    
-    // Normalisasi Kode HP
-    const rawPhoneCode = document.getElementById('phoneCode')?.value || '';
-    const normalizedPhoneCode = rawPhoneCode.toLowerCase().replace(/\s+/g, '');
-
-    if (!normalizedPhoneCode) {
-        alert('❌ Kode HP harus diisi!');
-        return;
-    }
-
-    if (!APPS_SCRIPT_URL) {
-        alert('❌ Belum ada config!');
-        return;
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span><span>Mengupload...</span>';
-    if (resultBox) resultBox.classList.remove('active');
-
-    const data = {
-        timestamp: new Date().toLocaleString('id-ID'),
-        admin: document.getElementById('adminName')?.value || '',
-        date: document.getElementById('transDate')?.value || '',
-        phoneCode: normalizedPhoneCode,
-        
-        // Struktur tanpa Top Up (sesuai sheet Anda)
-        grabStart: parseInt(document.getElementById('grabStart')?.value) || 0,
-        grabUsage: parseInt(document.getElementById('grabUsage')?.value) || 0,
-        grabEnd: parseInt(document.getElementById('grabEnd')?.value) || 0,
-        
-        jcStart: parseInt(document.getElementById('jcStart')?.value) || 0,
-        jcUsage: parseInt(document.getElementById('jcUsage')?.value) || 0,
-        jcEnd: parseInt(document.getElementById('jcEnd')?.value) || 0,
-        
-        hdStart: parseInt(document.getElementById('hdStart')?.value) || 0,
-        hdUsage: parseInt(document.getElementById('hdUsage')?.value) || 0,
-        hdEnd: parseInt(document.getElementById('hdEnd')?.value) || 0,
-        
-        remarks: document.getElementById('remarks')?.value || '',
-        project: document.getElementById('project')?.value || 'Food',
-        
-        files: {}
-    };
-
-    if (!data.admin || !data.date) {
-        alert('❌ Isi Nama Admin dan Tanggal!');
-        btn.disabled = false;
-        btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
-        return;
-    }
-
-    // Upload files
-    const fileInputs = ['ssGrab', 'ssJc', 'ssHd'];
-    for (let id of fileInputs) {
-        const input = document.getElementById(id);
-        if (input?.files[0]) {
             try {
-                data.files[id] = await toBase64(input.files[0]);
+                const result = await Tesseract.recognize(file, 'ind+eng');
+                const text = result.data.text;
+                
+                // Extract balance
+                const balance = extractBalance(text);
+                state.ending[type] = balance;
+
+                document.getElementById('valEnd' + type.charAt(0).toUpperCase() + type.slice(1)).textContent = balance.toLocaleString('id-ID');
+                document.getElementById('ocrEnd' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('show');
+
+                showToast(`Saldo ${type.toUpperCase()}: Rp ${balance.toLocaleString('id-ID')}`, 'success');
             } catch (e) {
-                console.error('Error converting file:', e);
+                showToast('OCR Error: ' + e.message, 'error');
+            } finally {
+                hideLoading();
             }
         }
-    }
 
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        
-        // Simpan ke local
-        data.driveLinks = { status: 'Uploaded' };
-        localData.unshift(data);
-        localStorage.setItem('ojol_local_data', JSON.stringify(localData));
-        
-        renderTable();
-        clearForm();
-        
-        if (resultBox) {
-            resultBox.classList.add('active');
-            const resultLinks = document.getElementById('resultLinks');
-            if (resultLinks) {
-                resultLinks.innerHTML = '✅ Data tersimpan di Google Sheets<br>✅ Screenshots di Google Drive';
+        async function handleProjectFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewProject').src = e.target.result;
+                document.getElementById('previewProject').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            state.project.file = file;
+            state.project.base64 = await fileToBase64(file);
+
+            // Try OCR for amount
+            try {
+                const result = await Tesseract.recognize(file, 'ind+eng');
+                const nominal = extractInvoiceNominal(result.data.text, 'project');
+                if (nominal > 0) {
+                    document.getElementById('projectAmount').value = nominal;
+                    showToast('Nominal terdeteksi: Rp ' + nominal.toLocaleString('id-ID'), 'success');
+                }
+            } catch (e) {
+                console.log('OCR project failed:', e);
             }
         }
-        
-        showToast('success', 'Berhasil!', 'Data telah disimpan');
-        
-    } catch (e) {
-        console.error('Submit error:', e);
-        alert('❌ Error: ' + e.message + '\n\nData disimpan local sebagai backup.');
-        localData.unshift(data);
-        localStorage.setItem('ojol_local_data', JSON.stringify(localData));
-        renderTable();
-    }
-    
-    btn.disabled = false;
-    btn.innerHTML = '<span>🚀</span><span>Submit ke Google Sheets & Drive</span>';
-}
 
-function toBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve({
-            name: file.name,
-            type: file.type,
-            data: reader.result.split(',')[1]
-        });
-        reader.onerror = reject;
-    });
-}
+        // ==========================================
+        // OCR EXTRACTORS
+        // ==========================================
+        
+        function extractInvoiceNominal(text, type) {
+            // Patterns untuk berbagai format invoice
+            const patterns = [
+                /Total\s+Harga\s*Rp[.\s]*([\d.,]+)/i,
+                /Total\s+dibayar\s*Rp[.\s]*([\d.,]+)/i,
+                /Total\s*Rp[.\s]*([\d.,]+)/i,
+                /Rp([\d.,]+)\s*$/m,
+                /([0-9]+[.,][0-9]{3})/g,
+                /Total\s+Transaksi\s*Rp[.\s]*([\d.,]+)/i,
+                /Pembelian\s+Berhasil\s*Rp[.\s]*([\d.,]+)/i
+            ];
 
-function clearForm() {
-    ['grab', 'jc', 'hd'].forEach(p => {
-        const usageInput = document.getElementById(p + 'Usage');
-        const endInput = document.getElementById(p + 'End');
-        const endDisplay = document.getElementById(p + 'EndDisplay');
-        const box = document.getElementById('box' + p.charAt(0).toUpperCase() + p.slice(1));
-        const validationDiv = document.getElementById(p + 'Validation');
-        const ocrResult = document.getElementById(p + 'OCRResult');
-        const invoiceList = document.getElementById(p + 'InvoiceList');
-        
-        // Jangan hapus Start (saldo awal), hanya reset Usage dan End
-        if (usageInput) usageInput.value = '';
-        if (endInput) endInput.value = '0';
-        if (endDisplay) endDisplay.textContent = 'Rp 0';
-        if (box) box.classList.remove('success', 'error');
-        if (validationDiv) validationDiv.classList.remove('show');
-        if (ocrResult) ocrResult.innerHTML = '';
-        if (invoiceList) invoiceList.innerHTML = '';
-        
-        // Reset hints
-        const hints = [p + 'InvoiceHint', p + 'BalanceHint'];
-        hints.forEach(hintId => {
-            const hint = document.getElementById(hintId);
-            if (hint) {
-                hint.className = 'file-hint';
-                hint.innerHTML = hintId.includes('Invoice') 
-                    ? '<span>💡</span><span>Upload screenshot invoice/bukti pembayaran</span>'
-                    : '<span>💡</span><span>Upload screenshot saldo akhir</span>';
+            let candidates = [];
+            
+            for (let pattern of patterns) {
+                const matches = text.matchAll(pattern);
+                for (let match of matches) {
+                    let val = (match[1] || match[0]).replace(/[.,]/g, '');
+                    let num = parseInt(val);
+                    if (num > 1000 && num < 10000000) candidates.push(num);
+                }
             }
-        });
-    });
-    
-    invoiceData = { grab: [], jc: [], hd: [] };
-    endingBalanceOCR = { grab: null, jc: null, hd: null };
-    
-    const remarks = document.getElementById('remarks');
-    const ssGrab = document.getElementById('ssGrab');
-    const ssJc = document.getElementById('ssJc');
-    const ssHd = document.getElementById('ssHd');
-    const resultBox = document.getElementById('resultBox');
-    const statsBar = document.getElementById('statsBar');
-    
-    if (remarks) remarks.value = '';
-    if (ssGrab) ssGrab.value = '';
-    if (ssJc) ssJc.value = '';
-    if (ssHd) ssHd.value = '';
-    if (resultBox) resultBox.classList.remove('active');
-    if (statsBar) statsBar.style.display = 'none';
-    
-    // Reset remote balances tapi jangan hapus phone code dan start balance
-    // Karena user mungkin mau input lagi dengan HP yang sama
-}
 
-function renderTable() {
-    const container = document.getElementById('tableContainer');
-    if (!container) return;
-    
-    if (localData.length === 0) {
-        container.innerHTML = '<div class="empty-state">Belum ada data tersimpan</div>';
-        return;
-    }
+            // Return max candidate (usually the total)
+            return candidates.length > 0 ? Math.max(...candidates) : 0;
+        }
 
-    let html = '<table class="data-table"><thead><tr>' +
-        '<th>Timestamp</th><th>Admin</th><th>Date</th><th>HP</th>' +
-        '<th>GR Start</th><th>GR Usage</th><th>GR End</th>' +
-        '<th>JC Start</th><th>JC Usage</th><th>JC End</th>' +
-        '<th>HD Start</th><th>HD Usage</th><th>HD End</th>' +
-        '</tr></thead><tbody>';
+        function extractBalance(text) {
+            const patterns = [
+                /Saldo\s+kamu\s*Rp[.\s]*([\d.,]+)/i,
+                /Rp\s*([\d.,]+)\s*Poin/i,
+                /ShopeePay\s*Rp\s*([\d.,]+)/i,
+                /Rp[.\s]*([\d.,]+)/g
+            ];
 
-    localData.forEach(d => {
-        html += '<tr>' +
-            '<td>' + (d.timestamp || '') + '</td>' +
-            '<td>' + (d.admin || '') + '</td>' +
-            '<td>' + (d.date || '') + '</td>' +
-            '<td>' + (d.phoneCode || '') + '</td>' +
-            '<td>' + formatNumber(d.grabStart) + '</td>' +
-            '<td class="amount-neg">' + formatNumber(d.grabUsage) + '</td>' +
-            '<td class="amount-pos">' + formatNumber(d.grabEnd) + '</td>' +
-            '<td>' + formatNumber(d.jcStart) + '</td>' +
-            '<td class="amount-neg">' + formatNumber(d.jcUsage) + '</td>' +
-            '<td class="amount-pos">' + formatNumber(d.jcEnd) + '</td>' +
-            '<td>' + formatNumber(d.hdStart) + '</td>' +
-            '<td class="amount-neg">' + formatNumber(d.hdUsage) + '</td>' +
-            '<td class="amount-pos">' + formatNumber(d.hdEnd) + '</td>' +
-            '</tr>';
-    });
+            let candidates = [];
+            
+            for (let pattern of patterns) {
+                const matches = text.matchAll(pattern);
+                for (let match of matches) {
+                    let val = (match[1] || match[0]).replace(/[.,]/g, '');
+                    let num = parseInt(val);
+                    if (num >= 10000 && num < 10000000) candidates.push(num);
+                }
+            }
 
-    html += '</tbody></table>';
-    container.innerHTML = html;
-}
+            return candidates.length > 0 ? Math.max(...candidates) : 0;
+        }
 
-function formatNumber(n) {
-    return parseInt(n || 0).toLocaleString('id-ID');
-}
+        // ==========================================
+        // SUBMIT FUNCTIONS
+        // ==========================================
+        
+        async function submitInvoice() {
+            const admin = document.getElementById('adminName').value.trim();
+            const phoneCode = document.getElementById('phoneCode').value.trim().toLowerCase();
+            const date = document.getElementById('projectDate').value;
+            const topUp = parseInt(document.getElementById('topUpAmount').value) || 0;
 
-function exportCSV() {
-    const headers = ['Timestamp', 'Admin', 'Date', 'Kode HP', 'Project', 'Remarks',
-        'Grab Start', 'Grab Usage', 'Grab End',
-        'JC Start', 'JC Usage', 'JC End',
-        'HD Start', 'HD Usage', 'HD End'];
-    
-    let csv = headers.join(',') + '\n';
-    localData.forEach(d => {
-        csv += d.timestamp + ',' + d.admin + ',' + d.date + ',' + d.phoneCode + ',' + d.project + ',"' + (d.remarks || '') + '",' +
-               d.grabStart + ',' + d.grabUsage + ',' + d.grabEnd + ',' +
-               d.jcStart + ',' + d.jcUsage + ',' + d.jcEnd + ',' +
-               d.hdStart + ',' + d.hdUsage + ',' + d.hdEnd + '\n';
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'Laporan_Ojol_' + new Date().toISOString().split('T')[0] + '.csv';
-    a.click();
-}
+            if (!admin || !phoneCode || !date) {
+                showToast('Harap isi Nama Admin, Kode HP, dan Tanggal!', 'error');
+                return;
+            }
 
-function copyForSheets() {
-    let text = 'Timestamp\tAdmin\tDate\tKode HP\tProject\tRemarks\t' +
-                'Grab Start\tGrab Usage\tGrab End\t' +
-                'JC Start\tJC Usage\tJC End\t' +
-                'HD Start\tHD Usage\tHD End\n';
-    
-    localData.forEach(d => {
-        text += d.timestamp + '\t' + d.admin + '\t' + d.date + '\t' + d.phoneCode + '\t' + d.project + '\t' + (d.remarks || '') + '\t' +
-                d.grabStart + '\t' + d.grabUsage + '\t' + d.grabEnd + '\t' +
-                d.jcStart + '\t' + d.jcUsage + '\t' + d.jcEnd + '\t' +
-                d.hdStart + '\t' + d.hdUsage + '\t' + d.hdEnd + '\n';
-    });
-    
-    navigator.clipboard.writeText(text).then(() => {
-        alert('✅ Format Google Sheets dicopy! Paste ke Sheets (Ctrl+V)');
-    });
-}
+            // Calculate starts
+            const grabStart = lastBalance.grabEnd + (lastBalance.grabEnd > 0 ? topUp : topUp) || topUp;
+            const jcStart = lastBalance.jcEnd + (lastBalance.jcEnd > 0 ? topUp : topUp) || topUp;
+            const hdStart = lastBalance.hdEnd + (lastBalance.hdEnd > 0 ? topUp : topUp) || topUp;
 
-function clearLocal() {
-    if (confirm('Hapus semua data local?')) {
-        localData = [];
-        localStorage.removeItem('ojol_local_data');
-        renderTable();
-        showToast('success', 'Dihapus', 'Data local telah dibersihkan');
-    }
-}
-function normalizePhoneCode(code) {
-    return (code || '')
-        .toLowerCase()
-        .replace(/\s+/g, '')     // hapus spasi
-        .replace(/[^a-z0-9]/g, '') // hanya huruf & angka
-        .replace(/(.)\1+/g, '$1'); // 1bb → 1b
-}
-function validateEndingBalance(platform) {
-    const calculated = parseInt(document.getElementById(platform + 'End').value) || 0;
-    const ocr = endingBalanceOCR[platform];
+            const payload = {
+                admin: admin,
+                phoneCode: phoneCode,
+                date: date,
+                grabStart: grabStart,
+                grabUsage: state.grab.nominal,
+                grabEnd: grabStart - state.grab.nominal,
+                jcStart: jcStart,
+                jcUsage: state.jc.nominal,
+                jcEnd: jcStart - state.jc.nominal,
+                hdStart: hdStart,
+                hdUsage: state.hd.nominal,
+                hdEnd: hdStart - state.hd.nominal,
+                remarks: '',
+                project: 'Food',
+                files: {}
+            };
 
-    const box = document.getElementById(platform + 'Validation');
+            // Add files if exist
+            if (state.grab.base64) payload.files.ssGrab = { data: state.grab.base64, type: state.grab.file.type };
+            if (state.jc.base64) payload.files.ssJc = { data: state.jc.base64, type: state.jc.file.type };
+            if (state.hd.base64) payload.files.ssHd = { data: state.hd.base64, type: state.hd.file.type };
 
-    if (ocr === null) {
-        box.className = 'validation-box show error';
-        box.innerHTML = '❌ Ending OCR belum diupload!';
-        return false;
-    }
+            await sendToGAS(payload, 'Invoice berhasil disimpan!');
+        }
 
-    if (calculated !== ocr) {
-        box.className = 'validation-box show error';
-        box.innerHTML = `❌ TIDAK MATCH!<br>Hitung: Rp ${calculated.toLocaleString()}<br>OCR: Rp ${ocr.toLocaleString()}`;
-        return false;
-    }
+        async function submitEnding() {
+            const admin = document.getElementById('adminName').value.trim();
+            const phoneCode = document.getElementById('phoneCode').value.trim().toLowerCase();
+            const date = document.getElementById('projectDate').value;
 
-    box.className = 'validation-box show success';
-    box.innerHTML = `✅ VALID (${calculated.toLocaleString()})`;
-    return true;
-}
+            if (!admin || !phoneCode || !date) {
+                showToast('Harap isi data admin terlebih dahulu!', 'error');
+                return;
+            }
+
+            // Get current starts
+            const grabStart = parseInt(document.getElementById('grabStart').textContent.replace(/\./g, '')) || 0;
+            const jcStart = parseInt(document.getElementById('jcStart').textContent.replace(/\./g, '')) || 0;
+            const hdStart = parseInt(document.getElementById('hdStart').textContent.replace(/\./g, '')) || 0;
+
+            const payload = {
+                admin: admin,
+                phoneCode: phoneCode,
+                date: date,
+                grabStart: grabStart,
+                grabUsage: 0,
+                grabEnd: state.ending.grab || grabStart,
+                jcStart: jcStart,
+                jcUsage: 0,
+                jcEnd: state.ending.jc || jcStart,
+                hdStart: hdStart,
+                hdUsage: 0,
+                hdEnd: state.ending.hd || hdStart,
+                remarks: 'Ending Balance Update',
+                project: 'Balance',
+                files: {}
+            };
+
+            await sendToGAS(payload, 'Ending Balance berhasil disimpan!');
+        }
+
+        async function submitProject() {
+            const admin = document.getElementById('adminName').value.trim();
+            const phoneCode = document.getElementById('phoneCode').value.trim().toLowerCase();
+            const date = document.getElementById('projectDate').value;
+            const type = document.getElementById('projectType').value;
+            const platform = document.getElementById('projectPlatform').value;
+            const amount = parseInt(document.getElementById('projectAmount').value) || 0;
+            const remarks = document.getElementById('projectRemarks').value;
+
+            if (!admin || !phoneCode || !date || amount === 0) {
+                showToast('Harap lengkapi data project!', 'error');
+                return;
+            }
+
+            const grabStart = parseInt(document.getElementById('grabStart').textContent.replace(/\./g, '')) || 0;
+            const jcStart = parseInt(document.getElementById('jcStart').textContent.replace(/\./g, '')) || 0;
+            const hdStart = parseInt(document.getElementById('hdStart').textContent.replace(/\./g, '')) || 0;
+
+            let payload = {
+                admin: admin,
+                phoneCode: phoneCode,
+                date: date,
+                grabStart: grabStart,
+                grabUsage: 0,
+                grabEnd: grabStart,
+                jcStart: jcStart,
+                jcUsage: 0,
+                jcEnd: jcStart,
+                hdStart: hdStart,
+                hdUsage: 0,
+                hdEnd: hdStart,
+                remarks: remarks || (type === 'pulsa' ? 'Pulsa' : 'Bensin'),
+                project: type === 'pulsa' ? 'Pulsa' : 'Bensin',
+                files: {}
+            };
+
+            // Deduct from selected platform for pulsa
+            if (type === 'pulsa') {
+                if (platform === 'GR') {
+                    payload.grabUsage = amount;
+                    payload.grabEnd = grabStart - amount;
+                } else if (platform === 'JC') {
+                    payload.jcUsage = amount;
+                    payload.jcEnd = jcStart - amount;
+                } else if (platform === 'HD') {
+                    payload.hdUsage = amount;
+                    payload.hdEnd = hdStart - amount;
+                }
+            }
+
+            if (state.project.base64) {
+                // Upload to appropriate field
+                if (platform === 'GR') payload.files.ssGrab = { data: state.project.base64, type: state.project.file.type };
+                else if (platform === 'JC') payload.files.ssJc = { data: state.project.base64, type: state.project.file.type };
+                else payload.files.ssHd = { data: state.project.base64, type: state.project.file.type };
+            }
+
+            await sendToGAS(payload, `Project ${type} berhasil disimpan!`);
+        }
+
+        // ==========================================
+        // GAS SENDER
+        // ==========================================
+        
+        async function sendToGAS(payload, successMsg) {
+            showLoading('Mengirim data ke Google Sheets...');
+            
+            try {
+                const response = await fetch(getGasUrl(), {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(successMsg + ' (Baris: ' + result.rowNumber + ')', 'success');
+                    updatePreview(payload);
+                    clearState();
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+                console.error('GAS Error:', e);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ==========================================
+        // HELPERS
+        // ==========================================
+        
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        function togglePlatform() {
+            const type = document.getElementById('projectType').value;
+            const group = document.getElementById('platformGroup');
+            group.style.display = type === 'pulsa' ? 'block' : 'none';
+        }
+
+        function updatePreview(payload) {
+            const tbody = document.getElementById('previewTableBody');
+            const fields = [
+                ['Nama Admin', payload.admin],
+                ['Kode HP', payload.phoneCode],
+                ['Date', payload.date],
+                ['Grab Start', 'Rp ' + payload.grabStart.toLocaleString('id-ID')],
+                ['Grab Usage', 'Rp ' + payload.grabUsage.toLocaleString('id-ID')],
+                ['Grab End', 'Rp ' + payload.grabEnd.toLocaleString('id-ID')],
+                ['JC Start', 'Rp ' + payload.jcStart.toLocaleString('id-ID')],
+                ['JC Usage', 'Rp ' + payload.jcUsage.toLocaleString('id-ID')],
+                ['JC End', 'Rp ' + payload.jcEnd.toLocaleString('id-ID')],
+                ['HD Start', 'Rp ' + payload.hdStart.toLocaleString('id-ID')],
+                ['HD Usage', 'Rp ' + payload.hdUsage.toLocaleString('id-ID')],
+                ['HD End', 'Rp ' + payload.hdEnd.toLocaleString('id-ID')],
+                ['Project', payload.project],
+                ['Remarks', payload.remarks]
+            ];
+
+            tbody.innerHTML = fields.map(([k, v], i) => `
+                <tr style="background: ${i % 2 === 0 ? '#f7fafc' : 'white'}">
+                    <td style="padding: 10px; font-weight: 600;">${k}</td>
+                    <td style="padding: 10px;">${v}</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearState() {
+            state.grab = { file: null, base64: null, nominal: 0, ocrText: '' };
+            state.jc = { file: null, base64: null, nominal: 0, ocrText: '' };
+            state.hd = { file: null, base64: null, nominal: 0, ocrText: '' };
+            state.project = { file: null, base64: null };
+            
+            // Clear previews
+            ['Grab', 'Jc', 'Hd'].forEach(type => {
+                document.getElementById('preview' + type).style.display = 'none';
+                document.getElementById('ocr' + type).classList.remove('show');
+                document.getElementById('zone' + type).classList.remove('active');
+                document.getElementById('file' + type).value = '';
+            });
+            
+            document.getElementById('projectAmount').value = '';
+            document.getElementById('projectRemarks').value = '';
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast toast-' + type;
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
     </script>
 </body>
 </html>
