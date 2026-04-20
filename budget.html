@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Expense Tracker - Brand Detection</title>
+    <title>Auto Expense Tracker - Full Brand Detection</title>
     <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
     <style>
         * {
@@ -440,16 +440,15 @@
     <div class="container">
         <div class="header">
             <h1>📊 Auto Expense Tracker</h1>
-            <p>Brand Detection - Upload Sesuai Invoice</p>
+            <p>Full Brand Detection - Invoice & Ending Balance</p>
         </div>
 
         <div class="content">
             <div class="info-text">
                 <strong>Aturan Wajib Brand:</strong><br>
-                • Invoice dengan tulisan <strong>"Grab"</strong> → Wajib di card <strong>Grab</strong> 🛵<br>
-                • Invoice dengan tulisan <strong>"GoFood"</strong> → Wajib di card <strong>JC</strong> 💳<br>
-                • Invoice dengan tulisan <strong>"ShopeeFood"</strong> → Wajib di card <strong>HD</strong> 🛒<br>
-                • <strong>Saldo Akhir:</strong> GoPay→JC | ShopeePay→HD | OVO→Grab
+                <strong>📄 INVOICE:</strong> Grab→Grab | GoFood→JC | ShopeeFood→HD<br>
+                <strong>💰 ENDING BALANCE:</strong> GoPay→JC | ShopeePay→HD | OVO→Grab<br>
+                <em>Jika brand tidak cocok = upload ditolak + alert + blink merah</em>
             </div>
 
             <div class="webapp-input">
@@ -545,10 +544,11 @@
                     <div class="upload-area" id="grabBalanceUploadArea" onclick="document.getElementById('grabBalanceInput').click()" style="margin-top: 15px;">
                         <div style="font-size: 2em;">💰</div>
                         <p><strong>Upload Ending Balance OVO</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Model: OVO Rp100.000</p>
+                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "OVO"</p>
                         <input type="file" id="grabBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'grab')">
                     </div>
                     <img id="grabBalancePreview" class="preview-image">
+                    <div id="grabBalanceBrandDetected" class="brand-detected" style="display: none;"></div>
                     <div id="grabBalanceResult" class="result-box">
                         <div>Ending Balance:</div>
                         <div class="amount" id="grabBalanceAmount">Rp0</div>
@@ -597,10 +597,11 @@
                     <div class="upload-area" id="jcBalanceUploadArea" onclick="document.getElementById('jcBalanceInput').click()" style="margin-top: 15px;">
                         <div style="font-size: 2em;">💰</div>
                         <p><strong>Upload Ending Balance GOPAY</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Model: GoPay Rp100.000</p>
+                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "GoPay"</p>
                         <input type="file" id="jcBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'jc')">
                     </div>
                     <img id="jcBalancePreview" class="preview-image">
+                    <div id="jcBalanceBrandDetected" class="brand-detected" style="display: none;"></div>
                     <div id="jcBalanceResult" class="result-box">
                         <div>Ending Balance:</div>
                         <div class="amount" id="jcBalanceAmount">Rp0</div>
@@ -649,10 +650,11 @@
                     <div class="upload-area" id="hdBalanceUploadArea" onclick="document.getElementById('hdBalanceInput').click()" style="margin-top: 15px;">
                         <div style="font-size: 2em;">💰</div>
                         <p><strong>Upload Ending Balance SHOPEEPAY</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Model: ShopeePay Rp100.000</p>
+                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "ShopeePay"</p>
                         <input type="file" id="hdBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'hd')">
                     </div>
                     <img id="hdBalancePreview" class="preview-image">
+                    <div id="hdBalanceBrandDetected" class="brand-detected" style="display: none;"></div>
                     <div id="hdBalanceResult" class="result-box">
                         <div>Ending Balance:</div>
                         <div class="amount" id="hdBalanceAmount">Rp0</div>
@@ -706,11 +708,26 @@
         };
 
         const SHEET_ID = '1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K';
-        const BRAND_RULES = {
+
+        // BRAND RULES
+        const INVOICE_BRANDS = {
             grab: ['grab', 'Grab', 'GRAB'],
             jc: ['gofood', 'GoFood', 'GOFOOD', 'gojek', 'Gojek', 'GOJEK'],
             hd: ['shopeefood', 'ShopeeFood', 'SHOPEEFOOD', 'shopee', 'Shopee', 'SHOPEE']
         };
+
+        const BALANCE_BRANDS = {
+            grab: ['ovo', 'OVO', 'Ovo'],           // OVO → Grab
+            jc: ['gopay', 'GoPay', 'GOPAY', 'gojek', 'Gojek', 'GOJEK'],  // GoPay → JC
+            hd: ['shopeepay', 'ShopeePay', 'SHOPEEPAY', 'shopee', 'Shopee', 'SHOPEE']  // ShopeePay → HD
+        };
+
+        const BRAND_NAMES = {
+            grab: 'Grab', jc: 'GoFood', hd: 'ShopeeFood',
+            ovo: 'OVO', gopay: 'GoPay', shopeepay: 'ShopeePay'
+        };
+
+        const CARD_NAMES = { grab: 'Grab', jc: 'JC', hd: 'HD' };
 
         document.getElementById('dateInput').valueAsDate = new Date();
 
@@ -786,40 +803,53 @@
         }
 
         // DETECT BRAND DARI OCR TEXT
-        function detectBrand(text) {
+        function detectBrand(text, brandRules) {
             const lowerText = text.toLowerCase();
             
-            if (BRAND_RULES.grab.some(b => lowerText.includes(b.toLowerCase()))) {
-                return 'grab';
-            }
-            if (BRAND_RULES.jc.some(b => lowerText.includes(b.toLowerCase()))) {
-                return 'jc';
-            }
-            if (BRAND_RULES.hd.some(b => lowerText.includes(b.toLowerCase()))) {
-                return 'hd';
+            for (let [key, keywords] of Object.entries(brandRules)) {
+                if (keywords.some(k => lowerText.includes(k.toLowerCase()))) {
+                    return key;
+                }
             }
             
             return null;
         }
 
-        function showBrandError(detectedBrand, expectedType, uploadAreaId) {
-            const brandNames = { grab: 'Grab', jc: 'GoFood', hd: 'ShopeeFood' };
+        function showBrandError(detectedBrand, expectedType, uploadAreaId, isBalance) {
+            const brandNames = {
+                grab: 'Grab', jc: 'GoFood', hd: 'ShopeeFood',
+                ovo: 'OVO', gopay: 'GoPay', shopeepay: 'ShopeePay'
+            };
+            
             const cardNames = { grab: 'Grab', jc: 'JC', hd: 'HD' };
+            const balanceMap = { ovo: 'Grab', gopay: 'JC', shopeepay: 'HD' };
+            
+            let correctCard, uploadType;
+            
+            if (isBalance) {
+                // Untuk balance, map brand ke card yang benar
+                correctCard = balanceMap[detectedBrand] || detectedBrand;
+                uploadType = 'Ending Balance';
+            } else {
+                correctCard = cardNames[detectedBrand] || detectedBrand;
+                uploadType = 'Invoice';
+            }
             
             const message = `❌ BRAND SALAH!<br>
-                Terdeteksi: <strong>${brandNames[detectedBrand]}</strong><br>
-                Harusnya diupload di card: <strong>${cardNames[detectedBrand]}</strong><br>
-                Bukan di card <strong>${cardNames[expectedType]}</strong>!`;
+                <strong>Terdeteksi:</strong> ${brandNames[detectedBrand] || detectedBrand}<br>
+                <strong>Harusnya diupload di card:</strong> ${correctCard}<br>
+                <strong>Bukan di card:</strong> ${cardNames[expectedType]}!<br>
+                <em>(${uploadType} ${brandNames[detectedBrand]} wajib di ${correctCard})</em>`;
             
             document.getElementById('validationMessage').innerHTML = message;
             document.getElementById('validationBox').classList.add('show');
             
-            // Blink red pada card yang salah
+            // Blink red pada upload area yang salah
             const uploadArea = document.getElementById(uploadAreaId);
             uploadArea.classList.add('error-blink');
             
             // Alert
-            alert(`INVOICE SALAH!\n\nTerdeteksi: ${brandNames[detectedBrand]}\nHarusnya di: ${cardNames[detectedBrand]}\nBukan di: ${cardNames[expectedType]}`);
+            alert(`ENDING BALANCE SALAH!\n\nTerdeteksi: ${brandNames[detectedBrand] || detectedBrand}\nHarusnya di: ${correctCard} (Ending Balance)\nBukan di: ${cardNames[expectedType]}\n\nSilakan upload di card yang benar!`);
             
             // Reset setelah 3 detik
             setTimeout(() => {
@@ -849,11 +879,11 @@
                 console.log(`OCR Invoice ${type}:`, text);
                 
                 // DETECT BRAND
-                const detectedBrand = detectBrand(text);
+                const detectedBrand = detectBrand(text, INVOICE_BRANDS);
                 
                 if (detectedBrand && detectedBrand !== type) {
                     // BRAND SALAH!
-                    showBrandError(detectedBrand, type, type + 'UploadArea');
+                    showBrandError(detectedBrand, type, type + 'UploadArea', false);
                     // Reset
                     preview.style.display = 'none';
                     preview.src = '';
@@ -875,6 +905,62 @@
                 
                 updateBadge(type);
                 updateDisplay(type);
+                result.classList.add('show');
+                updateCalculationSummary();
+            });
+        }
+
+        function handleBalanceFile(input, type) {
+            const file = input.files ? input.files[0] : input.target.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById(type + 'BalancePreview');
+            const result = document.getElementById(type + 'BalanceResult');
+            const brandBox = document.getElementById(type + 'BalanceBrandDetected');
+
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+            result.classList.remove('show');
+            brandBox.style.display = 'none';
+
+            Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
+                console.log(`OCR Balance ${type}:`, text);
+                
+                // DETECT BRAND untuk Ending Balance
+                const detectedBrand = detectBrand(text, BALANCE_BRANDS);
+                
+                // Map balance brand ke card yang benar
+                const balanceToCard = {
+                    ovo: 'grab',      // OVO → Grab
+                    gopay: 'jc',      // GoPay → JC
+                    shopeepay: 'hd'   // ShopeePay → HD
+                };
+                
+                if (detectedBrand && balanceToCard[detectedBrand] !== type) {
+                    // BRAND SALAH untuk Ending Balance!
+                    showBrandError(detectedBrand, type, type + 'BalanceUploadArea', true);
+                    // Reset
+                    preview.style.display = 'none';
+                    preview.src = '';
+                    input.value = '';
+                    return;
+                }
+                
+                // BRAND BENAR atau tidak terdeteksi
+                if (detectedBrand) {
+                    brandBox.textContent = `✓ Brand terdeteksi: ${detectedBrand.toUpperCase()}`;
+                    brandBox.style.display = 'block';
+                }
+                
+                // Extract amount
+                let amount = extractBalanceAmount(text, type);
+                
+                data[type].endingBalance = amount;
+                data[type].balanceUploaded = true;
+                
+                updateBadge(type);
+                document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + amount.toLocaleString('id-ID');
+                document.getElementById(type + 'BalanceManual').value = amount;
                 result.classList.add('show');
                 updateCalculationSummary();
             });
@@ -910,53 +996,36 @@
             return 0;
         }
 
-        function handleBalanceFile(input, type) {
-            const file = input.files ? input.files[0] : input.target.files[0];
-            if (!file) return;
-
-            const preview = document.getElementById(type + 'BalancePreview');
-            const result = document.getElementById(type + 'BalanceResult');
-
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = 'block';
-            result.classList.remove('show');
-
-            Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
-                console.log(`OCR Balance ${type}:`, text);
-                
-                let amount = 0;
-                
-                if (type === 'jc') {
-                    const match = text.match(/Saldo\s*kamu\s*Rp\.?\s*([\d.,]+)/i);
-                    if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
-                } else if (type === 'hd') {
-                    const match = text.match(/Rp\s+([\d.,]+)/);
-                    if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
-                } else if (type === 'grab') {
-                    const match = text.match(/OVO\s*Rp\.?\s*([\d.,]+)/i);
-                    if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
+        function extractBalanceAmount(text, type) {
+            let amount = 0;
+            
+            if (type === 'jc') {
+                // GoPay: "Saldo kamu Rp100.000"
+                const match = text.match(/Saldo\s*kamu\s*Rp\.?\s*([\d.,]+)/i);
+                if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
+            } else if (type === 'hd') {
+                // ShopeePay: "Rp 100.000" atau "ShopeePay Rp100.000"
+                const match = text.match(/Rp\s+([\d.,]+)/);
+                if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
+            } else if (type === 'grab') {
+                // OVO: "OVO Rp100.000"
+                const match = text.match(/OVO\s*Rp\.?\s*([\d.,]+)/i);
+                if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
+            }
+            
+            // Fallback: cari angka terbesar setelah Rp
+            if (amount === 0) {
+                const matches = text.match(/Rp\.?\s*([\d.,]+)/g);
+                if (matches) {
+                    const nums = matches.map(m => {
+                        const n = m.match(/Rp\.?\s*([\d.,]+)/);
+                        return n ? parseInt(n[1].replace(/\./g, '').replace(/,/g, '')) : 0;
+                    }).filter(n => n > 0);
+                    if (nums.length > 0) amount = Math.max(...nums);
                 }
-                
-                if (amount === 0) {
-                    const matches = text.match(/Rp\.?\s*([\d.,]+)/g);
-                    if (matches) {
-                        const nums = matches.map(m => {
-                            const n = m.match(/Rp\.?\s*([\d.,]+)/);
-                            return n ? parseInt(n[1].replace(/\./g, '').replace(/,/g, '')) : 0;
-                        }).filter(n => n > 0);
-                        if (nums.length > 0) amount = Math.max(...nums);
-                    }
-                }
-                
-                data[type].endingBalance = amount;
-                data[type].balanceUploaded = true;
-                
-                updateBadge(type);
-                document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + amount.toLocaleString('id-ID');
-                document.getElementById(type + 'BalanceManual').value = amount;
-                result.classList.add('show');
-                updateCalculationSummary();
-            });
+            }
+            
+            return amount;
         }
 
         function updateBadge(type) {
