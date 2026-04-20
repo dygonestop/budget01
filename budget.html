@@ -482,29 +482,52 @@
                 <span id="savedStatus" style="margin-left: 10px; color: #28a745; display: none;">✓ Tersimpan!</span>
                 <button class="btn btn-warning" onclick="fetchLastData()" style="width: auto; padding: 10px 20px; margin-left: 10px;">🔄 Ambil Data Terakhir</button>
             </div>
+<!-- BARIS 1: Kota + Kode HP -->
+<div class="row">
+    <div class="form-group">
+        <label>Kota <span class="required-badge">WAJIB</span></label>
+        <select id="kotaInput" onchange="onKotaChange()">
+            <option value="">-- Pilih Kota --</option>
+            <option value="Jakarta">Jakarta</option>
+            <option value="Medan">Medan</option>
+            <option value="Bandung">Bandung</option>
+            <option value="Yogyakarta">Yogyakarta</option>
+            <option value="Semarang">Semarang</option>
+            <option value="Palembang">Palembang</option>
+            <option value="Surabaya">Surabaya</option>
+            <option value="Makassar">Makassar</option>
+            <option value="Bali">Bali</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Kode Handphone <span class="required-badge">WAJIB</span></label>
+        <select id="phoneCode" onchange="fetchLastData()" disabled>
+            <option value="">-- Pilih Kota Dulu --</option>
+        </select>
+    </div>
+</div>
 
-            <div class="row">
-                <div class="form-group">
-                    <label>Nama Admin</label>
-                    <input type="text" id="adminName" placeholder="Nama Anda">
-                </div>
-                <div class="form-group">
-                    <label>Tanggal</label>
-                    <input type="date" id="dateInput">
-                </div>
-            </div>
+<!-- BARIS 2: Admin + Tanggal -->
+<div class="row">
+    <div class="form-group">
+        <label>Nama Admin</label>
+        <input type="text" id="adminName" placeholder="Nama Anda">
+    </div>
+    <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="dateInput">
+    </div>
+</div>
 
-            <div class="row">
-                <div class="form-group">
-                    <label>Kode Handphone</label>
-                    <input type="text" id="phoneCode" placeholder="Contoh: 1b" onchange="fetchLastData()">
-                </div>
-                <div class="form-group">
-                    <label>Remarks</label>
-                    <input type="text" id="remarks" placeholder="Contoh: Food">
-                </div>
-            </div>
-
+<!-- BARIS 3: Remarks saja (atau tambah field lain di sebelahnya) -->
+<div class="row">
+    <div class="form-group">
+        <label>Remarks</label>
+        <input type="text" id="remarks" placeholder="Contoh: Food">
+    </div>
+    <!-- Kosong dulu, nanti bisa isi field lain -->
+    <div class="form-group"></div>
+</div>
             <div class="calculation-box" id="saldoDisplay" style="display: none;">
                 <h4>📋 Data Terakhir Kode HP: <span id="lastPhoneCode"></span></h4>
                 <div class="calc-row">
@@ -725,379 +748,476 @@
         </div>
     </div>
 
-    <script>
-        let data = {
-            grab: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0, invoiceUploaded: false, balanceUploaded: false },
-            jc: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0, invoiceUploaded: false, balanceUploaded: false },
-            hd: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0, invoiceUploaded: false, balanceUploaded: false }
-        };
+ <script>
+    let data = {
+        grab: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0, invoiceUploaded: false, balanceUploaded: false },
+        jc: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0, invoiceUploaded: false, balanceUploaded: false },
+        hd: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0, invoiceUploaded: false, balanceUploaded: false }
+    };
 
-        const SHEET_ID = '1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K';
+    const SHEET_ID = '1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K';
 
-        // STRICT TEMPLATE REQUIREMENTS
-        const TEMPLATES = {
-            grab: {
-                required: [
-                    'no. order', 'pengemudi', 'ringkasan pesanan', 
-                    'total harga', 'ovo points', 'hubungi grab'
-                ],
-                optional: ['diantar', 'subtotal', 'ongkos kirim', 'diskon'],
-                minMatch: 4 // Minimal 4 keyword wajib cocok
-            },
-            jc: {
-                required: [
-                    'gofood', 'makasih udah pakai', 'total dibayar',
-                    'rincian transaksi', 'total harga', 'total pembayaran'
-                ],
-                optional: ['detail pengantaran', 'bayar pakai gopay', 'diantarkan'],
-                minMatch: 4
-            },
-            hd: {
-                required: [
-                    'shopeefood', 'pesanan sampai', 'rincian pesanan',
-                    'subtotal pesanan', 'sudah termasuk pajak', 'shopeepay'
-                ],
-                optional: ['pengiriman hemat', 'voucher diskon', 'biaya layanan'],
-                minMatch: 4
+    // ============================================
+    // DATA KODE HP DARI SHEET PUBLIK
+    // ============================================
+    const KODE_HP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT79m-AZFZbrYOUKXc043Bco8nbz_eQTOxOqb3uGAFzuuWzDF8EjAec1GxGs2dzx9C4RLOD2NZPyctl/pub?gid=98524648&single=true&output=csv';
+
+    let kodeHPData = {}; // { kota: [kode1, kode2, ...] }
+
+    // Load CSV saat halaman dibuka
+    async function loadKodeHPData() {
+        try {
+            const response = await fetch(KODE_HP_CSV_URL);
+            const csvText = await response.text();
+            const rows = csvText.trim().split('\n').map(row => row.split(',').map(cell => cell.trim()));
+            
+            kodeHPData = {};
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.length < 2) continue;
+                
+                const kota = row[0];
+                const kode = row[1];
+                
+                if (!kota || !kode) continue;
+                
+                const kotaKey = kota.trim();
+                
+                if (!kodeHPData[kotaKey]) {
+                    kodeHPData[kotaKey] = [];
+                }
+                kodeHPData[kotaKey].push(kode);
             }
-        };
+            
+            console.log('Kode HP loaded:', kodeHPData);
+            
+        } catch (e) {
+            console.error('Gagal load Kode HP:', e);
+            // Fallback manual jika CSV gagal
+            kodeHPData = {
+                'Jakarta': ['1a', '1b', '1c', '2a', '2b'],
+                'Medan': ['3a', '3b', '4a'],
+                'Bandung': ['5a', '5b', '6a'],
+                'Yogyakarta': ['7a', '7b'],
+                'Semarang': ['8a', '8b', '9a'],
+                'Palembang': ['10a', '10b'],
+                'Surabaya': ['11a', '11b', '12a'],
+                'Makassar': ['13a', '13b'],
+                'Bali': ['14a', '14b', '15a']
+            };
+        }
+    }
 
-        // BRAND RULES
-        const BALANCE_BRANDS = {
-            grab: ['ovo', 'OVO', 'Ovo'],
-            jc: ['gopay', 'GoPay', 'GOPAY', 'gojek', 'Gojek', 'GOJEK'],
-            hd: ['shopeepay', 'ShopeePay', 'SHOPEEPAY', 'shopee', 'Shopee', 'SHOPEE']
-        };
+    // ============================================
+    // STRICT TEMPLATE REQUIREMENTS
+    // ============================================
+    const TEMPLATES = {
+        grab: {
+            required: [
+                'no. order', 'pengemudi', 'ringkasan pesanan', 
+                'total harga', 'ovo points', 'hubungi grab'
+            ],
+            optional: ['diantar', 'subtotal', 'ongkos kirim', 'diskon'],
+            minMatch: 4
+        },
+        jc: {
+            required: [
+                'gofood', 'makasih udah pakai', 'total dibayar',
+                'rincian transaksi', 'total harga', 'total pembayaran'
+            ],
+            optional: ['detail pengantaran', 'bayar pakai gopay', 'diantarkan'],
+            minMatch: 4
+        },
+        hd: {
+            required: [
+                'shopeefood', 'pesanan sampai', 'rincian pesanan',
+                'subtotal pesanan', 'sudah termasuk pajak', 'shopeepay'
+            ],
+            optional: ['pengiriman hemat', 'voucher diskon', 'biaya layanan'],
+            minMatch: 4
+        }
+    };
 
-        const balanceToCard = {
-            ovo: 'grab',
-            gopay: 'jc',
-            shopeepay: 'hd'
-        };
+    // BRAND RULES
+    const BALANCE_BRANDS = {
+        grab: ['ovo', 'OVO', 'Ovo'],
+        jc: ['gopay', 'GoPay', 'GOPAY', 'gojek', 'Gojek', 'GOJEK'],
+        hd: ['shopeepay', 'ShopeePay', 'SHOPEEPAY', 'shopee', 'Shopee', 'SHOPEE']
+    };
 
+    const balanceToCard = {
+        ovo: 'grab',
+        gopay: 'jc',
+        shopeepay: 'hd'
+    };
+
+    // ============================================
+    // WINDOW ONLOAD - SATU FUNGSI SAJA
+    // ============================================
+    window.onload = function() {
+        // Load Kode HP dari CSV
+        loadKodeHPData();
+        
+        // Set tanggal hari ini
         document.getElementById('dateInput').valueAsDate = new Date();
-
-        window.onload = function() {
-            const savedUrl = localStorage.getItem('webAppUrl');
-            if (savedUrl) {
-                document.getElementById('webAppUrl').value = savedUrl;
-                document.getElementById('savedStatus').style.display = 'inline';
-            }
-        };
-
-        function saveUrl() {
-            const url = document.getElementById('webAppUrl').value;
-            if (!url) {
-                alert('Masukkan Web App URL!');
-                return;
-            }
-            localStorage.setItem('webAppUrl', url);
+        
+        // Load saved URL
+        const savedUrl = localStorage.getItem('webAppUrl');
+        if (savedUrl) {
+            document.getElementById('webAppUrl').value = savedUrl;
             document.getElementById('savedStatus').style.display = 'inline';
-            setTimeout(() => {
-                document.getElementById('savedStatus').style.display = 'none';
-            }, 3000);
+        }
+    };
+
+    // ============================================
+    // KOTA & KODE HP HANDLER
+    // ============================================
+    function onKotaChange() {
+        const kota = document.getElementById('kotaInput').value;
+        const phoneSelect = document.getElementById('phoneCode');
+        
+        // Reset
+        phoneSelect.innerHTML = '<option value="">-- Pilih Kode HP --</option>';
+        phoneSelect.disabled = !kota;
+        
+        if (!kota) {
+            document.getElementById('saldoDisplay').style.display = 'none';
+            return;
+        }
+        
+        // Isi dropdown kode HP berdasarkan kota
+        const kodes = kodeHPData[kota] || [];
+        
+        if (kodes.length === 0) {
+            phoneSelect.innerHTML = '<option value="">Tidak ada kode untuk kota ini</option>';
+            return;
+        }
+        
+        kodes.forEach(kode => {
+            const opt = document.createElement('option');
+            opt.value = kode;
+            opt.textContent = kode;
+            phoneSelect.appendChild(opt);
+        });
+        
+        // Sembunyikan saldo display sampai pilih kode HP
+        document.getElementById('saldoDisplay').style.display = 'none';
+    }
+
+    // ============================================
+    // FETCH LAST DATA (VERSI BARU DENGAN KOTA)
+    // ============================================
+    async function fetchLastData() {
+        const phoneCode = document.getElementById('phoneCode').value;
+        const kota = document.getElementById('kotaInput').value;
+        
+        if (!phoneCode || !kota) return;
+
+        const webAppUrl = localStorage.getItem('webAppUrl');
+        if (!webAppUrl) {
+            alert('Simpan Web App URL terlebih dahulu!');
+            return;
         }
 
-        function openSheet() {
+        try {
+            const response = await fetch(`${webAppUrl}?action=getLast&phoneCode=${encodeURIComponent(phoneCode)}&kota=${encodeURIComponent(kota)}`);
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                const d = result.data;
+                document.getElementById('lastPhoneCode').textContent = `${phoneCode} (${kota})`;
+                document.getElementById('lastGrabBalance').textContent = 'Rp' + (d.grabEnding || 0).toLocaleString('id-ID');
+                document.getElementById('lastJcBalance').textContent = 'Rp' + (d.jcEnding || 0).toLocaleString('id-ID');
+                document.getElementById('lastHdBalance').textContent = 'Rp' + (d.hdEnding || 0).toLocaleString('id-ID');
+                
+                data.grab.saldoAwal = parseFloat(d.grabEnding) || 0;
+                data.jc.saldoAwal = parseFloat(d.jcEnding) || 0;
+                data.hd.saldoAwal = parseFloat(d.hdEnding) || 0;
+                
+                updateSaldoDisplay();
+                document.getElementById('saldoDisplay').style.display = 'block';
+                updateCalculationSummary();
+            } else {
+                // Data tidak ditemukan, reset saldo ke 0
+                data.grab.saldoAwal = 0;
+                data.jc.saldoAwal = 0;
+                data.hd.saldoAwal = 0;
+                updateSaldoDisplay();
+                document.getElementById('saldoDisplay').style.display = 'block';
+                updateCalculationSummary();
+            }
+        } catch (e) {
+            console.log('Gagal ambil data:', e);
+        }
+    }
+
+    function updateSaldoDisplay() {
+        document.getElementById('grabSaldoAwal').textContent = 'Rp' + data.grab.saldoAwal.toLocaleString('id-ID');
+        document.getElementById('jcSaldoAwal').textContent = 'Rp' + data.jc.saldoAwal.toLocaleString('id-ID');
+        document.getElementById('hdSaldoAwal').textContent = 'Rp' + data.hd.saldoAwal.toLocaleString('id-ID');
+    }
+
+    function calculateSaldo(type) {
+        const topUp = parseFloat(document.getElementById(type + 'TopUp').value) || 0;
+        data[type].topUp = topUp;
+        updateCalculationSummary();
+    }
+
+    // ============================================
+    // WEB APP URL
+    // ============================================
+    function saveUrl() {
+        const url = document.getElementById('webAppUrl').value;
+        if (!url) {
+            alert('Masukkan Web App URL!');
+            return;
+        }
+        localStorage.setItem('webAppUrl', url);
+        document.getElementById('savedStatus').style.display = 'inline';
+        setTimeout(() => {
+            document.getElementById('savedStatus').style.display = 'none';
+        }, 3000);
+    }
+
+    function openSheet(kota) {
+        if (kota) {
+            window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit#gid=0`, '_blank');
+        } else {
             window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`, '_blank');
         }
+    }
 
-        async function fetchLastData() {
-            const phoneCode = document.getElementById('phoneCode').value;
-            if (!phoneCode) return;
+    // ============================================
+    // VALIDASI TEMPLATE STRICT
+    // ============================================
+    function validateTemplate(text, type) {
+        const lowerText = text.toLowerCase();
+        const template = TEMPLATES[type];
+        
+        let matched = [];
+        let missing = [];
+        
+        for (let keyword of template.required) {
+            if (lowerText.includes(keyword.toLowerCase())) {
+                matched.push(keyword);
+            } else {
+                missing.push(keyword);
+            }
+        }
+        
+        let optionalMatched = [];
+        for (let keyword of template.optional) {
+            if (lowerText.includes(keyword.toLowerCase())) {
+                optionalMatched.push(keyword);
+            }
+        }
+        
+        const pass = matched.length >= template.minMatch;
+        
+        return {
+            pass: pass,
+            matched: matched,
+            missing: missing,
+            optionalMatched: optionalMatched,
+            score: matched.length + (optionalMatched.length * 0.5)
+        };
+    }
 
-            const webAppUrl = localStorage.getItem('webAppUrl');
-            if (!webAppUrl) {
-                alert('Simpan Web App URL terlebih dahulu!');
+    function showTemplateError(result, expectedType, uploadAreaId) {
+        const templateNames = {
+            grab: 'Grab Invoice (No.Order, Ringkasan Pesanan, Total Harga, OVO Points)',
+            jc: 'GoFood Invoice (gofood, Total dibayar, Rincian transaksi, Detail pengantaran)',
+            hd: 'ShopeeFood Invoice (ShopeeFood, Pesanan Sampai, Rincian Pesanan, Sudah termasuk pajak)'
+        };
+        
+        const cardNames = { grab: 'Grab', jc: 'JC', hd: 'HD' };
+        
+        let message = `❌ FORMAT INVOICE TIDAK COCOK!<br><br>
+            <strong>Upload di card:</strong> ${cardNames[expectedType]}<br>
+            <strong>Format terdeteksi:</strong> Bukan ${templateNames[expectedType]}<br><br>
+            <strong>Keyword yang dicari:</strong><br>`;
+        
+        message += `<span style="color:#c62828">❌ Missing: ${result.missing.join(', ')}</span><br>`;
+        message += `<span style="color:#2e7d32">✓ Found: ${result.matched.join(', ')}</span><br>`;
+        if (result.optionalMatched.length > 0) {
+            message += `<span style="color:#1565c0">✓ Optional: ${result.optionalMatched.join(', ')}</span><br>`;
+        }
+        message += `<br><em>Minimal ${TEMPLATES[expectedType].minMatch} keyword wajib cocok!</em>`;
+        
+        document.getElementById('validationMessage').innerHTML = message;
+        document.getElementById('validationBox').classList.add('show');
+        
+        const uploadArea = document.getElementById(uploadAreaId);
+        uploadArea.classList.add('error-blink');
+        
+        alert(`FORMAT INVOICE SALAH!\n\nUpload: ${cardNames[expectedType]}\nTapi formatnya bukan invoice ${cardNames[expectedType]}!\n\nMissing: ${result.missing.join(', ')}\nFound: ${result.matched.join(', ')}\n\nSilakan upload invoice ${cardNames[expectedType]} yang benar!`);
+        
+        setTimeout(() => {
+            uploadArea.classList.remove('error-blink');
+            document.getElementById('validationBox').classList.remove('show');
+        }, 5000);
+        
+        return false;
+    }
+
+    function handleInvoiceFile(input, type) {
+        const file = input.files ? input.files[0] : input.target.files[0];
+        if (!file) return;
+
+        const preview = document.getElementById(type + 'Preview');
+        const result = document.getElementById(type + 'Result');
+        const brandBox = document.getElementById(type + 'BrandDetected');
+        const templateBox = document.getElementById(type + 'TemplateCheck');
+
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+        result.classList.remove('show');
+        brandBox.style.display = 'none';
+        templateBox.style.display = 'none';
+
+        Tesseract.recognize(file, 'ind+eng', {
+            logger: m => console.log(m)
+        }).then(({ data: { text } }) => {
+            console.log(`OCR Invoice ${type}:`, text);
+            
+            const templateResult = validateTemplate(text, type);
+            
+            if (!templateResult.pass) {
+                showTemplateError(templateResult, type, type + 'UploadArea');
+                preview.style.display = 'none';
+                preview.src = '';
+                input.value = '';
                 return;
             }
-
-            try {
-                const response = await fetch(`${webAppUrl}?action=getLast&phoneCode=${encodeURIComponent(phoneCode)}`);
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    const d = result.data;
-                    document.getElementById('lastPhoneCode').textContent = phoneCode;
-                    document.getElementById('lastGrabBalance').textContent = 'Rp' + (d.grabEnding || 0).toLocaleString('id-ID');
-                    document.getElementById('lastJcBalance').textContent = 'Rp' + (d.jcEnding || 0).toLocaleString('id-ID');
-                    document.getElementById('lastHdBalance').textContent = 'Rp' + (d.hdEnding || 0).toLocaleString('id-ID');
-                    
-                    data.grab.saldoAwal = parseFloat(d.grabEnding) || 0;
-                    data.jc.saldoAwal = parseFloat(d.jcEnding) || 0;
-                    data.hd.saldoAwal = parseFloat(d.hdEnding) || 0;
-                    
-                    updateSaldoDisplay();
-                    document.getElementById('saldoDisplay').style.display = 'block';
-                    updateCalculationSummary();
-                }
-            } catch (e) {
-                console.log('Gagal ambil data:', e);
+            
+            templateBox.innerHTML = `✓ Template Valid<br>Found: ${templateResult.matched.length} required, ${templateResult.optionalMatched.length} optional`;
+            templateBox.className = 'template-check pass';
+            templateBox.style.display = 'block';
+            
+            const detectedBrand = detectBrand(text, {
+                grab: ['grab', 'Grab', 'GRAB'],
+                jc: ['gofood', 'GoFood', 'GOFOOD'],
+                hd: ['shopeefood', 'ShopeeFood', 'SHOPEEFOOD']
+            });
+            
+            if (detectedBrand && detectedBrand !== type) {
+                showBrandError(detectedBrand, type, type + 'UploadArea', false);
+                preview.style.display = 'none';
+                preview.src = '';
+                input.value = '';
+                templateBox.style.display = 'none';
+                return;
             }
-        }
-
-        function updateSaldoDisplay() {
-            document.getElementById('grabSaldoAwal').textContent = 'Rp' + data.grab.saldoAwal.toLocaleString('id-ID');
-            document.getElementById('jcSaldoAwal').textContent = 'Rp' + data.jc.saldoAwal.toLocaleString('id-ID');
-            document.getElementById('hdSaldoAwal').textContent = 'Rp' + data.hd.saldoAwal.toLocaleString('id-ID');
-        }
-
-        function calculateSaldo(type) {
-            const topUp = parseFloat(document.getElementById(type + 'TopUp').value) || 0;
-            data[type].topUp = topUp;
+            
+            if (detectedBrand) {
+                brandBox.textContent = `✓ Brand: ${detectedBrand.toUpperCase()}`;
+                brandBox.style.display = 'block';
+            }
+            
+            let amount = extractFinalAmount(text);
+            
+            data[type].total = amount;
+            data[type].invoiceUploaded = true;
+            
+            updateBadge(type);
+            updateDisplay(type);
+            result.classList.add('show');
             updateCalculationSummary();
-        }
+        });
+    }
 
-        // VALIDASI TEMPLATE STRICT
-        function validateTemplate(text, type) {
-            const lowerText = text.toLowerCase();
-            const template = TEMPLATES[type];
+    function detectBrand(text, brandRules) {
+        const lowerText = text.toLowerCase();
+        for (let [key, keywords] of Object.entries(brandRules)) {
+            if (keywords.some(k => lowerText.includes(k.toLowerCase()))) {
+                return key;
+            }
+        }
+        return null;
+    }
+
+    function showBrandError(detectedBrand, expectedType, uploadAreaId, isBalance) {
+        const brandNames = {
+            grab: 'Grab', jc: 'GoFood', hd: 'ShopeeFood',
+            ovo: 'OVO', gopay: 'GoPay', shopeepay: 'ShopeePay'
+        };
+        const cardNames = { grab: 'Grab', jc: 'JC', hd: 'HD' };
+        const balanceMap = { ovo: 'Grab', gopay: 'JC', shopeepay: 'HD' };
+        
+        let correctCard = isBalance ? (balanceMap[detectedBrand] || detectedBrand) : (cardNames[detectedBrand] || detectedBrand);
+        let uploadType = isBalance ? 'Ending Balance' : 'Invoice';
+        
+        const message = `❌ BRAND SALAH!<br>
+            <strong>Terdeteksi:</strong> ${brandNames[detectedBrand] || detectedBrand}<br>
+            <strong>Harusnya di:</strong> ${correctCard}<br>
+            <strong>Bukan di:</strong> ${cardNames[expectedType]}!`;
+        
+        document.getElementById('validationMessage').innerHTML = message;
+        document.getElementById('validationBox').classList.add('show');
+        
+        const uploadArea = document.getElementById(uploadAreaId);
+        uploadArea.classList.add('error-blink');
+        
+        alert(`${uploadType} SALAH!\n\nTerdeteksi: ${brandNames[detectedBrand] || detectedBrand}\nHarusnya di: ${correctCard}\nBukan di: ${cardNames[expectedType]}`);
+        
+        setTimeout(() => {
+            uploadArea.classList.remove('error-blink');
+            document.getElementById('validationBox').classList.remove('show');
+        }, 3000);
+    }
+
+    function handleBalanceFile(input, type) {
+        const file = input.files ? input.files[0] : input.target.files[0];
+        if (!file) return;
+
+        const preview = document.getElementById(type + 'BalancePreview');
+        const result = document.getElementById(type + 'BalanceResult');
+        const brandBox = document.getElementById(type + 'BalanceBrandDetected');
+
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+        result.classList.remove('show');
+        brandBox.style.display = 'none';
+
+        Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
+            console.log(`OCR Balance ${type}:`, text);
             
-            let matched = [];
-            let missing = [];
+            const detectedBrand = detectBrand(text, BALANCE_BRANDS);
             
-            // Cek required keywords
-            for (let keyword of template.required) {
-                if (lowerText.includes(keyword.toLowerCase())) {
-                    matched.push(keyword);
-                } else {
-                    missing.push(keyword);
-                }
+            if (detectedBrand && balanceToCard[detectedBrand] !== type) {
+                showBrandError(detectedBrand, type, type + 'BalanceUploadArea', true);
+                preview.style.display = 'none';
+                preview.src = '';
+                input.value = '';
+                return;
             }
             
-            // Cek optional keywords (tambah score)
-            let optionalMatched = [];
-            for (let keyword of template.optional) {
-                if (lowerText.includes(keyword.toLowerCase())) {
-                    optionalMatched.push(keyword);
-                }
+            if (detectedBrand) {
+                brandBox.textContent = `✓ Brand: ${detectedBrand.toUpperCase()}`;
+                brandBox.style.display = 'block';
             }
             
-            const pass = matched.length >= template.minMatch;
+            let amount = extractBalanceAmount(text, type);
             
-            return {
-                pass: pass,
-                matched: matched,
-                missing: missing,
-                optionalMatched: optionalMatched,
-                score: matched.length + (optionalMatched.length * 0.5)
-            };
-        }
+            data[type].endingBalance = amount;
+            data[type].balanceUploaded = true;
+            
+            updateBadge(type);
+            document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + amount.toLocaleString('id-ID');
+            document.getElementById(type + 'BalanceManual').value = amount;
+            result.classList.add('show');
+            updateCalculationSummary();
+        });
+    }
 
-        function showTemplateError(result, expectedType, uploadAreaId) {
-            const templateNames = {
-                grab: 'Grab Invoice (No.Order, Ringkasan Pesanan, Total Harga, OVO Points)',
-                jc: 'GoFood Invoice (gofood, Total dibayar, Rincian transaksi, Detail pengantaran)',
-                hd: 'ShopeeFood Invoice (ShopeeFood, Pesanan Sampai, Rincian Pesanan, Sudah termasuk pajak)'
-            };
-            
-            const cardNames = { grab: 'Grab', jc: 'JC', hd: 'HD' };
-            
-            let message = `❌ FORMAT INVOICE TIDAK COCOK!<br><br>
-                <strong>Upload di card:</strong> ${cardNames[expectedType]}<br>
-                <strong>Format terdeteksi:</strong> Bukan ${templateNames[expectedType]}<br><br>
-                <strong>Keyword yang dicari:</strong><br>`;
-            
-            message += `<span style="color:#c62828">❌ Missing: ${result.missing.join(', ')}</span><br>`;
-            message += `<span style="color:#2e7d32">✓ Found: ${result.matched.join(', ')}</span><br>`;
-            if (result.optionalMatched.length > 0) {
-                message += `<span style="color:#1565c0">✓ Optional: ${result.optionalMatched.join(', ')}</span><br>`;
-            }
-            message += `<br><em>Minimal ${TEMPLATES[expectedType].minMatch} keyword wajib cocok!</em>`;
-            
-            document.getElementById('validationMessage').innerHTML = message;
-            document.getElementById('validationBox').classList.add('show');
-            
-            // Blink red
-            const uploadArea = document.getElementById(uploadAreaId);
-            uploadArea.classList.add('error-blink');
-            
-            // Alert
-            alert(`FORMAT INVOICE SALAH!\n\nUpload: ${cardNames[expectedType]}\nTapi formatnya bukan invoice ${cardNames[expectedType]}!\n\nMissing: ${result.missing.join(', ')}\nFound: ${result.matched.join(', ')}\n\nSilakan upload invoice ${cardNames[expectedType]} yang benar!`);
-            
-            setTimeout(() => {
-                uploadArea.classList.remove('error-blink');
-                document.getElementById('validationBox').classList.remove('show');
-            }, 5000);
-            
-            return false;
-        }
-
-        function handleInvoiceFile(input, type) {
-            const file = input.files ? input.files[0] : input.target.files[0];
-            if (!file) return;
-
-            const preview = document.getElementById(type + 'Preview');
-            const result = document.getElementById(type + 'Result');
-            const brandBox = document.getElementById(type + 'BrandDetected');
-            const templateBox = document.getElementById(type + 'TemplateCheck');
-
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = 'block';
-            result.classList.remove('show');
-            brandBox.style.display = 'none';
-            templateBox.style.display = 'none';
-
-            Tesseract.recognize(file, 'ind+eng', {
-                logger: m => console.log(m)
-            }).then(({ data: { text } }) => {
-                console.log(`OCR Invoice ${type}:`, text);
-                
-                // STEP 1: VALIDASI TEMPLATE STRICT
-                const templateResult = validateTemplate(text, type);
-                
-                if (!templateResult.pass) {
-                    // TEMPLATE TIDAK COCOK!
-                    showTemplateError(templateResult, type, type + 'UploadArea');
-                    // Reset
-                    preview.style.display = 'none';
-                    preview.src = '';
-                    input.value = '';
-                    return;
-                }
-                
-                // TEMPLATE COCOK - tampilkan check
-                templateBox.innerHTML = `✓ Template Valid<br>Found: ${templateResult.matched.length} required, ${templateResult.optionalMatched.length} optional`;
-                templateBox.className = 'template-check pass';
-                templateBox.style.display = 'block';
-                
-                // STEP 2: DETECT BRAND (secondary check)
-                const detectedBrand = detectBrand(text, {
-                    grab: ['grab', 'Grab', 'GRAB'],
-                    jc: ['gofood', 'GoFood', 'GOFOOD'],
-                    hd: ['shopeefood', 'ShopeeFood', 'SHOPEEFOOD']
-                });
-                
-                if (detectedBrand && detectedBrand !== type) {
-                    showBrandError(detectedBrand, type, type + 'UploadArea', false);
-                    preview.style.display = 'none';
-                    preview.src = '';
-                    input.value = '';
-                    templateBox.style.display = 'none';
-                    return;
-                }
-                
-                if (detectedBrand) {
-                    brandBox.textContent = `✓ Brand: ${detectedBrand.toUpperCase()}`;
-                    brandBox.style.display = 'block';
-                }
-                
-                // STEP 3: EXTRACT AMOUNT
-                let amount = extractFinalAmount(text);
-                
-                data[type].total = amount;
-                data[type].invoiceUploaded = true;
-                
-                updateBadge(type);
-                updateDisplay(type);
-                result.classList.add('show');
-                updateCalculationSummary();
-            });
-        }
-
-        function detectBrand(text, brandRules) {
-            const lowerText = text.toLowerCase();
-            for (let [key, keywords] of Object.entries(brandRules)) {
-                if (keywords.some(k => lowerText.includes(k.toLowerCase()))) {
-                    return key;
-                }
-            }
-            return null;
-        }
-
-        function showBrandError(detectedBrand, expectedType, uploadAreaId, isBalance) {
-            const brandNames = {
-                grab: 'Grab', jc: 'GoFood', hd: 'ShopeeFood',
-                ovo: 'OVO', gopay: 'GoPay', shopeepay: 'ShopeePay'
-            };
-            const cardNames = { grab: 'Grab', jc: 'JC', hd: 'HD' };
-            const balanceMap = { ovo: 'Grab', gopay: 'JC', shopeepay: 'HD' };
-            
-            let correctCard = isBalance ? (balanceMap[detectedBrand] || detectedBrand) : (cardNames[detectedBrand] || detectedBrand);
-            let uploadType = isBalance ? 'Ending Balance' : 'Invoice';
-            
-            const message = `❌ BRAND SALAH!<br>
-                <strong>Terdeteksi:</strong> ${brandNames[detectedBrand] || detectedBrand}<br>
-                <strong>Harusnya di:</strong> ${correctCard}<br>
-                <strong>Bukan di:</strong> ${cardNames[expectedType]}!`;
-            
-            document.getElementById('validationMessage').innerHTML = message;
-            document.getElementById('validationBox').classList.add('show');
-            
-            const uploadArea = document.getElementById(uploadAreaId);
-            uploadArea.classList.add('error-blink');
-            
-            alert(`${uploadType} SALAH!\n\nTerdeteksi: ${brandNames[detectedBrand] || detectedBrand}\nHarusnya di: ${correctCard}\nBukan di: ${cardNames[expectedType]}`);
-            
-            setTimeout(() => {
-                uploadArea.classList.remove('error-blink');
-                document.getElementById('validationBox').classList.remove('show');
-            }, 3000);
-        }
-
-        function handleBalanceFile(input, type) {
-            const file = input.files ? input.files[0] : input.target.files[0];
-            if (!file) return;
-
-            const preview = document.getElementById(type + 'BalancePreview');
-            const result = document.getElementById(type + 'BalanceResult');
-            const brandBox = document.getElementById(type + 'BalanceBrandDetected');
-
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = 'block';
-            result.classList.remove('show');
-            brandBox.style.display = 'none';
-
-            Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
-                console.log(`OCR Balance ${type}:`, text);
-                
-                const detectedBrand = detectBrand(text, BALANCE_BRANDS);
-                
-                if (detectedBrand && balanceToCard[detectedBrand] !== type) {
-                    showBrandError(detectedBrand, type, type + 'BalanceUploadArea', true);
-                    preview.style.display = 'none';
-                    preview.src = '';
-                    input.value = '';
-                    return;
-                }
-                
-                if (detectedBrand) {
-                    brandBox.textContent = `✓ Brand: ${detectedBrand.toUpperCase()}`;
-                    brandBox.style.display = 'block';
-                }
-                
-                let amount = extractBalanceAmount(text, type);
-                
-                data[type].endingBalance = amount;
-                data[type].balanceUploaded = true;
-                
-                updateBadge(type);
-                document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + amount.toLocaleString('id-ID');
-                document.getElementById(type + 'BalanceManual').value = amount;
-                result.classList.add('show');
-                updateCalculationSummary();
-            });
-        }
-
-        function extractFinalAmount(text) {
-            const lines = text.split('\n').reverse();
-            
-            for (let line of lines) {
-                const matches = line.match(/Rp\.?\s*([\d.,]+)/g);
-                if (matches && matches.length > 0) {
-                    const lastMatch = matches[matches.length - 1];
-                    const numMatch = lastMatch.match(/Rp\.?\s*([\d.,]+)/);
-                    if (numMatch) {
-                        let numStr = numMatch[1].replace(/\./g, '').replace(/,/g, '');
-                        let num = parseInt(numStr);
-                        if (!isNaN(num) && num > 0) return num;
-                    }
-                }
-            }
-            
-            const allMatches = text.match(/Rp\.?\s*([\d.,]+)/g);
-            if (allMatches && allMatches.length > 0) {
-                const lastMatch = allMatches[allMatches.length - 1];
+    function extractFinalAmount(text) {
+        const lines = text.split('\n').reverse();
+        
+        for (let line of lines) {
+            const matches = line.match(/Rp\.?\s*([\d.,]+)/g);
+            if (matches && matches.length > 0) {
+                const lastMatch = matches[matches.length - 1];
                 const numMatch = lastMatch.match(/Rp\.?\s*([\d.,]+)/);
                 if (numMatch) {
                     let numStr = numMatch[1].replace(/\./g, '').replace(/,/g, '');
@@ -1105,277 +1225,307 @@
                     if (!isNaN(num) && num > 0) return num;
                 }
             }
-            
-            return 0;
         }
-
-        function extractBalanceAmount(text, type) {
-            let amount = 0;
-            
-            if (type === 'jc') {
-                const match = text.match(/Saldo\s*kamu\s*Rp\.?\s*([\d.,]+)/i);
-                if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
-            } else if (type === 'hd') {
-                const match = text.match(/Rp\s+([\d.,]+)/);
-                if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
-            } else if (type === 'grab') {
-                const match = text.match(/OVO\s*Rp\.?\s*([\d.,]+)/i);
-                if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
-            }
-            
-            if (amount === 0) {
-                const matches = text.match(/Rp\.?\s*([\d.,]+)/g);
-                if (matches) {
-                    const nums = matches.map(m => {
-                        const n = m.match(/Rp\.?\s*([\d.,]+)/);
-                        return n ? parseInt(n[1].replace(/\./g, '').replace(/,/g, '')) : 0;
-                    }).filter(n => n > 0);
-                    if (nums.length > 0) amount = Math.max(...nums);
-                }
-            }
-            
-            return amount;
-        }
-
-        function updateBadge(type) {
-            const badge = document.getElementById(type + 'Badge');
-            if (data[type].invoiceUploaded && data[type].balanceUploaded) {
-                badge.textContent = '✓ LENGKAP';
-                badge.className = 'completed-badge';
+        
+        const allMatches = text.match(/Rp\.?\s*([\d.,]+)/g);
+        if (allMatches && allMatches.length > 0) {
+            const lastMatch = allMatches[allMatches.length - 1];
+            const numMatch = lastMatch.match(/Rp\.?\s*([\d.,]+)/);
+            if (numMatch) {
+                let numStr = numMatch[1].replace(/\./g, '').replace(/,/g, '');
+                let num = parseInt(numStr);
+                if (!isNaN(num) && num > 0) return num;
             }
         }
+        
+        return 0;
+    }
 
-        function updateDisplay(type) {
-            const total = data[type].total + data[type].extras.reduce((a, b) => a + b, 0);
-            document.getElementById(type + 'Amount').textContent = 'Rp' + total.toLocaleString('id-ID');
-            document.getElementById(type + 'Manual').value = data[type].total;
+    function extractBalanceAmount(text, type) {
+        let amount = 0;
+        
+        if (type === 'jc') {
+            const match = text.match(/Saldo\s*kamu\s*Rp\.?\s*([\d.,]+)/i);
+            if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
+        } else if (type === 'hd') {
+            const match = text.match(/Rp\s+([\d.,]+)/);
+            if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
+        } else if (type === 'grab') {
+            const match = text.match(/OVO\s*Rp\.?\s*([\d.,]+)/i);
+            if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
         }
+        
+        if (amount === 0) {
+            const matches = text.match(/Rp\.?\s*([\d.,]+)/g);
+            if (matches) {
+                const nums = matches.map(m => {
+                    const n = m.match(/Rp\.?\s*([\d.,]+)/);
+                    return n ? parseInt(n[1].replace(/\./g, '').replace(/,/g, '')) : 0;
+                }).filter(n => n > 0);
+                if (nums.length > 0) amount = Math.max(...nums);
+            }
+        }
+        
+        return amount;
+    }
 
-        function manualOverride(type) {
-            const val = parseInt(document.getElementById(type + 'Manual').value) || 0;
-            data[type].total = val;
+    function updateBadge(type) {
+        const badge = document.getElementById(type + 'Badge');
+        if (data[type].invoiceUploaded && data[type].balanceUploaded) {
+            badge.textContent = '✓ LENGKAP';
+            badge.className = 'completed-badge';
+        }
+    }
+
+    function updateDisplay(type) {
+        const total = data[type].total + data[type].extras.reduce((a, b) => a + b, 0);
+        document.getElementById(type + 'Amount').textContent = 'Rp' + total.toLocaleString('id-ID');
+        document.getElementById(type + 'Manual').value = data[type].total;
+    }
+
+    function manualOverride(type) {
+        const val = parseInt(document.getElementById(type + 'Manual').value) || 0;
+        data[type].total = val;
+        updateDisplay(type);
+        updateCalculationSummary();
+    }
+
+    function manualBalanceOverride(type) {
+        const val = parseInt(document.getElementById(type + 'BalanceManual').value) || 0;
+        data[type].endingBalance = val;
+        document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + val.toLocaleString('id-ID');
+        updateCalculationSummary();
+    }
+
+    function addExtraInvoice(type) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.style.display = 'none';
+        input.onchange = function() {
+            handleExtraFile(this, type);
+        };
+        document.body.appendChild(input);
+        input.click();
+        document.body.removeChild(input);
+    }
+
+    function handleExtraFile(input, type) {
+        const file = input.files[0];
+        if (!file) return;
+
+        Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
+            const amount = extractFinalAmount(text);
+            data[type].extras.push(amount);
             updateDisplay(type);
+            
+            const container = document.getElementById(type + 'Extras');
+            const item = document.createElement('div');
+            item.className = 'extra-invoice-item';
+            item.innerHTML = `
+                <span>Extra: Rp${amount.toLocaleString('id-ID')}</span>
+                <button class="remove-btn" onclick="removeExtra('${type}', ${amount}, this)">Hapus</button>
+            `;
+            container.appendChild(item);
+            updateCalculationSummary();
+        });
+    }
+
+    function removeExtra(type, amount, btn) {
+        const idx = data[type].extras.indexOf(amount);
+        if (idx > -1) {
+            data[type].extras.splice(idx, 1);
+            updateDisplay(type);
+            btn.parentElement.remove();
             updateCalculationSummary();
         }
+    }
 
-        function manualBalanceOverride(type) {
-            const val = parseInt(document.getElementById(type + 'BalanceManual').value) || 0;
-            data[type].endingBalance = val;
-            document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + val.toLocaleString('id-ID');
-            updateCalculationSummary();
-        }
+    function updateCalculationSummary() {
+        const grabUsage = data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0);
+        const jcUsage = data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0);
+        const hdUsage = data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0);
 
-        function addExtraInvoice(type) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.style.display = 'none';
-            input.onchange = function() {
-                handleExtraFile(this, type);
-            };
-            document.body.appendChild(input);
-            input.click();
-            document.body.removeChild(input);
-        }
+        const grabExpected = data.grab.saldoAwal + data.grab.topUp - grabUsage;
+        const jcExpected = data.jc.saldoAwal + data.jc.topUp - jcUsage;
+        const hdExpected = data.hd.saldoAwal + data.hd.topUp - hdUsage;
 
-        function handleExtraFile(input, type) {
-            const file = input.files[0];
-            if (!file) return;
+        const grabDiff = Math.abs(grabExpected - data.grab.endingBalance);
+        const jcDiff = Math.abs(jcExpected - data.jc.endingBalance);
+        const hdDiff = Math.abs(hdExpected - data.hd.endingBalance);
 
-            Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
-                const amount = extractFinalAmount(text);
-                data[type].extras.push(amount);
-                updateDisplay(type);
-                
-                const container = document.getElementById(type + 'Extras');
-                const item = document.createElement('div');
-                item.className = 'extra-invoice-item';
-                item.innerHTML = `
-                    <span>Extra: Rp${amount.toLocaleString('id-ID')}</span>
-                    <button class="remove-btn" onclick="removeExtra('${type}', ${amount}, this)">Hapus</button>
-                `;
-                container.appendChild(item);
-                updateCalculationSummary();
-            });
-        }
+        document.getElementById('grabCalcSummary').textContent = 
+            `${data.grab.saldoAwal.toLocaleString('id-ID')} + ${data.grab.topUp.toLocaleString('id-ID')} - ${grabUsage.toLocaleString('id-ID')} = ${grabExpected.toLocaleString('id-ID')} (Upload: ${data.grab.endingBalance.toLocaleString('id-ID')})`;
+        document.getElementById('grabCalcSummary').className = grabDiff <= 1000 ? 'match' : 'mismatch';
 
-        function removeExtra(type, amount, btn) {
-            const idx = data[type].extras.indexOf(amount);
-            if (idx > -1) {
-                data[type].extras.splice(idx, 1);
-                updateDisplay(type);
-                btn.parentElement.remove();
-                updateCalculationSummary();
-            }
-        }
+        document.getElementById('jcCalcSummary').textContent = 
+            `${data.jc.saldoAwal.toLocaleString('id-ID')} + ${data.jc.topUp.toLocaleString('id-ID')} - ${jcUsage.toLocaleString('id-ID')} = ${jcExpected.toLocaleString('id-ID')} (Upload: ${data.jc.endingBalance.toLocaleString('id-ID')})`;
+        document.getElementById('jcCalcSummary').className = jcDiff <= 1000 ? 'match' : 'mismatch';
 
-        function updateCalculationSummary() {
-            const grabUsage = data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0);
-            const jcUsage = data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0);
-            const hdUsage = data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0);
+        document.getElementById('hdCalcSummary').textContent = 
+            `${data.hd.saldoAwal.toLocaleString('id-ID')} + ${data.hd.topUp.toLocaleString('id-ID')} - ${hdUsage.toLocaleString('id-ID')} = ${hdExpected.toLocaleString('id-ID')} (Upload: ${data.hd.endingBalance.toLocaleString('id-ID')})`;
+        document.getElementById('hdCalcSummary').className = hdDiff <= 1000 ? 'match' : 'mismatch';
 
-            const grabExpected = data.grab.saldoAwal + data.grab.topUp - grabUsage;
-            const jcExpected = data.jc.saldoAwal + data.jc.topUp - jcUsage;
-            const hdExpected = data.hd.saldoAwal + data.hd.topUp - hdUsage;
-
-            const grabDiff = Math.abs(grabExpected - data.grab.endingBalance);
-            const jcDiff = Math.abs(jcExpected - data.jc.endingBalance);
-            const hdDiff = Math.abs(hdExpected - data.hd.endingBalance);
-
-            document.getElementById('grabCalcSummary').textContent = 
-                `${data.grab.saldoAwal.toLocaleString('id-ID')} + ${data.grab.topUp.toLocaleString('id-ID')} - ${grabUsage.toLocaleString('id-ID')} = ${grabExpected.toLocaleString('id-ID')} (Upload: ${data.grab.endingBalance.toLocaleString('id-ID')})`;
-            document.getElementById('grabCalcSummary').className = grabDiff <= 1000 ? 'match' : 'mismatch';
-
-            document.getElementById('jcCalcSummary').textContent = 
-                `${data.jc.saldoAwal.toLocaleString('id-ID')} + ${data.jc.topUp.toLocaleString('id-ID')} - ${jcUsage.toLocaleString('id-ID')} = ${jcExpected.toLocaleString('id-ID')} (Upload: ${data.jc.endingBalance.toLocaleString('id-ID')})`;
-            document.getElementById('jcCalcSummary').className = jcDiff <= 1000 ? 'match' : 'mismatch';
-
-            document.getElementById('hdCalcSummary').textContent = 
-                `${data.hd.saldoAwal.toLocaleString('id-ID')} + ${data.hd.topUp.toLocaleString('id-ID')} - ${hdUsage.toLocaleString('id-ID')} = ${hdExpected.toLocaleString('id-ID')} (Upload: ${data.hd.endingBalance.toLocaleString('id-ID')})`;
-            document.getElementById('hdCalcSummary').className = hdDiff <= 1000 ? 'match' : 'mismatch';
-
-            const allValid = grabDiff <= 1000 && jcDiff <= 1000 && hdDiff <= 1000;
-            const allUploaded = data.grab.invoiceUploaded && data.jc.invoiceUploaded && data.hd.invoiceUploaded &&
-                               data.grab.balanceUploaded && data.jc.balanceUploaded && data.hd.balanceUploaded;
-            
-            const statusEl = document.getElementById('validationStatus');
-            
-            if (allValid && allUploaded) {
-                statusEl.textContent = '✅ VALID - Siap Submit';
-                statusEl.className = 'match';
-                document.getElementById('validationBox').classList.remove('show');
-            } else {
-                statusEl.textContent = '❌ BELUM VALID';
-                statusEl.className = 'mismatch';
-            }
-        }
-
-        function validateBeforeSubmit() {
-            const grabUsage = data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0);
-            const jcUsage = data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0);
-            const hdUsage = data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0);
-
-            const grabExpected = data.grab.saldoAwal + data.grab.topUp - grabUsage;
-            const jcExpected = data.jc.saldoAwal + data.jc.topUp - jcUsage;
-            const hdExpected = data.hd.saldoAwal + data.hd.topUp - hdUsage;
-
-            const grabDiff = Math.abs(grabExpected - data.grab.endingBalance);
-            const jcDiff = Math.abs(jcExpected - data.jc.endingBalance);
-            const hdDiff = Math.abs(hdExpected - data.hd.endingBalance);
-
-            const tolerance = 1000;
-
-            let errors = [];
-
-            if (!data.grab.invoiceUploaded) errors.push('❌ Invoice Grab belum diupload');
-            if (!data.jc.invoiceUploaded) errors.push('❌ Invoice JC/GoFood belum diupload');
-            if (!data.hd.invoiceUploaded) errors.push('❌ Invoice HD/ShopeeFood belum diupload');
-            if (!data.grab.balanceUploaded) errors.push('❌ Ending Balance Grab/OVO belum diupload');
-            if (!data.jc.balanceUploaded) errors.push('❌ Ending Balance JC/GoPay belum diupload');
-            if (!data.hd.balanceUploaded) errors.push('❌ Ending Balance HD/ShopeePay belum diupload');
-
-            if (grabDiff > tolerance) {
-                errors.push(`❌ Grab: Perhitungan (${grabExpected.toLocaleString('id-ID')}) ≠ Upload (${data.grab.endingBalance.toLocaleString('id-ID')})`);
-                document.getElementById('grabCard').classList.add('error-blink');
-            } else {
-                document.getElementById('grabCard').classList.remove('error-blink');
-            }
-
-            if (jcDiff > tolerance) {
-                errors.push(`❌ JC: Perhitungan (${jcExpected.toLocaleString('id-ID')}) ≠ Upload (${data.jc.endingBalance.toLocaleString('id-ID')})`);
-                document.getElementById('jcCard').classList.add('error-blink');
-            } else {
-                document.getElementById('jcCard').classList.remove('error-blink');
-            }
-
-            if (hdDiff > tolerance) {
-                errors.push(`❌ HD: Perhitungan (${hdExpected.toLocaleString('id-ID')}) ≠ Upload (${data.hd.endingBalance.toLocaleString('id-ID')})`);
-                document.getElementById('hdCard').classList.add('error-blink');
-            } else {
-                document.getElementById('hdCard').classList.remove('error-blink');
-            }
-
-            if (errors.length > 0) {
-                const box = document.getElementById('validationBox');
-                document.getElementById('validationMessage').innerHTML = errors.join('<br>');
-                box.classList.add('show');
-                box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return false;
-            }
-
+        const allValid = grabDiff <= 1000 && jcDiff <= 1000 && hdDiff <= 1000;
+        const allUploaded = data.grab.invoiceUploaded && data.jc.invoiceUploaded && data.hd.invoiceUploaded &&
+                           data.grab.balanceUploaded && data.jc.balanceUploaded && data.hd.balanceUploaded;
+        
+        const statusEl = document.getElementById('validationStatus');
+        
+        if (allValid && allUploaded) {
+            statusEl.textContent = '✅ VALID - Siap Submit';
+            statusEl.className = 'match';
             document.getElementById('validationBox').classList.remove('show');
+        } else {
+            statusEl.textContent = '❌ BELUM VALID';
+            statusEl.className = 'mismatch';
+        }
+    }
+
+    function validateBeforeSubmit() {
+        const grabUsage = data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0);
+        const jcUsage = data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0);
+        const hdUsage = data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0);
+
+        const grabExpected = data.grab.saldoAwal + data.grab.topUp - grabUsage;
+        const jcExpected = data.jc.saldoAwal + data.jc.topUp - jcUsage;
+        const hdExpected = data.hd.saldoAwal + data.hd.topUp - hdUsage;
+
+        const grabDiff = Math.abs(grabExpected - data.grab.endingBalance);
+        const jcDiff = Math.abs(jcExpected - data.jc.endingBalance);
+        const hdDiff = Math.abs(hdExpected - data.hd.endingBalance);
+
+        const tolerance = 1000;
+
+        let errors = [];
+
+        // Validasi Kota dan Kode HP wajib diisi
+        const kota = document.getElementById('kotaInput').value;
+        const phoneCode = document.getElementById('phoneCode').value;
+        
+        if (!kota) errors.push('❌ Kota belum dipilih');
+        if (!phoneCode) errors.push('❌ Kode Handphone belum dipilih');
+
+        if (!data.grab.invoiceUploaded) errors.push('❌ Invoice Grab belum diupload');
+        if (!data.jc.invoiceUploaded) errors.push('❌ Invoice JC/GoFood belum diupload');
+        if (!data.hd.invoiceUploaded) errors.push('❌ Invoice HD/ShopeeFood belum diupload');
+        if (!data.grab.balanceUploaded) errors.push('❌ Ending Balance Grab/OVO belum diupload');
+        if (!data.jc.balanceUploaded) errors.push('❌ Ending Balance JC/GoPay belum diupload');
+        if (!data.hd.balanceUploaded) errors.push('❌ Ending Balance HD/ShopeePay belum diupload');
+
+        if (grabDiff > tolerance) {
+            errors.push(`❌ Grab: Perhitungan (${grabExpected.toLocaleString('id-ID')}) ≠ Upload (${data.grab.endingBalance.toLocaleString('id-ID')})`);
+            document.getElementById('grabCard').classList.add('error-blink');
+        } else {
             document.getElementById('grabCard').classList.remove('error-blink');
+        }
+
+        if (jcDiff > tolerance) {
+            errors.push(`❌ JC: Perhitungan (${jcExpected.toLocaleString('id-ID')}) ≠ Upload (${data.jc.endingBalance.toLocaleString('id-ID')})`);
+            document.getElementById('jcCard').classList.add('error-blink');
+        } else {
             document.getElementById('jcCard').classList.remove('error-blink');
+        }
+
+        if (hdDiff > tolerance) {
+            errors.push(`❌ HD: Perhitungan (${hdExpected.toLocaleString('id-ID')}) ≠ Upload (${data.hd.endingBalance.toLocaleString('id-ID')})`);
+            document.getElementById('hdCard').classList.add('error-blink');
+        } else {
             document.getElementById('hdCard').classList.remove('error-blink');
+        }
+
+        if (errors.length > 0) {
+            const box = document.getElementById('validationBox');
+            document.getElementById('validationMessage').innerHTML = errors.join('<br>');
+            box.classList.add('show');
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+
+        document.getElementById('validationBox').classList.remove('show');
+        document.getElementById('grabCard').classList.remove('error-blink');
+        document.getElementById('jcCard').classList.remove('error-blink');
+        document.getElementById('hdCard').classList.remove('error-blink');
+        
+        return true;
+    }
+
+    // ============================================
+    // SUBMIT DATA (VERSI BARU DENGAN KOTA)
+    // ============================================
+    function submitData() {
+        if (!validateBeforeSubmit()) {
+            return;
+        }
+
+        const kota = document.getElementById('kotaInput').value;
+        if (!kota) {
+            alert('Pilih kota terlebih dahulu!');
+            return;
+        }
+
+        const webAppUrl = localStorage.getItem('webAppUrl');
+        if (!webAppUrl) {
+            alert('Simpan Web App URL terlebih dahulu!');
+            return;
+        }
+
+        const loading = document.getElementById('loading');
+        const success = document.getElementById('successMsg');
+        const error = document.getElementById('errorMsg');
+
+        loading.classList.add('show');
+        success.style.display = 'none';
+        error.style.display = 'none';
+
+        const grabSaldoAwalFinal = data.grab.saldoAwal + data.grab.topUp;
+        const jcSaldoAwalFinal = data.jc.saldoAwal + data.jc.topUp;
+        const hdSaldoAwalFinal = data.hd.saldoAwal + data.hd.topUp;
+
+        const payload = {
+            timestamp: new Date().toLocaleString('id-ID'),
+            adminName: document.getElementById('adminName').value || 'Admin',
+            date: document.getElementById('dateInput').value,
+            phoneCode: document.getElementById('phoneCode').value,
+            kota: kota,  // <-- KIRIM KOTA KE GAS
             
-            return true;
-        }
+            grabSaldoAwal: grabSaldoAwalFinal,
+            grabTotalUsage: data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0),
+            grabEndingBalance: data.grab.endingBalance,
+            
+            jcSaldoAwal: jcSaldoAwalFinal,
+            jcTotalUsage: data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0),
+            jcEndingBalance: data.jc.endingBalance,
+            
+            hdSaldoAwal: hdSaldoAwalFinal,
+            hdTotalUsage: data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0),
+            hdEndingBalance: data.hd.endingBalance,
+            
+            remarks: document.getElementById('remarks').value || 'Food'
+        };
 
-        function submitData() {
-            if (!validateBeforeSubmit()) {
-                return;
-            }
+        const formData = new FormData();
+        Object.keys(payload).forEach(key => {
+            formData.append(key, payload[key]);
+        });
 
-            const webAppUrl = localStorage.getItem('webAppUrl');
-            if (!webAppUrl) {
-                alert('Simpan Web App URL terlebih dahulu!');
-                return;
-            }
-
-            const loading = document.getElementById('loading');
-            const success = document.getElementById('successMsg');
-            const error = document.getElementById('errorMsg');
-
-            loading.classList.add('show');
-            success.style.display = 'none';
-            error.style.display = 'none';
-
-            const grabSaldoAwalFinal = data.grab.saldoAwal + data.grab.topUp;
-            const jcSaldoAwalFinal = data.jc.saldoAwal + data.jc.topUp;
-            const hdSaldoAwalFinal = data.hd.saldoAwal + data.hd.topUp;
-
-            const payload = {
-                timestamp: new Date().toLocaleString('id-ID'),
-                adminName: document.getElementById('adminName').value || 'Admin',
-                date: document.getElementById('dateInput').value,
-                phoneCode: document.getElementById('phoneCode').value,
-                
-                grabSaldoAwal: grabSaldoAwalFinal,
-                grabTotalUsage: data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0),
-                grabEndingBalance: data.grab.endingBalance,
-                
-                jcSaldoAwal: jcSaldoAwalFinal,
-                jcTotalUsage: data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0),
-                jcEndingBalance: data.jc.endingBalance,
-                
-                hdSaldoAwal: hdSaldoAwalFinal,
-                hdTotalUsage: data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0),
-                hdEndingBalance: data.hd.endingBalance,
-                
-                remarks: document.getElementById('remarks').value || 'Food'
-            };
-
-            const formData = new FormData();
-            Object.keys(payload).forEach(key => {
-                formData.append(key, payload[key]);
-            });
-
-            fetch(webAppUrl, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(result => {
-                loading.classList.remove('show');
-                success.style.display = 'block';
-                console.log('Success:', result);
-            })
-            .catch(err => {
-                loading.classList.remove('show');
-                success.style.display = 'block';
-                console.log('Sent:', err);
-            });
-        }
-    </script>
+        fetch(webAppUrl, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(result => {
+            loading.classList.remove('show');
+            success.innerHTML = `✅ Data berhasil dikirim ke sheet <strong>${kota}</strong>! <a href="#" onclick="openSheet('${kota}')" style="color: #155724;">Buka Sheet ${kota}</a>`;
+            success.style.display = 'block';
+            console.log('Success:', result);
+        })
+        .catch(err => {
+            loading.classList.remove('show');
+            success.style.display = 'block';
+            console.log('Sent:', err);
+        });
+    }
+</script>
 </body>
 </html>
