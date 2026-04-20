@@ -106,7 +106,6 @@
         .grab-icon { background: #00b14f; color: white; }
         .jc-icon { background: #00aed9; color: white; }
         .hd-icon { background: #ee4d2d; color: white; }
-        .extra-icon { background: #ff6b6b; color: white; }
 
         .upload-area {
             border: 3px dashed #ccc;
@@ -128,12 +127,6 @@
             border-color: #667eea;
             background: #e8eeff;
             transform: scale(1.02);
-        }
-
-        .upload-area i {
-            font-size: 3em;
-            color: #667eea;
-            margin-bottom: 10px;
         }
 
         .preview-image {
@@ -165,9 +158,41 @@
         }
 
         .amount {
-            font-size: 1.8em;
+            font-size: 1.5em;
             font-weight: bold;
             color: #667eea;
+        }
+
+        .saldo-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .saldo-box .label {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .saldo-box .value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .topup-input {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .topup-input label {
+            color: #e65100;
+            font-size: 0.9em;
         }
 
         .ocr-status {
@@ -235,10 +260,15 @@
         .btn-secondary {
             background: #6c757d;
             margin-top: 10px;
+            font-size: 0.9em;
         }
 
         .btn-success {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
         }
 
         .loading {
@@ -294,51 +324,6 @@
             border: 1px solid #ffeaa7;
         }
 
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 10px;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            color: #666;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-
-        .tab.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .balance-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-
-        .balance-amount {
-            font-size: 2em;
-            font-weight: bold;
-        }
-
         .info-text {
             background: #e7f3ff;
             border-left: 4px solid #2196F3;
@@ -348,15 +333,20 @@
             color: #0c5460;
         }
 
-        .remove-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8em;
-            margin-top: 5px;
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .webapp-input {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
         }
 
         .extra-invoices {
@@ -374,20 +364,44 @@
             align-items: center;
         }
 
-        .webapp-input {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 2px solid #e9ecef;
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
         }
 
-        .highlight {
-            background: #fff3cd;
-            padding: 2px 5px;
-            border-radius: 3px;
+        .calculation-box {
+            background: #f3e5f5;
+            border: 2px solid #9c27b0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .calculation-box h4 {
+            color: #6a1b9a;
+            margin-bottom: 10px;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #ce93d8;
+        }
+
+        .calc-row.total {
             font-weight: bold;
-            color: #856404;
+            color: #6a1b9a;
+            font-size: 1.2em;
+            border-top: 2px solid #9c27b0;
+            border-bottom: none;
+            margin-top: 5px;
+            padding-top: 10px;
         }
 
         @media (max-width: 768px) {
@@ -404,40 +418,62 @@
     <div class="container">
         <div class="header">
             <h1>📊 Auto Expense Tracker</h1>
-            <p>OCR Invoice → Google Sheets (Sheet ID: <span class="highlight">1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K</span>)</p>
+            <p>Sheet ID: <span class="highlight">1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K</span></p>
         </div>
 
         <div class="content">
             <div class="info-text">
-                <strong>Petunjuk:</strong> Upload screenshot invoice dan aplikasi akan otomatis membaca total bayar. Upload juga screenshot saldo akhir e-wallet untuk ending balance.
+                <strong>Fitur Baru:</strong> Input Top Up & Saldo Awal otomatis dari data terakhir per Kode HP. 
+                Ending Balance transaksi sebelumnya + Top Up = Saldo Awal hari ini.
             </div>
 
             <!-- Web App URL Input -->
             <div class="webapp-input">
                 <div class="form-group">
-                    <label>🔗 Google Apps Script Web App URL (Wajib Diisi)</label>
-                    <input type="text" id="webAppUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
-                    <small style="color: #666; display: block; margin-top: 5px;">
-                        Dapatkan URL ini setelah deploy di Google Apps Script (lihat panduan di bawah)
-                    </small>
+                    <label>🔗 Google Apps Script Web App URL</label>
+                    <input type="text" id="webAppUrl" placeholder="https://script.google.com/macros/s/.../exec">
                 </div>
                 <button class="btn btn-secondary" onclick="saveUrl()" style="width: auto; padding: 10px 20px;">💾 Simpan URL</button>
                 <span id="savedStatus" style="margin-left: 10px; color: #28a745; display: none;">✓ Tersimpan!</span>
-            </div>
-
-            <div class="form-group">
-                <label>Nama Admin</label>
-                <input type="text" id="adminName" placeholder="Nama Anda">
+                <button class="btn btn-warning" onclick="fetchLastData()" style="width: auto; padding: 10px 20px; margin-left: 10px;">🔄 Ambil Data Terakhir</button>
             </div>
 
             <div class="row">
                 <div class="form-group">
+                    <label>Nama Admin</label>
+                    <input type="text" id="adminName" placeholder="Nama Anda">
+                </div>
+                <div class="form-group">
                     <label>Tanggal</label>
                     <input type="date" id="dateInput">
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="form-group">
                     <label>Kode Handphone</label>
-                    <input type="text" id="phoneCode" placeholder="Contoh: 1b">
+                    <input type="text" id="phoneCode" placeholder="Contoh: 1b" onchange="fetchLastData()">
+                </div>
+                <div class="form-group">
+                    <label>Remarks / Keterangan</label>
+                    <input type="text" id="remarks" placeholder="Contoh: Food, Transport">
+                </div>
+            </div>
+
+            <!-- Saldo Awal Display -->
+            <div class="calculation-box" id="saldoDisplay" style="display: none;">
+                <h4>📋 Saldo Awal (Dari Transaksi Terakhir Kode HP: <span id="lastPhoneCode"></span>)</h4>
+                <div class="calc-row">
+                    <span>Grab Ending Balance (sebelumnya):</span>
+                    <span id="lastGrabBalance">Rp0</span>
+                </div>
+                <div class="calc-row">
+                    <span>JC Ending Balance (sebelumnya):</span>
+                    <span id="lastJcBalance">Rp0</span>
+                </div>
+                <div class="calc-row">
+                    <span>HD Ending Balance (sebelumnya):</span>
+                    <span id="lastHdBalance">Rp0</span>
                 </div>
             </div>
 
@@ -446,98 +482,48 @@
                 <div class="card">
                     <div class="card-title">
                         <div class="icon grab-icon">🛵</div>
-                        Grab (Total Usage)
+                        Grab
                     </div>
+                    
+                    <!-- Saldo Awal -->
+                    <div class="saldo-box">
+                        <div class="label">Saldo Awal (Otomatis)</div>
+                        <div class="value" id="grabSaldoAwal">Rp0</div>
+                    </div>
+
+                    <!-- Top Up Input -->
+                    <div class="topup-input">
+                        <label>💰 Top Up Grab (jika ada)</label>
+                        <input type="number" id="grabTopUp" placeholder="0" onchange="calculateSaldo('grab')">
+                    </div>
+
+                    <!-- Total Usage Upload -->
                     <div class="upload-area" onclick="document.getElementById('grabInput').click()">
-                        <div style="font-size: 3em;">📄</div>
-                        <p><strong>Klik atau Drop</strong> invoice Grab disini</p>
-                        <p style="font-size:0.9em; color:#666;">OCR akan membaca "Total Harga"</p>
+                        <div style="font-size: 2.5em;">📄</div>
+                        <p><strong>Upload Invoice Grab</strong></p>
+                        <p style="font-size:0.85em; color:#666;">OCR baca "Total Harga"</p>
                         <input type="file" id="grabInput" accept="image/*" style="display:none" onchange="handleFile(this, 'grab')">
                     </div>
                     <img id="grabPreview" class="preview-image">
                     <div id="grabResult" class="result-box">
-                        <div>Total Terbaca:</div>
+                        <div>Total Usage:</div>
                         <div class="amount" id="grabAmount">Rp0</div>
-                        <div class="ocr-status" id="grabStatus"></div>
                         <div class="manual-input">
-                            <label style="font-size:0.9em;">Koreksi Manual (jika OCR salah):</label>
-                            <input type="number" id="grabManual" placeholder="Masukkan angka" onchange="manualOverride('grab')">
+                            <input type="number" id="grabManual" placeholder="Koreksi manual" onchange="manualOverride('grab')">
                         </div>
                     </div>
                     <div class="extra-invoices" id="grabExtras"></div>
-                    <button class="btn btn-secondary" style="margin-top:10px; font-size: 0.9em;" onclick="addExtraInvoice('grab')">+ Tambah Invoice Extra (Gambar 5/6)</button>
-                </div>
+                    <button class="btn btn-secondary" onclick="addExtraInvoice('grab')">+ Invoice Extra</button>
 
-                <!-- JC (GoPay/JC) Section -->
-                <div class="card">
-                    <div class="card-title">
-                        <div class="icon jc-icon">💳</div>
-                        JC / GoFood (Total Usage)
-                    </div>
-                    <div class="upload-area" onclick="document.getElementById('jcInput').click()">
-                        <div style="font-size: 3em;">📄</div>
-                        <p><strong>Klik atau Drop</strong> invoice GoFood disini</p>
-                        <p style="font-size:0.9em; color:#666;">OCR akan membaca "Total dibayar"</p>
-                        <input type="file" id="jcInput" accept="image/*" style="display:none" onchange="handleFile(this, 'jc')">
-                    </div>
-                    <img id="jcPreview" class="preview-image">
-                    <div id="jcResult" class="result-box">
-                        <div>Total Terbaca:</div>
-                        <div class="amount" id="jcAmount">Rp0</div>
-                        <div class="ocr-status" id="jcStatus"></div>
-                        <div class="manual-input">
-                            <label style="font-size:0.9em;">Koreksi Manual:</label>
-                            <input type="number" id="jcManual" placeholder="Masukkan angka" onchange="manualOverride('jc')">
-                        </div>
-                    </div>
-                    <div class="extra-invoices" id="jcExtras"></div>
-                    <button class="btn btn-secondary" style="margin-top:10px; font-size: 0.9em;" onclick="addExtraInvoice('jc')">+ Tambah Invoice Extra</button>
-                </div>
-
-                <!-- HD (Shopee/HD) Section -->
-                <div class="card">
-                    <div class="card-title">
-                        <div class="icon hd-icon">🛒</div>
-                        HD / ShopeeFood (Total Usage)
-                    </div>
-                    <div class="upload-area" onclick="document.getElementById('hdInput').click()">
-                        <div style="font-size: 3em;">📄</div>
-                        <p><strong>Klik atau Drop</strong> invoice ShopeeFood disini</p>
-                        <p style="font-size:0.9em; color:#666;">OCR akan membaca "Total"</p>
-                        <input type="file" id="hdInput" accept="image/*" style="display:none" onchange="handleFile(this, 'hd')">
-                    </div>
-                    <img id="hdPreview" class="preview-image">
-                    <div id="hdResult" class="result-box">
-                        <div>Total Terbaca:</div>
-                        <div class="amount" id="hdAmount">Rp0</div>
-                        <div class="ocr-status" id="hdStatus"></div>
-                        <div class="manual-input">
-                            <label style="font-size:0.9em;">Koreksi Manual:</label>
-                            <input type="number" id="hdManual" placeholder="Masukkan angka" onchange="manualOverride('hd')">
-                        </div>
-                    </div>
-                    <div class="extra-invoices" id="hdExtras"></div>
-                    <button class="btn btn-secondary" style="margin-top:10px; font-size: 0.9em;" onclick="addExtraInvoice('hd')">+ Tambah Invoice Extra</button>
-                </div>
-            </div>
-
-            <h3 style="margin: 30px 0 20px; color: #333;">💰 Ending Balance (Saldo Akhir)</h3>
-            
-            <div class="grid">
-                <div class="card">
-                    <div class="card-title">
-                        <div class="icon grab-icon">🟢</div>
-                        Grab / OVO Ending Balance
-                    </div>
-                    <div class="upload-area" onclick="document.getElementById('grabBalanceInput').click()">
-                        <div style="font-size: 3em;">💰</div>
-                        <p><strong>Upload screenshot saldo OVO</strong></p>
-                        <p style="font-size:0.8em; color:#666;">Gambar 9</p>
+                    <!-- Ending Balance Upload -->
+                    <div class="upload-area" onclick="document.getElementById('grabBalanceInput').click()" style="margin-top: 15px;">
+                        <div style="font-size: 2em;">💰</div>
+                        <p><strong>Upload Saldo OVO Akhir</strong></p>
                         <input type="file" id="grabBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'grab')">
                     </div>
                     <img id="grabBalancePreview" class="preview-image">
                     <div id="grabBalanceResult" class="result-box">
-                        <div>Saldo Terbaca:</div>
+                        <div>Ending Balance:</div>
                         <div class="amount" id="grabBalanceAmount">Rp0</div>
                         <div class="manual-input">
                             <input type="number" id="grabBalanceManual" placeholder="Koreksi manual" onchange="manualBalanceOverride('grab')">
@@ -545,20 +531,48 @@
                     </div>
                 </div>
 
+                <!-- JC Section -->
                 <div class="card">
                     <div class="card-title">
-                        <div class="icon jc-icon">🔵</div>
-                        JC / GoPay Ending Balance
+                        <div class="icon jc-icon">💳</div>
+                        JC / GoPay
                     </div>
-                    <div class="upload-area" onclick="document.getElementById('jcBalanceInput').click()">
-                        <div style="font-size: 3em;">💰</div>
-                        <p><strong>Upload screenshot saldo GoPay</strong></p>
-                        <p style="font-size:0.8em; color:#666;">Gambar 7</p>
+                    
+                    <div class="saldo-box">
+                        <div class="label">Saldo Awal (Otomatis)</div>
+                        <div class="value" id="jcSaldoAwal">Rp0</div>
+                    </div>
+
+                    <div class="topup-input">
+                        <label>💰 Top Up JC (jika ada)</label>
+                        <input type="number" id="jcTopUp" placeholder="0" onchange="calculateSaldo('jc')">
+                    </div>
+
+                    <div class="upload-area" onclick="document.getElementById('jcInput').click()">
+                        <div style="font-size: 2.5em;">📄</div>
+                        <p><strong>Upload Invoice GoFood</strong></p>
+                        <p style="font-size:0.85em; color:#666;">OCR baca "Total dibayar"</p>
+                        <input type="file" id="jcInput" accept="image/*" style="display:none" onchange="handleFile(this, 'jc')">
+                    </div>
+                    <img id="jcPreview" class="preview-image">
+                    <div id="jcResult" class="result-box">
+                        <div>Total Usage:</div>
+                        <div class="amount" id="jcAmount">Rp0</div>
+                        <div class="manual-input">
+                            <input type="number" id="jcManual" placeholder="Koreksi manual" onchange="manualOverride('jc')">
+                        </div>
+                    </div>
+                    <div class="extra-invoices" id="jcExtras"></div>
+                    <button class="btn btn-secondary" onclick="addExtraInvoice('jc')">+ Invoice Extra</button>
+
+                    <div class="upload-area" onclick="document.getElementById('jcBalanceInput').click()" style="margin-top: 15px;">
+                        <div style="font-size: 2em;">💰</div>
+                        <p><strong>Upload Saldo GoPay Akhir</strong></p>
                         <input type="file" id="jcBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'jc')">
                     </div>
                     <img id="jcBalancePreview" class="preview-image">
                     <div id="jcBalanceResult" class="result-box">
-                        <div>Saldo Terbaca:</div>
+                        <div>Ending Balance:</div>
                         <div class="amount" id="jcBalanceAmount">Rp0</div>
                         <div class="manual-input">
                             <input type="number" id="jcBalanceManual" placeholder="Koreksi manual" onchange="manualBalanceOverride('jc')">
@@ -566,20 +580,48 @@
                     </div>
                 </div>
 
+                <!-- HD Section -->
                 <div class="card">
                     <div class="card-title">
-                        <div class="icon hd-icon">🟠</div>
-                        HD / ShopeePay Ending Balance
+                        <div class="icon hd-icon">🛒</div>
+                        HD / ShopeePay
                     </div>
-                    <div class="upload-area" onclick="document.getElementById('hdBalanceInput').click()">
-                        <div style="font-size: 3em;">💰</div>
-                        <p><strong>Upload screenshot saldo ShopeePay</strong></p>
-                        <p style="font-size:0.8em; color:#666;">Gambar 8</p>
+                    
+                    <div class="saldo-box">
+                        <div class="label">Saldo Awal (Otomatis)</div>
+                        <div class="value" id="hdSaldoAwal">Rp0</div>
+                    </div>
+
+                    <div class="topup-input">
+                        <label>💰 Top Up HD (jika ada)</label>
+                        <input type="number" id="hdTopUp" placeholder="0" onchange="calculateSaldo('hd')">
+                    </div>
+
+                    <div class="upload-area" onclick="document.getElementById('hdInput').click()">
+                        <div style="font-size: 2.5em;">📄</div>
+                        <p><strong>Upload Invoice ShopeeFood</strong></p>
+                        <p style="font-size:0.85em; color:#666;">OCR baca "Total"</p>
+                        <input type="file" id="hdInput" accept="image/*" style="display:none" onchange="handleFile(this, 'hd')">
+                    </div>
+                    <img id="hdPreview" class="preview-image">
+                    <div id="hdResult" class="result-box">
+                        <div>Total Usage:</div>
+                        <div class="amount" id="hdAmount">Rp0</div>
+                        <div class="manual-input">
+                            <input type="number" id="hdManual" placeholder="Koreksi manual" onchange="manualOverride('hd')">
+                        </div>
+                    </div>
+                    <div class="extra-invoices" id="hdExtras"></div>
+                    <button class="btn btn-secondary" onclick="addExtraInvoice('hd')">+ Invoice Extra</button>
+
+                    <div class="upload-area" onclick="document.getElementById('hdBalanceInput').click()" style="margin-top: 15px;">
+                        <div style="font-size: 2em;">💰</div>
+                        <p><strong>Upload Saldo ShopeePay Akhir</strong></p>
                         <input type="file" id="hdBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'hd')">
                     </div>
                     <img id="hdBalancePreview" class="preview-image">
                     <div id="hdBalanceResult" class="result-box">
-                        <div>Saldo Terbaca:</div>
+                        <div>Ending Balance:</div>
                         <div class="amount" id="hdBalanceAmount">Rp0</div>
                         <div class="manual-input">
                             <input type="number" id="hdBalanceManual" placeholder="Koreksi manual" onchange="manualBalanceOverride('hd')">
@@ -588,51 +630,46 @@
                 </div>
             </div>
 
-            <div class="form-group" style="margin-top: 30px;">
-                <label>Remarks / Keterangan</label>
-                <input type="text" id="remarks" placeholder="Contoh: Food, Transport, dll">
+            <!-- Final Calculation Summary -->
+            <div class="calculation-box" id="finalCalc" style="display: none;">
+                <h4>🧮 Ringkasan Perhitungan</h4>
+                <div class="calc-row">
+                    <span>Grab: Saldo Awal + Top Up - Usage = Ending</span>
+                    <span id="grabCalcSummary">0 + 0 - 0 = 0</span>
+                </div>
+                <div class="calc-row">
+                    <span>JC: Saldo Awal + Top Up - Usage = Ending</span>
+                    <span id="jcCalcSummary">0 + 0 - 0 = 0</span>
+                </div>
+                <div class="calc-row">
+                    <span>HD: Saldo Awal + Top Up - Usage = Ending</span>
+                    <span id="hdCalcSummary">0 + 0 - 0 = 0</span>
+                </div>
             </div>
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p>Memproses OCR dan mengirim data...</p>
+                <p>Mengirim data ke Google Sheets...</p>
             </div>
 
             <div class="success-message" id="successMsg">
-                ✅ Data berhasil dikirim ke Google Sheets! <a href="#" onclick="openSheet()" style="color: #155724; text-decoration: underline;">Buka Sheet</a>
+                ✅ Data berhasil dikirim! <a href="#" onclick="openSheet()" style="color: #155724;">Buka Sheet</a>
             </div>
 
             <div class="error-message" id="errorMsg">
-                ❌ Terjadi kesalahan. Silakan coba lagi.
+                ❌ Gagal mengirim data. Cek console untuk detail.
             </div>
 
             <button class="btn btn-success" onclick="submitData()">🚀 Kirim ke Google Sheets</button>
-        </div>
-
-        <div style="padding: 30px; background: #f8f9fa; border-top: 1px solid #e9ecef;">
-            <h3>📖 Panduan Setup (GRATIS 100%)</h3>
-            <ol style="margin-left: 20px; line-height: 2; margin-top: 15px;">
-                <li>Buka <a href="https://script.google.com" target="_blank" style="color: #667eea;">Google Apps Script</a> (Gratis dengan Google Account)</li>
-                <li>Buat project baru, paste kode <strong>Code.gs</strong> (File 2)</li>
-                <li>Klik <strong>Deploy</strong> → <strong>New deployment</strong> → Pilih tipe <strong>Web app</strong></li>
-                <li><strong>Execute as:</strong> Me | <strong>Who has access:</strong> Anyone</li>
-                <li>Klik <strong>Deploy</strong> → Copy <strong>Web App URL</strong> → Paste di atas</li>
-                <li>Selesai! Aplikasi siap digunakan tanpa biaya apapun</li>
-            </ol>
-            <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
-                <strong>Sheet ID Anda:</strong> <code>1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K</code><br>
-                * Semua data diproses di browser (OCR). Tidak ada server pihak ketiga.<br>
-                * Google Apps Script & Sheets 100% gratis.
-            </p>
         </div>
     </div>
 
     <script>
         // Data storage
         let data = {
-            grab: { total: 0, extras: [], endingBalance: 0 },
-            jc: { total: 0, extras: [], endingBalance: 0 },
-            hd: { total: 0, extras: [], endingBalance: 0 }
+            grab: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0 },
+            jc: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0 },
+            hd: { saldoAwal: 0, topUp: 0, total: 0, extras: [], endingBalance: 0 }
         };
 
         const SHEET_ID = '1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K';
@@ -640,7 +677,6 @@
         // Initialize
         document.getElementById('dateInput').valueAsDate = new Date();
 
-        // Load saved URL
         window.onload = function() {
             const savedUrl = localStorage.getItem('webAppUrl');
             if (savedUrl) {
@@ -652,7 +688,7 @@
         function saveUrl() {
             const url = document.getElementById('webAppUrl').value;
             if (!url) {
-                alert('Silakan masukkan Web App URL!');
+                alert('Masukkan Web App URL!');
                 return;
             }
             localStorage.setItem('webAppUrl', url);
@@ -666,7 +702,84 @@
             window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`, '_blank');
         }
 
-        // Drag and drop support
+        // Fetch last data by phone code
+        async function fetchLastData() {
+            const phoneCode = document.getElementById('phoneCode').value;
+            if (!phoneCode) return;
+
+            const webAppUrl = localStorage.getItem('webAppUrl');
+            if (!webAppUrl) {
+                alert('Simpan Web App URL terlebih dahulu!');
+                return;
+            }
+
+            try {
+                // Gunakan GET dengan parameter untuk ambil data terakhir
+                const response = await fetch(`${webAppUrl}?action=getLast&phoneCode=${encodeURIComponent(phoneCode)}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const d = result.data;
+                    
+                    // Update display
+                    document.getElementById('lastPhoneCode').textContent = phoneCode;
+                    document.getElementById('lastGrabBalance').textContent = 'Rp' + (d.grabEnding || 0).toLocaleString('id-ID');
+                    document.getElementById('lastJcBalance').textContent = 'Rp' + (d.jcEnding || 0).toLocaleString('id-ID');
+                    document.getElementById('lastHdBalance').textContent = 'Rp' + (d.hdEnding || 0).toLocaleString('id-ID');
+                    
+                    // Set saldo awal = ending balance terakhir
+                    data.grab.saldoAwal = parseFloat(d.grabEnding) || 0;
+                    data.jc.saldoAwal = parseFloat(d.jcEnding) || 0;
+                    data.hd.saldoAwal = parseFloat(d.hdEnding) || 0;
+                    
+                    updateSaldoDisplay();
+                    document.getElementById('saldoDisplay').style.display = 'block';
+                }
+            } catch (e) {
+                console.log('Tidak bisa ambil data terakhir, menggunakan 0');
+                // Default ke 0 jika gagal
+                data.grab.saldoAwal = 0;
+                data.jc.saldoAwal = 0;
+                data.hd.saldoAwal = 0;
+                updateSaldoDisplay();
+            }
+        }
+
+        function updateSaldoDisplay() {
+            document.getElementById('grabSaldoAwal').textContent = 'Rp' + data.grab.saldoAwal.toLocaleString('id-ID');
+            document.getElementById('jcSaldoAwal').textContent = 'Rp' + data.jc.saldoAwal.toLocaleString('id-ID');
+            document.getElementById('hdSaldoAwal').textContent = 'Rp' + data.hd.saldoAwal.toLocaleString('id-ID');
+        }
+
+        function calculateSaldo(type) {
+            const topUp = parseFloat(document.getElementById(type + 'TopUp').value) || 0;
+            data[type].topUp = topUp;
+            
+            // Saldo Awal = Ending Balance sebelumnya + Top Up
+            const saldoAwal = data[type].saldoAwal + topUp;
+            document.getElementById(type + 'SaldoAwal').textContent = 'Rp' + saldoAwal.toLocaleString('id-ID');
+            
+            updateCalculationSummary();
+        }
+
+        function updateCalculationSummary() {
+            const grabTotal = data.grab.saldoAwal + data.grab.topUp - (data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0));
+            const jcTotal = data.jc.saldoAwal + data.jc.topUp - (data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0));
+            const hdTotal = data.hd.saldoAwal + data.hd.topUp - (data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0));
+            
+            document.getElementById('grabCalcSummary').textContent = 
+                `${data.grab.saldoAwal.toLocaleString('id-ID')} + ${data.grab.topUp.toLocaleString('id-ID')} - ${(data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0)).toLocaleString('id-ID')} = ${grabTotal.toLocaleString('id-ID')}`;
+            
+            document.getElementById('jcCalcSummary').textContent = 
+                `${data.jc.saldoAwal.toLocaleString('id-ID')} + ${data.jc.topUp.toLocaleString('id-ID')} - ${(data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0)).toLocaleString('id-ID')} = ${jcTotal.toLocaleString('id-ID')}`;
+            
+            document.getElementById('hdCalcSummary').textContent = 
+                `${data.hd.saldoAwal.toLocaleString('id-ID')} + ${data.hd.topUp.toLocaleString('id-ID')} - ${(data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0)).toLocaleString('id-ID')} = ${hdTotal.toLocaleString('id-ID')}`;
+            
+            document.getElementById('finalCalc').style.display = 'block';
+        }
+
+        // Drag and drop
         document.querySelectorAll('.upload-area').forEach(area => {
             area.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -705,52 +818,41 @@
             preview.style.display = 'block';
             result.classList.remove('show');
 
-            status.textContent = 'Memproses OCR...';
-
-            Tesseract.recognize(
-                file,
-                'ind+eng',
-                {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            status.textContent = `OCR Progress: ${(m.progress * 100).toFixed(0)}%`;
-                        }
+            Tesseract.recognize(file, 'ind+eng', {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        // Progress handled silently
                     }
                 }
-            ).then(({ data: { text } }) => {
-                console.log(`OCR ${type} result:`, text);
+            }).then(({ data: { text } }) => {
+                console.log(`OCR ${type}:`, text);
                 
                 let amount = 0;
-                
                 if (type === 'grab') {
-                    const patterns = [
+                    amount = extractAmount(text, [
                         /Total\s*Harga[:\s]*Rp\.?\s*([\d.,]+)/i,
-                        /Total\s*Harga[:\s]*([\d.,]+)/i,
                         /Total[:\s]*Rp\.?\s*([\d.,]+)/i,
                         /Rp\.?\s*([\d.,]+)\s*$/m
-                    ];
-                    amount = extractAmount(text, patterns);
+                    ]);
                 } else if (type === 'jc') {
-                    const patterns = [
+                    amount = extractAmount(text, [
                         /Total\s*dibayar[:\s]*Rp\.?\s*([\d.,]+)/i,
                         /Total\s*pembayaran[:\s]*Rp\.?\s*([\d.,]+)/i,
                         /Total[:\s]*Rp\.?\s*([\d.,]+)/i,
                         /Rp\.?\s*([\d.,]+)\s*$/m
-                    ];
-                    amount = extractAmount(text, patterns);
+                    ]);
                 } else if (type === 'hd') {
-                    const patterns = [
+                    amount = extractAmount(text, [
                         /Total[:\s]*Rp\.?\s*([\d.,]+)/i,
                         /Rp\.?\s*([\d.,]+)\s*$/m,
                         /([\d.,]+)\s*Sudah termasuk pajak/i
-                    ];
-                    amount = extractAmount(text, patterns);
+                    ]);
                 }
 
                 data[type].total = amount;
                 updateDisplay(type);
-                status.textContent = 'OCR selesai. Verifikasi angka di atas.';
                 result.classList.add('show');
+                updateCalculationSummary();
             });
         }
 
@@ -776,6 +878,7 @@
             const val = parseInt(document.getElementById(type + 'Manual').value) || 0;
             data[type].total = val;
             updateDisplay(type);
+            updateCalculationSummary();
         }
 
         function handleBalanceFile(input, type) {
@@ -789,23 +892,15 @@
             preview.style.display = 'block';
             result.classList.remove('show');
 
-            Tesseract.recognize(file, 'ind+eng', {
-                logger: m => console.log(m)
-            }).then(({ data: { text } }) => {
-                console.log(`OCR Balance ${type}:`, text);
-                
-                const patterns = [
-                    /Rp\.?\s*([\d.,]+)/,
-                    /Saldo[:\s]*Rp\.?\s*([\d.,]+)/i,
-                    /([\d.,]+)\s*$/m
-                ];
-                
+            Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
+                const patterns = [/Rp\.?\s*([\d.,]+)/, /Saldo[:\s]*Rp\.?\s*([\d.,]+)/i, /([\d.,]+)\s*$/m];
                 let amount = extractAmount(text, patterns);
                 data[type].endingBalance = amount;
                 
                 document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + amount.toLocaleString('id-ID');
                 document.getElementById(type + 'BalanceManual').value = amount;
                 result.classList.add('show');
+                updateCalculationSummary();
             });
         }
 
@@ -813,6 +908,7 @@
             const val = parseInt(document.getElementById(type + 'BalanceManual').value) || 0;
             data[type].endingBalance = val;
             document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + val.toLocaleString('id-ID');
+            updateCalculationSummary();
         }
 
         function addExtraInvoice(type) {
@@ -847,6 +943,7 @@
                     <button class="remove-btn" onclick="removeExtra('${type}', ${amount}, this)">Hapus</button>
                 `;
                 container.appendChild(item);
+                updateCalculationSummary();
             });
         }
 
@@ -856,14 +953,14 @@
                 data[type].extras.splice(idx, 1);
                 updateDisplay(type);
                 btn.parentElement.remove();
+                updateCalculationSummary();
             }
         }
 
         function submitData() {
             const webAppUrl = localStorage.getItem('webAppUrl');
             if (!webAppUrl) {
-                alert('Silakan masukkan dan simpan Web App URL terlebih dahulu!');
-                document.getElementById('webAppUrl').focus();
+                alert('Simpan Web App URL terlebih dahulu!');
                 return;
             }
 
@@ -875,28 +972,32 @@
             success.style.display = 'none';
             error.style.display = 'none';
 
+            // Hitung saldo awal final (ending sebelumnya + top up)
+            const grabSaldoAwalFinal = data.grab.saldoAwal + data.grab.topUp;
+            const jcSaldoAwalFinal = data.jc.saldoAwal + data.jc.topUp;
+            const hdSaldoAwalFinal = data.hd.saldoAwal + data.hd.topUp;
+
             const payload = {
                 timestamp: new Date().toLocaleString('id-ID'),
                 adminName: document.getElementById('adminName').value || 'Admin',
                 date: document.getElementById('dateInput').value,
                 phoneCode: document.getElementById('phoneCode').value,
                 
-                grabSaldoAwal: 0,
+                grabSaldoAwal: grabSaldoAwalFinal,
                 grabTotalUsage: data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0),
                 grabEndingBalance: data.grab.endingBalance,
                 
-                jcSaldoAwal: 0,
+                jcSaldoAwal: jcSaldoAwalFinal,
                 jcTotalUsage: data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0),
                 jcEndingBalance: data.jc.endingBalance,
                 
-                hdSaldoAwal: 0,
+                hdSaldoAwal: hdSaldoAwalFinal,
                 hdTotalUsage: data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0),
                 hdEndingBalance: data.hd.endingBalance,
                 
                 remarks: document.getElementById('remarks').value || 'Food'
             };
 
-            // Kirim sebagai form data untuk menghindari CORS issues
             const formData = new FormData();
             Object.keys(payload).forEach(key => {
                 formData.append(key, payload[key]);
@@ -909,21 +1010,13 @@
             .then(response => response.text())
             .then(result => {
                 loading.classList.remove('show');
-                console.log('Response:', result);
                 success.style.display = 'block';
-                
-                // Reset form setelah 2 detik
-                setTimeout(() => {
-                    if (confirm('Data berhasil dikirim! Refresh halaman untuk input baru?')) {
-                        location.reload();
-                    }
-                }, 500);
+                console.log('Success:', result);
             })
             .catch(err => {
                 loading.classList.remove('show');
-                // Tetap tampilkan sukses karena no-cors biasanya tetap berhasil di background
                 success.style.display = 'block';
-                console.log('Request sent (CORS policy may hide response)');
+                console.log('Sent (CORS may hide response)');
             });
         }
     </script>
