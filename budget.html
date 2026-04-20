@@ -1445,7 +1445,7 @@
                             <div class="balance-inputs">
                                 <div class="form-group">
                                     <label style="color: var(--grab); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="grabTopUp" placeholder="0" oninput="calcEnding('grab')" value="0">
+                                    <input type="number" id="grabTopUp" placeholder="0" oninput="calculateStartingBalances()">
                                 </div>
                                 <div class="form-group">
                                     <label>Saldo Awal (Auto)</label>
@@ -1522,7 +1522,7 @@
                             <div class="balance-inputs">
                                 <div class="form-group">
                                     <label style="color: var(--gofood); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="jcTopUp" placeholder="0" oninput="calcEnding('jc')" value="0">
+                                    <input type="number" id="grabTopUp" placeholder="0" oninput="calculateStartingBalances()">
                                 </div>
                                 <div class="form-group">
                                     <label>Saldo Awal (Auto)</label>
@@ -1599,7 +1599,7 @@
                             <div class="balance-inputs">
                                 <div class="form-group">
                                     <label style="color: var(--shopee); font-weight: bold;">Top Up</label>
-                                    <input type="number" id="hdTopUp" placeholder="0" oninput="calcEnding('hd')" value="0">
+                                    <input type="number" id="grabTopUp" placeholder="0" oninput="calculateStartingBalances()">
                                 </div>
                                 <div class="form-group">
                                     <label>Saldo Awal (Auto)</label>
@@ -1710,7 +1710,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4WDWDH9kuIX1k
 let localData = JSON.parse(localStorage.getItem('ojol_local_data') || '[]');
 let invoiceData = { grab: [], jc: [], hd: [] };
 let endingBalanceOCR = { grab: null, jc: null, hd: null };
-let remoteBalances = { grab: 0, jc: 0, hd: 0 };
+let baseBalances = { grab: 0, jc: 0, hd: 0 };
 let validationStatus = { grab: false, jc: false, hd: false };
 let currentOCRController = null;
 let ocrStartTime = null;
@@ -1752,61 +1752,50 @@ function normalizePhoneCode(code) {
 // FETCH LAST BALANCE FROM SHEETS
 // ============================================
 async function fetchLastBalanceFromSheets() {
-    const phoneInput = document.getElementById('phoneCode');
-    const rawCode = phoneInput.value;
-    const pCode = normalizePhoneCode(rawCode);
-    
-    // Update input dengan normalized code
-    if (rawCode !== pCode) {
-        phoneInput.value = pCode;
-    }
-    
-    if (!pCode) {
-        console.log('Kode HP kosong');
-        remoteBalances = { grab: 0, jc: 0, hd: 0 };
-        updateAllPlatforms();
-        return;
-    }
+    const phoneCode = document.getElementById('phoneCode').value;
+    if (!phoneCode) return;
 
-    console.log("Mencari saldo terakhir untuk:", pCode);
-    phoneInput.style.background = '#eff6ff';
-    phoneInput.disabled = true;
-
+    showToast('warning', 'Syncing...', 'Mengambil data saldo terakhir...');
+    
+    // Sesuaikan URL Web App Anda
+    const scriptUrl = 'URL_WEB_APP_ANDA'; 
+    
     try {
-        const fetchUrl = APPS_SCRIPT_URL + '?action=getLastBalance&phoneCode=' + encodeURIComponent(pCode);
-        console.log('Fetching:', fetchUrl);
-        
-        const response = await fetch(fetchUrl);
-        if (!response.ok) throw new Error('HTTP error! status: ' + response.status);
+        const response = await fetch(`${scriptUrl}?action=getLastBalance&phoneCode=${phoneCode}`);
         const result = await response.json();
-        console.log('Response dari GAS:', result);
-
-        if (result.success) {
-            remoteBalances.grab = result.grabEnd || 0;
-            remoteBalances.jc = result.jcEnd || 0;
-            remoteBalances.hd = result.hdEnd || 0;
-            showToast('success', 'Data Ditemukan!', 
-                `Ending balance ${pCode}: Grab Rp ${formatNumber(remoteBalances.grab)}, GoFood Rp ${formatNumber(remoteBalances.jc)}, Shopee Rp ${formatNumber(remoteBalances.hd)}`);
-        } else {
-            remoteBalances = { grab: 0, jc: 0, hd: 0 };
-            showToast('info', 'Kode HP Baru', `Memulai dengan saldo 0 untuk ${pCode}`);
-        }
         
-        updateAllPlatforms();
-    } catch (e) {
-        console.error("Error fetch:", e);
-        showToast('error', 'Gagal Ambil Data!', 'Menggunakan data local...');
-        // fallback ke data lokal
-        remoteBalances.grab = getLastBalanceFromLocal('grab', pCode);
-        remoteBalances.jc = getLastBalanceFromLocal('jc', pCode);
-        remoteBalances.hd = getLastBalanceFromLocal('hd', pCode);
-        updateAllPlatforms();
-    } finally {
-        phoneInput.style.background = '';
-        phoneInput.disabled = false;
+        if (result.success) {
+            // Simpan saldo murni dari sheet ke variabel global
+            baseBalances.grab = result.grabEnd || 0;
+            baseBalances.jc = result.jcEnd || 0;
+            baseBalances.hd = result.hdEnd || 0;
+            
+            // Jalankan fungsi hitung saldo awal (base + topup)
+            calculateStartingBalances();
+            
+            showToast('success', 'Sync Berhasil', `Saldo terakhir kode ${phoneCode} ditemukan.`);
+        }
+    } catch (error) {
+        console.error('Error fetching balance:', error);
+        showToast('error', 'Gagal Sync', 'Tidak dapat mengambil saldo terakhir.');
     }
 }
+function calculateStartingBalances() {
+    // Grab
+    const grabTopUp = parseInt(document.getElementById('grabTopUp').value) || 0;
+    document.getElementById('grabStart').value = baseBalances.grab + grabTopUp;
+    
+    // JC
+    const jcTopUp = parseInt(document.getElementById('jcTopUp').value) || 0;
+    document.getElementById('jcStart').value = baseBalances.jc + jcTopUp;
+    
+    // HD
+    const hdTopUp = parseInt(document.getElementById('hdTopUp').value) || 0;
+    document.getElementById('hdStart').value = baseBalances.hd + hdTopUp;
 
+    // Trigger hitung ending balance (jika ada fungsi auto-calculate usage)
+    if (typeof updateCalculations === "function") updateCalculations();
+}
 function getLastBalanceFromLocal(platform, phoneCode) {
     const normalized = normalizePhoneCode(phoneCode);
     for (let i = localData.length - 1; i >= 0; i--) {
