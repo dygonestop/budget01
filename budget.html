@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Expense Tracker - Full Brand Detection</title>
+    <title>Auto Expense Tracker - Strict Template</title>
     <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
     <style>
         * {
@@ -426,6 +426,27 @@
             color: #1565c0;
         }
 
+        .template-check {
+            background: #fff8e1;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 8px;
+            margin-top: 5px;
+            font-size: 0.8em;
+        }
+
+        .template-check.pass {
+            background: #e8f5e9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .template-check.fail {
+            background: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+
         @media (max-width: 768px) {
             .row {
                 grid-template-columns: 1fr;
@@ -440,15 +461,16 @@
     <div class="container">
         <div class="header">
             <h1>📊 Auto Expense Tracker</h1>
-            <p>Full Brand Detection - Invoice & Ending Balance</p>
+            <p>Strict Template Matching - Upload Sesuai Format</p>
         </div>
 
         <div class="content">
             <div class="info-text">
-                <strong>Aturan Wajib Brand:</strong><br>
-                <strong>📄 INVOICE:</strong> Grab→Grab | GoFood→JC | ShopeeFood→HD<br>
-                <strong>💰 ENDING BALANCE:</strong> GoPay→JC | ShopeePay→HD | OVO→Grab<br>
-                <em>Jika brand tidak cocok = upload ditolak + alert + blink merah</em>
+                <strong>Aturan Strict Template:</strong><br>
+                <strong>📄 INVOICE GRAB:</strong> Harus ada "No. Order", "Ringkasan Pesanan", "Total Harga", "OVO Points"<br>
+                <strong>📄 INVOICE JC:</strong> Harus ada "gofood", "Makasih udah pakai GoFood", "Total dibayar", "Rincian transaksi"<br>
+                <strong>📄 INVOICE HD:</strong> Harus ada "ShopeeFood", "Pesanan Sampai", "Rincian Pesanan", "Sudah termasuk pajak"<br>
+                <strong>💰 ENDING BALANCE:</strong> GoPay→JC | ShopeePay→HD | OVO→Grab
             </div>
 
             <div class="webapp-input">
@@ -500,7 +522,7 @@
             </div>
 
             <div class="validation-box" id="validationBox">
-                <h4>❌ ERROR - Brand Tidak Cocok!</h4>
+                <h4>❌ ERROR - Format Tidak Cocok!</h4>
                 <div id="validationMessage"></div>
             </div>
 
@@ -526,10 +548,11 @@
                     <div class="upload-area" id="grabUploadArea" onclick="document.getElementById('grabInput').click()">
                         <div style="font-size: 2.5em;">📄</div>
                         <p><strong>Upload Invoice GRAB</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "Grab"</p>
+                        <p style="font-size:0.8em; color:#666;">Format: No.Order, Ringkasan Pesanan, Total Harga</p>
                         <input type="file" id="grabInput" accept="image/*" style="display:none" onchange="handleInvoiceFile(this, 'grab')">
                     </div>
                     <img id="grabPreview" class="preview-image">
+                    <div id="grabTemplateCheck" class="template-check" style="display: none;"></div>
                     <div id="grabBrandDetected" class="brand-detected" style="display: none;"></div>
                     <div id="grabResult" class="result-box">
                         <div>Total Usage:</div>
@@ -544,7 +567,7 @@
                     <div class="upload-area" id="grabBalanceUploadArea" onclick="document.getElementById('grabBalanceInput').click()" style="margin-top: 15px;">
                         <div style="font-size: 2em;">💰</div>
                         <p><strong>Upload Ending Balance OVO</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "OVO"</p>
+                        <p style="font-size:0.8em; color:#666;">Harus ada tulisan "OVO"</p>
                         <input type="file" id="grabBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'grab')">
                     </div>
                     <img id="grabBalancePreview" class="preview-image">
@@ -579,10 +602,11 @@
                     <div class="upload-area" id="jcUploadArea" onclick="document.getElementById('jcInput').click()">
                         <div style="font-size: 2.5em;">📄</div>
                         <p><strong>Upload Invoice GOFOOD</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "GoFood"</p>
+                        <p style="font-size:0.8em; color:#666;">Format: gofood, Total dibayar, Rincian transaksi</p>
                         <input type="file" id="jcInput" accept="image/*" style="display:none" onchange="handleInvoiceFile(this, 'jc')">
                     </div>
                     <img id="jcPreview" class="preview-image">
+                    <div id="jcTemplateCheck" class="template-check" style="display: none;"></div>
                     <div id="jcBrandDetected" class="brand-detected" style="display: none;"></div>
                     <div id="jcResult" class="result-box">
                         <div>Total Usage:</div>
@@ -597,7 +621,7 @@
                     <div class="upload-area" id="jcBalanceUploadArea" onclick="document.getElementById('jcBalanceInput').click()" style="margin-top: 15px;">
                         <div style="font-size: 2em;">💰</div>
                         <p><strong>Upload Ending Balance GOPAY</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "GoPay"</p>
+                        <p style="font-size:0.8em; color:#666;">Harus ada tulisan "GoPay"</p>
                         <input type="file" id="jcBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'jc')">
                     </div>
                     <img id="jcBalancePreview" class="preview-image">
@@ -632,10 +656,11 @@
                     <div class="upload-area" id="hdUploadArea" onclick="document.getElementById('hdInput').click()">
                         <div style="font-size: 2.5em;">📄</div>
                         <p><strong>Upload Invoice SHOPEEFOOD</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "ShopeeFood"</p>
+                        <p style="font-size:0.8em; color:#666;">Format: ShopeeFood, Pesanan Sampai, Rincian Pesanan</p>
                         <input type="file" id="hdInput" accept="image/*" style="display:none" onchange="handleInvoiceFile(this, 'hd')">
                     </div>
                     <img id="hdPreview" class="preview-image">
+                    <div id="hdTemplateCheck" class="template-check" style="display: none;"></div>
                     <div id="hdBrandDetected" class="brand-detected" style="display: none;"></div>
                     <div id="hdResult" class="result-box">
                         <div>Total Usage:</div>
@@ -650,7 +675,7 @@
                     <div class="upload-area" id="hdBalanceUploadArea" onclick="document.getElementById('hdBalanceInput').click()" style="margin-top: 15px;">
                         <div style="font-size: 2em;">💰</div>
                         <p><strong>Upload Ending Balance SHOPEEPAY</strong></p>
-                        <p style="font-size:0.85em; color:#666;">Harus ada tulisan "ShopeePay"</p>
+                        <p style="font-size:0.8em; color:#666;">Harus ada tulisan "ShopeePay"</p>
                         <input type="file" id="hdBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'hd')">
                     </div>
                     <img id="hdBalancePreview" class="preview-image">
@@ -709,25 +734,46 @@
 
         const SHEET_ID = '1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K';
 
+        // STRICT TEMPLATE REQUIREMENTS
+        const TEMPLATES = {
+            grab: {
+                required: [
+                    'no. order', 'pengemudi', 'ringkasan pesanan', 
+                    'total harga', 'ovo points', 'hubungi grab'
+                ],
+                optional: ['diantar', 'subtotal', 'ongkos kirim', 'diskon'],
+                minMatch: 4 // Minimal 4 keyword wajib cocok
+            },
+            jc: {
+                required: [
+                    'gofood', 'makasih udah pakai', 'total dibayar',
+                    'rincian transaksi', 'total harga', 'total pembayaran'
+                ],
+                optional: ['detail pengantaran', 'bayar pakai gopay', 'diantarkan'],
+                minMatch: 4
+            },
+            hd: {
+                required: [
+                    'shopeefood', 'pesanan sampai', 'rincian pesanan',
+                    'subtotal pesanan', 'sudah termasuk pajak', 'shopeepay'
+                ],
+                optional: ['pengiriman hemat', 'voucher diskon', 'biaya layanan'],
+                minMatch: 4
+            }
+        };
+
         // BRAND RULES
-        const INVOICE_BRANDS = {
-            grab: ['grab', 'Grab', 'GRAB'],
-            jc: ['gofood', 'GoFood', 'GOFOOD', 'gojek', 'Gojek', 'GOJEK'],
-            hd: ['shopeefood', 'ShopeeFood', 'SHOPEEFOOD', 'shopee', 'Shopee', 'SHOPEE']
-        };
-
         const BALANCE_BRANDS = {
-            grab: ['ovo', 'OVO', 'Ovo'],           // OVO → Grab
-            jc: ['gopay', 'GoPay', 'GOPAY', 'gojek', 'Gojek', 'GOJEK'],  // GoPay → JC
-            hd: ['shopeepay', 'ShopeePay', 'SHOPEEPAY', 'shopee', 'Shopee', 'SHOPEE']  // ShopeePay → HD
+            grab: ['ovo', 'OVO', 'Ovo'],
+            jc: ['gopay', 'GoPay', 'GOPAY', 'gojek', 'Gojek', 'GOJEK'],
+            hd: ['shopeepay', 'ShopeePay', 'SHOPEEPAY', 'shopee', 'Shopee', 'SHOPEE']
         };
 
-        const BRAND_NAMES = {
-            grab: 'Grab', jc: 'GoFood', hd: 'ShopeeFood',
-            ovo: 'OVO', gopay: 'GoPay', shopeepay: 'ShopeePay'
+        const balanceToCard = {
+            ovo: 'grab',
+            gopay: 'jc',
+            shopeepay: 'hd'
         };
-
-        const CARD_NAMES = { grab: 'Grab', jc: 'JC', hd: 'HD' };
 
         document.getElementById('dateInput').valueAsDate = new Date();
 
@@ -802,60 +848,77 @@
             updateCalculationSummary();
         }
 
-        // DETECT BRAND DARI OCR TEXT
-        function detectBrand(text, brandRules) {
+        // VALIDASI TEMPLATE STRICT
+        function validateTemplate(text, type) {
             const lowerText = text.toLowerCase();
+            const template = TEMPLATES[type];
             
-            for (let [key, keywords] of Object.entries(brandRules)) {
-                if (keywords.some(k => lowerText.includes(k.toLowerCase()))) {
-                    return key;
+            let matched = [];
+            let missing = [];
+            
+            // Cek required keywords
+            for (let keyword of template.required) {
+                if (lowerText.includes(keyword.toLowerCase())) {
+                    matched.push(keyword);
+                } else {
+                    missing.push(keyword);
                 }
             }
             
-            return null;
+            // Cek optional keywords (tambah score)
+            let optionalMatched = [];
+            for (let keyword of template.optional) {
+                if (lowerText.includes(keyword.toLowerCase())) {
+                    optionalMatched.push(keyword);
+                }
+            }
+            
+            const pass = matched.length >= template.minMatch;
+            
+            return {
+                pass: pass,
+                matched: matched,
+                missing: missing,
+                optionalMatched: optionalMatched,
+                score: matched.length + (optionalMatched.length * 0.5)
+            };
         }
 
-        function showBrandError(detectedBrand, expectedType, uploadAreaId, isBalance) {
-            const brandNames = {
-                grab: 'Grab', jc: 'GoFood', hd: 'ShopeeFood',
-                ovo: 'OVO', gopay: 'GoPay', shopeepay: 'ShopeePay'
+        function showTemplateError(result, expectedType, uploadAreaId) {
+            const templateNames = {
+                grab: 'Grab Invoice (No.Order, Ringkasan Pesanan, Total Harga, OVO Points)',
+                jc: 'GoFood Invoice (gofood, Total dibayar, Rincian transaksi, Detail pengantaran)',
+                hd: 'ShopeeFood Invoice (ShopeeFood, Pesanan Sampai, Rincian Pesanan, Sudah termasuk pajak)'
             };
             
             const cardNames = { grab: 'Grab', jc: 'JC', hd: 'HD' };
-            const balanceMap = { ovo: 'Grab', gopay: 'JC', shopeepay: 'HD' };
             
-            let correctCard, uploadType;
+            let message = `❌ FORMAT INVOICE TIDAK COCOK!<br><br>
+                <strong>Upload di card:</strong> ${cardNames[expectedType]}<br>
+                <strong>Format terdeteksi:</strong> Bukan ${templateNames[expectedType]}<br><br>
+                <strong>Keyword yang dicari:</strong><br>`;
             
-            if (isBalance) {
-                // Untuk balance, map brand ke card yang benar
-                correctCard = balanceMap[detectedBrand] || detectedBrand;
-                uploadType = 'Ending Balance';
-            } else {
-                correctCard = cardNames[detectedBrand] || detectedBrand;
-                uploadType = 'Invoice';
+            message += `<span style="color:#c62828">❌ Missing: ${result.missing.join(', ')}</span><br>`;
+            message += `<span style="color:#2e7d32">✓ Found: ${result.matched.join(', ')}</span><br>`;
+            if (result.optionalMatched.length > 0) {
+                message += `<span style="color:#1565c0">✓ Optional: ${result.optionalMatched.join(', ')}</span><br>`;
             }
-            
-            const message = `❌ BRAND SALAH!<br>
-                <strong>Terdeteksi:</strong> ${brandNames[detectedBrand] || detectedBrand}<br>
-                <strong>Harusnya diupload di card:</strong> ${correctCard}<br>
-                <strong>Bukan di card:</strong> ${cardNames[expectedType]}!<br>
-                <em>(${uploadType} ${brandNames[detectedBrand]} wajib di ${correctCard})</em>`;
+            message += `<br><em>Minimal ${TEMPLATES[expectedType].minMatch} keyword wajib cocok!</em>`;
             
             document.getElementById('validationMessage').innerHTML = message;
             document.getElementById('validationBox').classList.add('show');
             
-            // Blink red pada upload area yang salah
+            // Blink red
             const uploadArea = document.getElementById(uploadAreaId);
             uploadArea.classList.add('error-blink');
             
             // Alert
-            alert(`ENDING BALANCE SALAH!\n\nTerdeteksi: ${brandNames[detectedBrand] || detectedBrand}\nHarusnya di: ${correctCard} (Ending Balance)\nBukan di: ${cardNames[expectedType]}\n\nSilakan upload di card yang benar!`);
+            alert(`FORMAT INVOICE SALAH!\n\nUpload: ${cardNames[expectedType]}\nTapi formatnya bukan invoice ${cardNames[expectedType]}!\n\nMissing: ${result.missing.join(', ')}\nFound: ${result.matched.join(', ')}\n\nSilakan upload invoice ${cardNames[expectedType]} yang benar!`);
             
-            // Reset setelah 3 detik
             setTimeout(() => {
                 uploadArea.classList.remove('error-blink');
                 document.getElementById('validationBox').classList.remove('show');
-            }, 3000);
+            }, 5000);
             
             return false;
         }
@@ -867,23 +930,25 @@
             const preview = document.getElementById(type + 'Preview');
             const result = document.getElementById(type + 'Result');
             const brandBox = document.getElementById(type + 'BrandDetected');
+            const templateBox = document.getElementById(type + 'TemplateCheck');
 
             preview.src = URL.createObjectURL(file);
             preview.style.display = 'block';
             result.classList.remove('show');
             brandBox.style.display = 'none';
+            templateBox.style.display = 'none';
 
             Tesseract.recognize(file, 'ind+eng', {
                 logger: m => console.log(m)
             }).then(({ data: { text } }) => {
                 console.log(`OCR Invoice ${type}:`, text);
                 
-                // DETECT BRAND
-                const detectedBrand = detectBrand(text, INVOICE_BRANDS);
+                // STEP 1: VALIDASI TEMPLATE STRICT
+                const templateResult = validateTemplate(text, type);
                 
-                if (detectedBrand && detectedBrand !== type) {
-                    // BRAND SALAH!
-                    showBrandError(detectedBrand, type, type + 'UploadArea', false);
+                if (!templateResult.pass) {
+                    // TEMPLATE TIDAK COCOK!
+                    showTemplateError(templateResult, type, type + 'UploadArea');
                     // Reset
                     preview.style.display = 'none';
                     preview.src = '';
@@ -891,13 +956,33 @@
                     return;
                 }
                 
-                // BRAND BENAR atau tidak terdeteksi
+                // TEMPLATE COCOK - tampilkan check
+                templateBox.innerHTML = `✓ Template Valid<br>Found: ${templateResult.matched.length} required, ${templateResult.optionalMatched.length} optional`;
+                templateBox.className = 'template-check pass';
+                templateBox.style.display = 'block';
+                
+                // STEP 2: DETECT BRAND (secondary check)
+                const detectedBrand = detectBrand(text, {
+                    grab: ['grab', 'Grab', 'GRAB'],
+                    jc: ['gofood', 'GoFood', 'GOFOOD'],
+                    hd: ['shopeefood', 'ShopeeFood', 'SHOPEEFOOD']
+                });
+                
+                if (detectedBrand && detectedBrand !== type) {
+                    showBrandError(detectedBrand, type, type + 'UploadArea', false);
+                    preview.style.display = 'none';
+                    preview.src = '';
+                    input.value = '';
+                    templateBox.style.display = 'none';
+                    return;
+                }
+                
                 if (detectedBrand) {
-                    brandBox.textContent = `✓ Brand terdeteksi: ${detectedBrand.toUpperCase()}`;
+                    brandBox.textContent = `✓ Brand: ${detectedBrand.toUpperCase()}`;
                     brandBox.style.display = 'block';
                 }
                 
-                // Ambil angka paling akhir
+                // STEP 3: EXTRACT AMOUNT
                 let amount = extractFinalAmount(text);
                 
                 data[type].total = amount;
@@ -908,6 +993,46 @@
                 result.classList.add('show');
                 updateCalculationSummary();
             });
+        }
+
+        function detectBrand(text, brandRules) {
+            const lowerText = text.toLowerCase();
+            for (let [key, keywords] of Object.entries(brandRules)) {
+                if (keywords.some(k => lowerText.includes(k.toLowerCase()))) {
+                    return key;
+                }
+            }
+            return null;
+        }
+
+        function showBrandError(detectedBrand, expectedType, uploadAreaId, isBalance) {
+            const brandNames = {
+                grab: 'Grab', jc: 'GoFood', hd: 'ShopeeFood',
+                ovo: 'OVO', gopay: 'GoPay', shopeepay: 'ShopeePay'
+            };
+            const cardNames = { grab: 'Grab', jc: 'JC', hd: 'HD' };
+            const balanceMap = { ovo: 'Grab', gopay: 'JC', shopeepay: 'HD' };
+            
+            let correctCard = isBalance ? (balanceMap[detectedBrand] || detectedBrand) : (cardNames[detectedBrand] || detectedBrand);
+            let uploadType = isBalance ? 'Ending Balance' : 'Invoice';
+            
+            const message = `❌ BRAND SALAH!<br>
+                <strong>Terdeteksi:</strong> ${brandNames[detectedBrand] || detectedBrand}<br>
+                <strong>Harusnya di:</strong> ${correctCard}<br>
+                <strong>Bukan di:</strong> ${cardNames[expectedType]}!`;
+            
+            document.getElementById('validationMessage').innerHTML = message;
+            document.getElementById('validationBox').classList.add('show');
+            
+            const uploadArea = document.getElementById(uploadAreaId);
+            uploadArea.classList.add('error-blink');
+            
+            alert(`${uploadType} SALAH!\n\nTerdeteksi: ${brandNames[detectedBrand] || detectedBrand}\nHarusnya di: ${correctCard}\nBukan di: ${cardNames[expectedType]}`);
+            
+            setTimeout(() => {
+                uploadArea.classList.remove('error-blink');
+                document.getElementById('validationBox').classList.remove('show');
+            }, 3000);
         }
 
         function handleBalanceFile(input, type) {
@@ -926,33 +1051,21 @@
             Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
                 console.log(`OCR Balance ${type}:`, text);
                 
-                // DETECT BRAND untuk Ending Balance
                 const detectedBrand = detectBrand(text, BALANCE_BRANDS);
                 
-                // Map balance brand ke card yang benar
-                const balanceToCard = {
-                    ovo: 'grab',      // OVO → Grab
-                    gopay: 'jc',      // GoPay → JC
-                    shopeepay: 'hd'   // ShopeePay → HD
-                };
-                
                 if (detectedBrand && balanceToCard[detectedBrand] !== type) {
-                    // BRAND SALAH untuk Ending Balance!
                     showBrandError(detectedBrand, type, type + 'BalanceUploadArea', true);
-                    // Reset
                     preview.style.display = 'none';
                     preview.src = '';
                     input.value = '';
                     return;
                 }
                 
-                // BRAND BENAR atau tidak terdeteksi
                 if (detectedBrand) {
-                    brandBox.textContent = `✓ Brand terdeteksi: ${detectedBrand.toUpperCase()}`;
+                    brandBox.textContent = `✓ Brand: ${detectedBrand.toUpperCase()}`;
                     brandBox.style.display = 'block';
                 }
                 
-                // Extract amount
                 let amount = extractBalanceAmount(text, type);
                 
                 data[type].endingBalance = amount;
@@ -1000,20 +1113,16 @@
             let amount = 0;
             
             if (type === 'jc') {
-                // GoPay: "Saldo kamu Rp100.000"
                 const match = text.match(/Saldo\s*kamu\s*Rp\.?\s*([\d.,]+)/i);
                 if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
             } else if (type === 'hd') {
-                // ShopeePay: "Rp 100.000" atau "ShopeePay Rp100.000"
                 const match = text.match(/Rp\s+([\d.,]+)/);
                 if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
             } else if (type === 'grab') {
-                // OVO: "OVO Rp100.000"
                 const match = text.match(/OVO\s*Rp\.?\s*([\d.,]+)/i);
                 if (match) amount = parseInt(match[1].replace(/\./g, '').replace(/,/g, ''));
             }
             
-            // Fallback: cari angka terbesar setelah Rp
             if (amount === 0) {
                 const matches = text.match(/Rp\.?\s*([\d.,]+)/g);
                 if (matches) {
@@ -1074,7 +1183,6 @@
             if (!file) return;
 
             Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
-                // Extra invoice tidak perlu validasi brand
                 const amount = extractFinalAmount(text);
                 data[type].extras.push(amount);
                 updateDisplay(type);
