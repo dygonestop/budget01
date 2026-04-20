@@ -1702,7 +1702,7 @@
 // ============================================
 // AUTO CONFIG - GANTI URL INI
 // ============================================
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVxgoTu0_Tch6PQOX-fjyJhAn_fif4XR9RxzwLzN-4idknfAN2_hM2NBZeAj2xr_ut/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4WDWDH9kuIX1kj4NwSG-3lTJkXS8-09cfut-wWBqYU3vfpTJmCVz7nfhmC6RnN2XB/exec";
 
 // ============================================
 // GLOBAL VARIABLES
@@ -1777,11 +1777,7 @@ async function fetchLastBalanceFromSheets() {
         console.log('Fetching:', fetchUrl);
         
         const response = await fetch(fetchUrl);
-        
-        if (!response.ok) {
-            throw new Error('HTTP error! status: ' + response.status);
-        }
-        
+        if (!response.ok) throw new Error('HTTP error! status: ' + response.status);
         const result = await response.json();
         console.log('Response dari GAS:', result);
 
@@ -1789,7 +1785,6 @@ async function fetchLastBalanceFromSheets() {
             remoteBalances.grab = result.grabEnd || 0;
             remoteBalances.jc = result.jcEnd || 0;
             remoteBalances.hd = result.hdEnd || 0;
-            
             showToast('success', 'Data Ditemukan!', 
                 `Ending balance ${pCode}: Grab Rp ${formatNumber(remoteBalances.grab)}, GoFood Rp ${formatNumber(remoteBalances.jc)}, Shopee Rp ${formatNumber(remoteBalances.hd)}`);
         } else {
@@ -1798,15 +1793,13 @@ async function fetchLastBalanceFromSheets() {
         }
         
         updateAllPlatforms();
-        
     } catch (e) {
         console.error("Error fetch:", e);
         showToast('error', 'Gagal Ambil Data!', 'Menggunakan data local...');
-        
+        // fallback ke data lokal
         remoteBalances.grab = getLastBalanceFromLocal('grab', pCode);
         remoteBalances.jc = getLastBalanceFromLocal('jc', pCode);
         remoteBalances.hd = getLastBalanceFromLocal('hd', pCode);
-        
         updateAllPlatforms();
     } finally {
         phoneInput.style.background = '';
@@ -2803,6 +2796,7 @@ function validateEndingBalance(platform) {
     box.innerHTML = `✅ VALID (${calculated.toLocaleString()})`;
     return true;
 }
+
     </script>
 </body>
 </html>
