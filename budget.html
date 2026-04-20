@@ -230,6 +230,10 @@
             font-weight: bold;
         }
 
+        .preview-item .preview-amount.extra {
+            background: rgba(255, 152, 0, 0.9);
+        }
+
         .preview-item .preview-remove {
             position: absolute;
             top: 4px;
@@ -263,6 +267,10 @@
             font-weight: bold;
         }
 
+        .preview-item .preview-number.extra {
+            background: #ff9800;
+        }
+
         /* ===== INVOICE LIST ===== */
         .invoice-list {
             margin-top: 10px;
@@ -287,6 +295,11 @@
             box-shadow: 0 2px 8px rgba(102,126,234,0.1);
         }
 
+        .invoice-item.extra {
+            border-left: 3px solid #ff9800;
+            background: #fff8e1;
+        }
+
         .invoice-item .invoice-info {
             display: flex;
             align-items: center;
@@ -306,10 +319,18 @@
             font-weight: bold;
         }
 
+        .invoice-item .invoice-number.extra {
+            background: #ff9800;
+        }
+
         .invoice-item .invoice-amount {
             font-weight: bold;
             color: #667eea;
             font-size: 1.1em;
+        }
+
+        .invoice-item .invoice-amount.extra {
+            color: #e65100;
         }
 
         .invoice-item .invoice-remove {
@@ -525,6 +546,31 @@
             transform: none;
         }
 
+        /* ===== BUTTON EXTRA ===== */
+        .btn-extra {
+            background: #fff3e0;
+            color: #e65100;
+            border: 2px dashed #ff9800;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            transition: all 0.2s;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-extra:hover {
+            background: #ffe0b2;
+            border-style: solid;
+            transform: translateY(-1px);
+        }
+
         /* ===== PROCESSING OVERLAY ===== */
         .processing-overlay {
             position: fixed;
@@ -727,7 +773,8 @@
 
         <div class="content">
             <div class="info-text">
-                <strong>Aturan Strict:</strong> Upload invoice sesuai format. OCR akan otomatis membaca dan menjumlahkan total. Maksimal validasi untuk keamanan data.
+                <strong>Aturan Strict:</strong> Upload invoice sesuai format. OCR akan otomatis membaca dan menjumlahkan total. 
+                <br><strong>Invoice Utama:</strong> Validasi strict (keyword + brand). <strong>Invoice Extra:</strong> OCR cepat, tanpa validasi strict.
             </div>
 
             <div class="webapp-input">
@@ -851,8 +898,14 @@
                         <div class="total-count" id="grabTotalCount">0 invoice</div>
                     </div>
 
+                    <!-- Tombol Tambah Invoice -->
                     <button class="btn-add" id="grabAddBtn" onclick="triggerInvoiceUpload('grab')">
                         + Tambah Invoice Grab
+                    </button>
+
+                    <!-- Tombol Invoice Ekstra -->
+                    <button class="btn-extra" onclick="addExtraInvoice('grab')">
+                        ⚡ Invoice Extra (OCR Cepat)
                     </button>
 
                     <!-- Balance Upload -->
@@ -917,6 +970,10 @@
                         + Tambah Invoice JC
                     </button>
 
+                    <button class="btn-extra" onclick="addExtraInvoice('jc')">
+                        ⚡ Invoice Extra (OCR Cepat)
+                    </button>
+
                     <div class="upload-area" id="jcBalanceUploadArea" onclick="document.getElementById('jcBalanceInput').click()" style="margin-top: 15px;">
                         <div style="font-size: 2em;">💰</div>
                         <p><strong>Upload Ending Balance GOPAY</strong></p>
@@ -978,6 +1035,10 @@
                         + Tambah Invoice HD
                     </button>
 
+                    <button class="btn-extra" onclick="addExtraInvoice('hd')">
+                        ⚡ Invoice Extra (OCR Cepat)
+                    </button>
+
                     <div class="upload-area" id="hdBalanceUploadArea" onclick="document.getElementById('hdBalanceInput').click()" style="margin-top: 15px;">
                         <div style="font-size: 2em;">💰</div>
                         <p><strong>Upload Ending Balance SHOPEEPAY</strong></p>
@@ -1028,7 +1089,7 @@
         let data = {
             grab: { 
                 saldoAwal: 0, topUp: 0, 
-                invoices: [], // Array of {id, amount, file}
+                invoices: [], // Array of {id, amount, file, isExtra}
                 endingBalance: 0, 
                 balanceUploaded: false 
             },
@@ -1328,11 +1389,12 @@
                 data[type].invoices.push({
                     id: invoiceId,
                     amount: amount,
-                    file: file
+                    file: file,
+                    isExtra: false
                 });
 
                 // 7. UPDATE UI
-                addInvoiceToUI(type, invoiceId, amount, file);
+                addInvoiceToUI(type, invoiceId, amount, file, false);
                 updateTotalDisplay(type);
                 updateValidationBadge(type, 'valid', '✓ Valid');
                 
@@ -1350,6 +1412,72 @@
                 updateValidationBadge(type, 'invalid', '❌ Error OCR');
                 alert('❌ Gagal membaca gambar: ' + err.message);
             }
+        }
+
+        // ============================================
+        // INVOICE EKSTRA (TANPA STRICT VALIDATION)
+        // ============================================
+        function addExtraInvoice(type) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+            input.onchange = function() {
+                handleExtraFile(this, type);
+            };
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        async function handleExtraFile(input, type) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Validasi file dasar
+            if (!validateFile(file, type)) return;
+
+            // OCR langsung tanpa strict validation
+            try {
+                const { data: { text } } = await Tesseract.recognize(file, 'ind+eng');
+                console.log(`OCR Extra ${type}:`, text);
+
+                const amount = extractFinalAmount(text);
+
+                if (amount === 0) {
+                    alert('❌ Tidak dapat membaca nominal dari invoice ekstra!\n\nPastikan invoice jelas dan terbaca.');
+                    return;
+                }
+
+                // Tambahkan ke invoices array sebagai extra
+                const invoiceId = ++invoiceIdCounter;
+                data[type].invoices.push({
+                    id: invoiceId,
+                    amount: amount,
+                    file: file,
+                    isExtra: true  // tandai sebagai invoice ekstra
+                });
+
+                // Update UI dengan tanda extra
+                addInvoiceToUI(type, invoiceId, amount, file, true);
+                updateTotalDisplay(type);
+                updateCardBadge(type);
+                updateCalculationSummary();
+
+                // Notifikasi ringan
+                const badge = document.getElementById(type + 'ValidationBadge');
+                badge.textContent = `✓ ${data[type].invoices.length} invoice total (${countExtraInvoices(type)} extra)`;
+                badge.className = 'validation-badge valid';
+                badge.style.display = 'inline-flex';
+
+            } catch (err) {
+                console.error('OCR Extra Error:', err);
+                alert('❌ Gagal membaca invoice ekstra: ' + err.message);
+            }
+        }
+
+        function countExtraInvoices(type) {
+            return data[type].invoices.filter(inv => inv.isExtra).length;
         }
 
         // ============================================
@@ -1494,16 +1622,16 @@
         // ============================================
         // ADD INVOICE TO UI
         // ============================================
-        function addInvoiceToUI(type, id, amount, file) {
+        function addInvoiceToUI(type, id, amount, file, isExtra) {
             // Gallery preview
             const gallery = document.getElementById(type + 'PreviewGallery');
             const item = document.createElement('div');
             item.className = 'preview-item';
             item.id = `preview-${type}-${id}`;
             item.innerHTML = `
-                <div class="preview-number">${data[type].invoices.length}</div>
+                <div class="preview-number ${isExtra ? 'extra' : ''}">${data[type].invoices.length}</div>
                 <img src="${URL.createObjectURL(file)}" alt="Invoice">
-                <div class="preview-amount">Rp${amount.toLocaleString('id-ID')}</div>
+                <div class="preview-amount ${isExtra ? 'extra' : ''}">Rp${amount.toLocaleString('id-ID')}</div>
                 <button class="preview-remove" onclick="removeInvoice('${type}', ${id})">×</button>
             `;
             gallery.appendChild(item);
@@ -1511,14 +1639,14 @@
             // List
             const list = document.getElementById(type + 'InvoiceList');
             const listItem = document.createElement('div');
-            listItem.className = 'invoice-item';
+            listItem.className = 'invoice-item ' + (isExtra ? 'extra' : '');
             listItem.id = `invoice-${type}-${id}`;
             listItem.innerHTML = `
                 <div class="invoice-info">
-                    <div class="invoice-number">${data[type].invoices.length}</div>
-                    <span>Invoice #${data[type].invoices.length}</span>
+                    <div class="invoice-number ${isExtra ? 'extra' : ''}">${data[type].invoices.length}</div>
+                    <span>${isExtra ? 'Extra #' : 'Invoice #'}${data[type].invoices.length}</span>
                 </div>
-                <div class="invoice-amount">Rp${amount.toLocaleString('id-ID')}</div>
+                <div class="invoice-amount ${isExtra ? 'extra' : ''}">Rp${amount.toLocaleString('id-ID')}</div>
                 <button class="invoice-remove" onclick="removeInvoice('${type}', ${id})">Hapus</button>
             `;
             list.appendChild(listItem);
@@ -1530,6 +1658,7 @@
         function updateTotalDisplay(type) {
             const invoices = data[type].invoices;
             const total = invoices.reduce((sum, inv) => sum + inv.amount, 0);
+            const extraCount = invoices.filter(inv => inv.isExtra).length;
             
             const display = document.getElementById(type + 'TotalDisplay');
             const value = document.getElementById(type + 'TotalValue');
@@ -1538,7 +1667,11 @@
             if (invoices.length > 0) {
                 display.style.display = 'block';
                 value.textContent = 'Rp' + total.toLocaleString('id-ID');
-                count.textContent = invoices.length + ' invoice' + (invoices.length > 1 ? 's' : '');
+                let countText = invoices.length + ' invoice' + (invoices.length > 1 ? 's' : '');
+                if (extraCount > 0) {
+                    countText += ` (${extraCount} extra)`;
+                }
+                count.textContent = countText;
             } else {
                 display.style.display = 'none';
             }
@@ -1573,8 +1706,9 @@
             const previews = document.querySelectorAll(`#${type}PreviewGallery .preview-item`);
             
             items.forEach((item, i) => {
+                const isExtra = data[type].invoices[i] && data[type].invoices[i].isExtra;
                 item.querySelector('.invoice-number').textContent = i + 1;
-                item.querySelector('span').textContent = `Invoice #${i + 1}`;
+                item.querySelector('span').textContent = (isExtra ? 'Extra #' : 'Invoice #') + (i + 1);
             });
             
             previews.forEach((preview, i) => {
@@ -1587,14 +1721,20 @@
         // ============================================
         function updateCardBadge(type) {
             const badge = document.getElementById(type + 'Badge');
-            const hasInvoice = data[type].invoices.length > 0;
+            const invoices = data[type].invoices;
+            const hasInvoice = invoices.length > 0;
             const hasBalance = data[type].balanceUploaded;
+            const extraCount = invoices.filter(inv => inv.isExtra).length;
             
             if (hasInvoice && hasBalance) {
-                badge.textContent = `✓ ${data[type].invoices.length} Invoice + Balance`;
+                let text = `✓ ${invoices.length} Invoice + Balance`;
+                if (extraCount > 0) text += ` (${extraCount}E)`;
+                badge.textContent = text;
                 badge.className = 'completed-badge';
             } else if (hasInvoice) {
-                badge.textContent = `${data[type].invoices.length} Invoice`;
+                let text = `${invoices.length} Invoice`;
+                if (extraCount > 0) text += ` (${extraCount}E)`;
+                badge.textContent = text;
                 badge.className = 'completed-badge';
             } else {
                 badge.textContent = 'WAJIB';
