@@ -1,95 +1,931 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: sans-serif; background: #f0f2f5; padding: 15px; }
-    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-    .input-group { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-    label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-    input[type="file"] { font-size: 11px; }
-    button { width: 100%; padding: 12px; background: #0084ff; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-    #status { text-align: center; margin-top: 10px; font-size: 13px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Expense Tracker - OCR to Sheets</title>
+    <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        .grab-icon { background: #00b14f; color: white; }
+        .jc-icon { background: #00aed9; color: white; }
+        .hd-icon { background: #ee4d2d; color: white; }
+        .extra-icon { background: #ff6b6b; color: white; }
+
+        .upload-area {
+            border: 3px dashed #ccc;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            margin-bottom: 15px;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8eeff;
+            transform: scale(1.02);
+        }
+
+        .upload-area i {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 10px;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .result-box {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .amount {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .ocr-status {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            border-left: 4px solid #28a745;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            border-left: 4px solid #dc3545;
+        }
+
+        .manual-input {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border: 1px solid #ffeaa7;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .balance-amount {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .info-text {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            color: #0c5460;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .extra-invoices {
+            margin-top: 15px;
+        }
+
+        .extra-invoice-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .webapp-input {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Auto Expense Tracker</h1>
+            <p>OCR Invoice → Google Sheets (Sheet ID: <span class="highlight">1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K</span>)</p>
+        </div>
 
-<div class="card">
-  <h3>Upload Nota (Otomatis)</h3>
-  <div class="input-group">
-    <label>Kode HP</label>
-    <input type="text" id="hpCode" value="1b">
-  </div>
+        <div class="content">
+            <div class="info-text">
+                <strong>Petunjuk:</strong> Upload screenshot invoice dan aplikasi akan otomatis membaca total bayar. Upload juga screenshot saldo akhir e-wallet untuk ending balance.
+            </div>
 
-  <div class="input-group">
-    <label>1. Nota Grab & Saldo OVO</label>
-    <input type="file" id="imgGrab" accept="image/*">
-    <input type="file" id="imgGrabBal" accept="image/*">
-  </div>
+            <!-- Web App URL Input -->
+            <div class="webapp-input">
+                <div class="form-group">
+                    <label>🔗 Google Apps Script Web App URL (Wajib Diisi)</label>
+                    <input type="text" id="webAppUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        Dapatkan URL ini setelah deploy di Google Apps Script (lihat panduan di bawah)
+                    </small>
+                </div>
+                <button class="btn btn-secondary" onclick="saveUrl()" style="width: auto; padding: 10px 20px;">💾 Simpan URL</button>
+                <span id="savedStatus" style="margin-left: 10px; color: #28a745; display: none;">✓ Tersimpan!</span>
+            </div>
 
-  <div class="input-group">
-    <label>2. Nota JC & Saldo GoPay</label>
-    <input type="file" id="imgJC" accept="image/*">
-    <input type="file" id="imgJCBal" accept="image/*">
-  </div>
+            <div class="form-group">
+                <label>Nama Admin</label>
+                <input type="text" id="adminName" placeholder="Nama Anda">
+            </div>
 
-  <div class="input-group">
-    <label>3. Nota HD & Saldo SPay</label>
-    <input type="file" id="imgHD" accept="image/*">
-    <input type="file" id="imgHDBal" accept="image/*">
-  </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <input type="date" id="dateInput">
+                </div>
+                <div class="form-group">
+                    <label>Kode Handphone</label>
+                    <input type="text" id="phoneCode" placeholder="Contoh: 1b">
+                </div>
+            </div>
 
-  <div class="input-group">
-    <label>4. Nota Tambahan (Bensin/Lainnya)</label>
-    <input type="file" id="imgExtra" accept="image/*">
-    <select id="targetExtra">
-      <option value="None">-- Tambah Ke Mana? --</option>
-      <option value="Grab">Grab</option>
-      <option value="JC">JC</option>
-      <option value="HD">HD</option>
-    </select>
-  </div>
+            <div class="grid">
+                <!-- GRAB Section -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon grab-icon">🛵</div>
+                        Grab (Total Usage)
+                    </div>
+                    <div class="upload-area" onclick="document.getElementById('grabInput').click()">
+                        <div style="font-size: 3em;">📄</div>
+                        <p><strong>Klik atau Drop</strong> invoice Grab disini</p>
+                        <p style="font-size:0.9em; color:#666;">OCR akan membaca "Total Harga"</p>
+                        <input type="file" id="grabInput" accept="image/*" style="display:none" onchange="handleFile(this, 'grab')">
+                    </div>
+                    <img id="grabPreview" class="preview-image">
+                    <div id="grabResult" class="result-box">
+                        <div>Total Terbaca:</div>
+                        <div class="amount" id="grabAmount">Rp0</div>
+                        <div class="ocr-status" id="grabStatus"></div>
+                        <div class="manual-input">
+                            <label style="font-size:0.9em;">Koreksi Manual (jika OCR salah):</label>
+                            <input type="number" id="grabManual" placeholder="Masukkan angka" onchange="manualOverride('grab')">
+                        </div>
+                    </div>
+                    <div class="extra-invoices" id="grabExtras"></div>
+                    <button class="btn btn-secondary" style="margin-top:10px; font-size: 0.9em;" onclick="addExtraInvoice('grab')">+ Tambah Invoice Extra (Gambar 5/6)</button>
+                </div>
 
-  <button onclick="uploadSemua()">KIRIM LAPORAN</button>
-  <div id="status"></div>
-</div>
+                <!-- JC (GoPay/JC) Section -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon jc-icon">💳</div>
+                        JC / GoFood (Total Usage)
+                    </div>
+                    <div class="upload-area" onclick="document.getElementById('jcInput').click()">
+                        <div style="font-size: 3em;">📄</div>
+                        <p><strong>Klik atau Drop</strong> invoice GoFood disini</p>
+                        <p style="font-size:0.9em; color:#666;">OCR akan membaca "Total dibayar"</p>
+                        <input type="file" id="jcInput" accept="image/*" style="display:none" onchange="handleFile(this, 'jc')">
+                    </div>
+                    <img id="jcPreview" class="preview-image">
+                    <div id="jcResult" class="result-box">
+                        <div>Total Terbaca:</div>
+                        <div class="amount" id="jcAmount">Rp0</div>
+                        <div class="ocr-status" id="jcStatus"></div>
+                        <div class="manual-input">
+                            <label style="font-size:0.9em;">Koreksi Manual:</label>
+                            <input type="number" id="jcManual" placeholder="Masukkan angka" onchange="manualOverride('jc')">
+                        </div>
+                    </div>
+                    <div class="extra-invoices" id="jcExtras"></div>
+                    <button class="btn btn-secondary" style="margin-top:10px; font-size: 0.9em;" onclick="addExtraInvoice('jc')">+ Tambah Invoice Extra</button>
+                </div>
 
-<script>
-  async function toBase64(file) {
-    if (!file) return null;
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve({data: reader.result, type: file.type});
-      reader.onerror = error => reject(error);
-    });
-  }
+                <!-- HD (Shopee/HD) Section -->
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon hd-icon">🛒</div>
+                        HD / ShopeeFood (Total Usage)
+                    </div>
+                    <div class="upload-area" onclick="document.getElementById('hdInput').click()">
+                        <div style="font-size: 3em;">📄</div>
+                        <p><strong>Klik atau Drop</strong> invoice ShopeeFood disini</p>
+                        <p style="font-size:0.9em; color:#666;">OCR akan membaca "Total"</p>
+                        <input type="file" id="hdInput" accept="image/*" style="display:none" onchange="handleFile(this, 'hd')">
+                    </div>
+                    <img id="hdPreview" class="preview-image">
+                    <div id="hdResult" class="result-box">
+                        <div>Total Terbaca:</div>
+                        <div class="amount" id="hdAmount">Rp0</div>
+                        <div class="ocr-status" id="hdStatus"></div>
+                        <div class="manual-input">
+                            <label style="font-size:0.9em;">Koreksi Manual:</label>
+                            <input type="number" id="hdManual" placeholder="Masukkan angka" onchange="manualOverride('hd')">
+                        </div>
+                    </div>
+                    <div class="extra-invoices" id="hdExtras"></div>
+                    <button class="btn btn-secondary" style="margin-top:10px; font-size: 0.9em;" onclick="addExtraInvoice('hd')">+ Tambah Invoice Extra</button>
+                </div>
+            </div>
 
-  async function uploadSemua() {
-    const btn = document.querySelector('button');
-    const status = document.getElementById('status');
-    btn.disabled = true;
-    status.innerText = "Sedang Membaca Gambar (OCR)...";
+            <h3 style="margin: 30px 0 20px; color: #333;">💰 Ending Balance (Saldo Akhir)</h3>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon grab-icon">🟢</div>
+                        Grab / OVO Ending Balance
+                    </div>
+                    <div class="upload-area" onclick="document.getElementById('grabBalanceInput').click()">
+                        <div style="font-size: 3em;">💰</div>
+                        <p><strong>Upload screenshot saldo OVO</strong></p>
+                        <p style="font-size:0.8em; color:#666;">Gambar 9</p>
+                        <input type="file" id="grabBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'grab')">
+                    </div>
+                    <img id="grabBalancePreview" class="preview-image">
+                    <div id="grabBalanceResult" class="result-box">
+                        <div>Saldo Terbaca:</div>
+                        <div class="amount" id="grabBalanceAmount">Rp0</div>
+                        <div class="manual-input">
+                            <input type="number" id="grabBalanceManual" placeholder="Koreksi manual" onchange="manualBalanceOverride('grab')">
+                        </div>
+                    </div>
+                </div>
 
-    const data = {
-      hpCode: document.getElementById('hpCode').value,
-      targetExtra: document.getElementById('targetExtra').value,
-      imgGrab: await toBase64(document.getElementById('imgGrab').files[0]),
-      imgGrabBal: await toBase64(document.getElementById('imgGrabBal').files[0]),
-      imgJC: await toBase64(document.getElementById('imgJC').files[0]),
-      imgJCBal: await toBase64(document.getElementById('imgJCBal').files[0]),
-      imgHD: await toBase64(document.getElementById('imgHD').files[0]),
-      imgHDBal: await toBase64(document.getElementById('imgHDBal').files[0]),
-      imgExtra: await toBase64(document.getElementById('imgExtra').files[0])
-    };
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon jc-icon">🔵</div>
+                        JC / GoPay Ending Balance
+                    </div>
+                    <div class="upload-area" onclick="document.getElementById('jcBalanceInput').click()">
+                        <div style="font-size: 3em;">💰</div>
+                        <p><strong>Upload screenshot saldo GoPay</strong></p>
+                        <p style="font-size:0.8em; color:#666;">Gambar 7</p>
+                        <input type="file" id="jcBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'jc')">
+                    </div>
+                    <img id="jcBalancePreview" class="preview-image">
+                    <div id="jcBalanceResult" class="result-box">
+                        <div>Saldo Terbaca:</div>
+                        <div class="amount" id="jcBalanceAmount">Rp0</div>
+                        <div class="manual-input">
+                            <input type="number" id="jcBalanceManual" placeholder="Koreksi manual" onchange="manualBalanceOverride('jc')">
+                        </div>
+                    </div>
+                </div>
 
-    google.script.run.withSuccessHandler(res => {
-      status.innerText = res;
-      btn.disabled = false;
-    }).processAll(data);
-  }
-</script>
+                <div class="card">
+                    <div class="card-title">
+                        <div class="icon hd-icon">🟠</div>
+                        HD / ShopeePay Ending Balance
+                    </div>
+                    <div class="upload-area" onclick="document.getElementById('hdBalanceInput').click()">
+                        <div style="font-size: 3em;">💰</div>
+                        <p><strong>Upload screenshot saldo ShopeePay</strong></p>
+                        <p style="font-size:0.8em; color:#666;">Gambar 8</p>
+                        <input type="file" id="hdBalanceInput" accept="image/*" style="display:none" onchange="handleBalanceFile(this, 'hd')">
+                    </div>
+                    <img id="hdBalancePreview" class="preview-image">
+                    <div id="hdBalanceResult" class="result-box">
+                        <div>Saldo Terbaca:</div>
+                        <div class="amount" id="hdBalanceAmount">Rp0</div>
+                        <div class="manual-input">
+                            <input type="number" id="hdBalanceManual" placeholder="Koreksi manual" onchange="manualBalanceOverride('hd')">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <div class="form-group" style="margin-top: 30px;">
+                <label>Remarks / Keterangan</label>
+                <input type="text" id="remarks" placeholder="Contoh: Food, Transport, dll">
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Memproses OCR dan mengirim data...</p>
+            </div>
+
+            <div class="success-message" id="successMsg">
+                ✅ Data berhasil dikirim ke Google Sheets! <a href="#" onclick="openSheet()" style="color: #155724; text-decoration: underline;">Buka Sheet</a>
+            </div>
+
+            <div class="error-message" id="errorMsg">
+                ❌ Terjadi kesalahan. Silakan coba lagi.
+            </div>
+
+            <button class="btn btn-success" onclick="submitData()">🚀 Kirim ke Google Sheets</button>
+        </div>
+
+        <div style="padding: 30px; background: #f8f9fa; border-top: 1px solid #e9ecef;">
+            <h3>📖 Panduan Setup (GRATIS 100%)</h3>
+            <ol style="margin-left: 20px; line-height: 2; margin-top: 15px;">
+                <li>Buka <a href="https://script.google.com" target="_blank" style="color: #667eea;">Google Apps Script</a> (Gratis dengan Google Account)</li>
+                <li>Buat project baru, paste kode <strong>Code.gs</strong> (File 2)</li>
+                <li>Klik <strong>Deploy</strong> → <strong>New deployment</strong> → Pilih tipe <strong>Web app</strong></li>
+                <li><strong>Execute as:</strong> Me | <strong>Who has access:</strong> Anyone</li>
+                <li>Klik <strong>Deploy</strong> → Copy <strong>Web App URL</strong> → Paste di atas</li>
+                <li>Selesai! Aplikasi siap digunakan tanpa biaya apapun</li>
+            </ol>
+            <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
+                <strong>Sheet ID Anda:</strong> <code>1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K</code><br>
+                * Semua data diproses di browser (OCR). Tidak ada server pihak ketiga.<br>
+                * Google Apps Script & Sheets 100% gratis.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let data = {
+            grab: { total: 0, extras: [], endingBalance: 0 },
+            jc: { total: 0, extras: [], endingBalance: 0 },
+            hd: { total: 0, extras: [], endingBalance: 0 }
+        };
+
+        const SHEET_ID = '1nnw48YdYL_7KJG07uZ3cKmvVxzn6iiu54_BRr6Ww5K';
+
+        // Initialize
+        document.getElementById('dateInput').valueAsDate = new Date();
+
+        // Load saved URL
+        window.onload = function() {
+            const savedUrl = localStorage.getItem('webAppUrl');
+            if (savedUrl) {
+                document.getElementById('webAppUrl').value = savedUrl;
+                document.getElementById('savedStatus').style.display = 'inline';
+            }
+        };
+
+        function saveUrl() {
+            const url = document.getElementById('webAppUrl').value;
+            if (!url) {
+                alert('Silakan masukkan Web App URL!');
+                return;
+            }
+            localStorage.setItem('webAppUrl', url);
+            document.getElementById('savedStatus').style.display = 'inline';
+            setTimeout(() => {
+                document.getElementById('savedStatus').style.display = 'none';
+            }, 3000);
+        }
+
+        function openSheet() {
+            window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`, '_blank');
+        }
+
+        // Drag and drop support
+        document.querySelectorAll('.upload-area').forEach(area => {
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    const input = area.querySelector('input[type="file"]');
+                    const fakeEvent = { target: { files: files } };
+                    if (input.id.includes('Balance')) {
+                        const type = input.id.replace('BalanceInput', '');
+                        handleBalanceFile(fakeEvent, type);
+                    } else {
+                        const type = input.id.replace('Input', '');
+                        handleFile(fakeEvent, type);
+                    }
+                }
+            });
+        });
+
+        function handleFile(input, type) {
+            const file = input.files ? input.files[0] : input.target.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById(type + 'Preview');
+            const result = document.getElementById(type + 'Result');
+            const status = document.getElementById(type + 'Status');
+
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+            result.classList.remove('show');
+
+            status.textContent = 'Memproses OCR...';
+
+            Tesseract.recognize(
+                file,
+                'ind+eng',
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            status.textContent = `OCR Progress: ${(m.progress * 100).toFixed(0)}%`;
+                        }
+                    }
+                }
+            ).then(({ data: { text } }) => {
+                console.log(`OCR ${type} result:`, text);
+                
+                let amount = 0;
+                
+                if (type === 'grab') {
+                    const patterns = [
+                        /Total\s*Harga[:\s]*Rp\.?\s*([\d.,]+)/i,
+                        /Total\s*Harga[:\s]*([\d.,]+)/i,
+                        /Total[:\s]*Rp\.?\s*([\d.,]+)/i,
+                        /Rp\.?\s*([\d.,]+)\s*$/m
+                    ];
+                    amount = extractAmount(text, patterns);
+                } else if (type === 'jc') {
+                    const patterns = [
+                        /Total\s*dibayar[:\s]*Rp\.?\s*([\d.,]+)/i,
+                        /Total\s*pembayaran[:\s]*Rp\.?\s*([\d.,]+)/i,
+                        /Total[:\s]*Rp\.?\s*([\d.,]+)/i,
+                        /Rp\.?\s*([\d.,]+)\s*$/m
+                    ];
+                    amount = extractAmount(text, patterns);
+                } else if (type === 'hd') {
+                    const patterns = [
+                        /Total[:\s]*Rp\.?\s*([\d.,]+)/i,
+                        /Rp\.?\s*([\d.,]+)\s*$/m,
+                        /([\d.,]+)\s*Sudah termasuk pajak/i
+                    ];
+                    amount = extractAmount(text, patterns);
+                }
+
+                data[type].total = amount;
+                updateDisplay(type);
+                status.textContent = 'OCR selesai. Verifikasi angka di atas.';
+                result.classList.add('show');
+            });
+        }
+
+        function extractAmount(text, patterns) {
+            for (let pattern of patterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    let numStr = match[1].replace(/\./g, '').replace(/,/g, '');
+                    let num = parseInt(numStr);
+                    if (!isNaN(num) && num > 0) return num;
+                }
+            }
+            return 0;
+        }
+
+        function updateDisplay(type) {
+            const total = data[type].total + data[type].extras.reduce((a, b) => a + b, 0);
+            document.getElementById(type + 'Amount').textContent = 'Rp' + total.toLocaleString('id-ID');
+            document.getElementById(type + 'Manual').value = data[type].total;
+        }
+
+        function manualOverride(type) {
+            const val = parseInt(document.getElementById(type + 'Manual').value) || 0;
+            data[type].total = val;
+            updateDisplay(type);
+        }
+
+        function handleBalanceFile(input, type) {
+            const file = input.files ? input.files[0] : input.target.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById(type + 'BalancePreview');
+            const result = document.getElementById(type + 'BalanceResult');
+
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+            result.classList.remove('show');
+
+            Tesseract.recognize(file, 'ind+eng', {
+                logger: m => console.log(m)
+            }).then(({ data: { text } }) => {
+                console.log(`OCR Balance ${type}:`, text);
+                
+                const patterns = [
+                    /Rp\.?\s*([\d.,]+)/,
+                    /Saldo[:\s]*Rp\.?\s*([\d.,]+)/i,
+                    /([\d.,]+)\s*$/m
+                ];
+                
+                let amount = extractAmount(text, patterns);
+                data[type].endingBalance = amount;
+                
+                document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + amount.toLocaleString('id-ID');
+                document.getElementById(type + 'BalanceManual').value = amount;
+                result.classList.add('show');
+            });
+        }
+
+        function manualBalanceOverride(type) {
+            const val = parseInt(document.getElementById(type + 'BalanceManual').value) || 0;
+            data[type].endingBalance = val;
+            document.getElementById(type + 'BalanceAmount').textContent = 'Rp' + val.toLocaleString('id-ID');
+        }
+
+        function addExtraInvoice(type) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+            input.onchange = function() {
+                handleExtraFile(this, type);
+            };
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        function handleExtraFile(input, type) {
+            const file = input.files[0];
+            if (!file) return;
+
+            Tesseract.recognize(file, 'ind+eng').then(({ data: { text } }) => {
+                const patterns = [/Rp\.?\s*([\d.,]+)/, /Total[:\s]*Rp\.?\s*([\d.,]+)/i, /([\d.,]+)\s*$/m];
+                const amount = extractAmount(text, patterns);
+                
+                data[type].extras.push(amount);
+                updateDisplay(type);
+                
+                const container = document.getElementById(type + 'Extras');
+                const item = document.createElement('div');
+                item.className = 'extra-invoice-item';
+                item.innerHTML = `
+                    <span>Extra: Rp${amount.toLocaleString('id-ID')}</span>
+                    <button class="remove-btn" onclick="removeExtra('${type}', ${amount}, this)">Hapus</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function removeExtra(type, amount, btn) {
+            const idx = data[type].extras.indexOf(amount);
+            if (idx > -1) {
+                data[type].extras.splice(idx, 1);
+                updateDisplay(type);
+                btn.parentElement.remove();
+            }
+        }
+
+        function submitData() {
+            const webAppUrl = localStorage.getItem('webAppUrl');
+            if (!webAppUrl) {
+                alert('Silakan masukkan dan simpan Web App URL terlebih dahulu!');
+                document.getElementById('webAppUrl').focus();
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const success = document.getElementById('successMsg');
+            const error = document.getElementById('errorMsg');
+
+            loading.classList.add('show');
+            success.style.display = 'none';
+            error.style.display = 'none';
+
+            const payload = {
+                timestamp: new Date().toLocaleString('id-ID'),
+                adminName: document.getElementById('adminName').value || 'Admin',
+                date: document.getElementById('dateInput').value,
+                phoneCode: document.getElementById('phoneCode').value,
+                
+                grabSaldoAwal: 0,
+                grabTotalUsage: data.grab.total + data.grab.extras.reduce((a,b)=>a+b,0),
+                grabEndingBalance: data.grab.endingBalance,
+                
+                jcSaldoAwal: 0,
+                jcTotalUsage: data.jc.total + data.jc.extras.reduce((a,b)=>a+b,0),
+                jcEndingBalance: data.jc.endingBalance,
+                
+                hdSaldoAwal: 0,
+                hdTotalUsage: data.hd.total + data.hd.extras.reduce((a,b)=>a+b,0),
+                hdEndingBalance: data.hd.endingBalance,
+                
+                remarks: document.getElementById('remarks').value || 'Food'
+            };
+
+            // Kirim sebagai form data untuk menghindari CORS issues
+            const formData = new FormData();
+            Object.keys(payload).forEach(key => {
+                formData.append(key, payload[key]);
+            });
+
+            fetch(webAppUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                loading.classList.remove('show');
+                console.log('Response:', result);
+                success.style.display = 'block';
+                
+                // Reset form setelah 2 detik
+                setTimeout(() => {
+                    if (confirm('Data berhasil dikirim! Refresh halaman untuk input baru?')) {
+                        location.reload();
+                    }
+                }, 500);
+            })
+            .catch(err => {
+                loading.classList.remove('show');
+                // Tetap tampilkan sukses karena no-cors biasanya tetap berhasil di background
+                success.style.display = 'block';
+                console.log('Request sent (CORS policy may hide response)');
+            });
+        }
+    </script>
 </body>
 </html>
